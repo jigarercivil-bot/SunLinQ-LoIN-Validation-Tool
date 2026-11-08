@@ -14,5 +14,18 @@ for change in reversed(release["patches"]):
 result = "".join(lines)
 if not all(x in result for x in ("mvcSignatureApply", "slqSaveDscrlpDefault", "btnRestoreDscrlp")):
     raise RuntimeError("Required v2.35 features missing from generated HTML")
+# The classification and stage-gate summary cards are useful in the Mapping UI,
+# but must not be included on printed MVC reports.
+notice_insertion = "_mvcMapBrief+_scopeBrief+'$1'"
+if notice_insertion not in result:
+    raise RuntimeError("Could not locate MVC report-only notices")
+result = result.replace(notice_insertion, "'$1'")
+
+# A typed signature must be connected through a valid script closing tag.
+# An escaped backslash produces <\\/script> in the generated MVC, which
+# prevents the browser from running the electronic-signing click handler.
+if '"})();<\\\\/script>"' in result:
+    raise RuntimeError("Electronic signature handler script is incorrectly escaped")
+
 source.write_text(result, encoding="utf-8")
 print("Published SunLinQ LoIN v2.35 with typed signatures and saved DSCRLP defaults")
