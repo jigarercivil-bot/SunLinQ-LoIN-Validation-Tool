@@ -1,0 +1,500 @@
+    '@page{size:A4 portrait;margin:0}',
+    '@media print{',
+      'div[style*="position:fixed"],',
+      '.no-print{display:none!important}',
+      '*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important}',
+      'body{background:#fff!important;margin:0!important;padding:0!important}',
+      '.page-wrap{display:block!important;padding:0!important;gap:0!important;background:#fff!important}',
+      '.page{width:210mm!important;min-height:297mm!important;max-height:297mm!important;box-shadow:none!important;page-break-after:always;break-after:page;overflow:hidden!important}',
+      '.page:last-child{page-break-after:avoid!important;break-after:avoid!important}',
+      'input[type=date]{border:none!important;-webkit-appearance:none!important;appearance:none!important}',
+      'input[type=text]{border:none!important;border-bottom:none!important;background:transparent!important}',
+      'select{border:1px solid #ccc!important}',
+      'textarea{border:none!important;background:transparent!important}',
+      '[contenteditable]{outline:none!important;border:none!important}',
+    '}'
+  ].join('');
+  html=html.replace('</style>',printCSS+'</style>');
+
+  // Stage-specific TMR / QRL property set scope, shown in both MVC export modes.
+  // This is a deliberate delivery deferral, not an amendment to the original LoIN.
+  var _mvcOwnerCounts={TMR:0,QRL:0,SCC:0,NA:0,UNKNOWN:0};
+  if(tt.model&&tt.model.elements&&tt.results&&tt.results.applies&&tt.results.applies.ownerOf){
+    for(var _ownerElement of tt.model.elements.values()){
+      var _owners=tt.results.applies.ownerOf(_ownerElement);
+      if(!Array.isArray(_owners)||!_owners.length){_mvcOwnerCounts.UNKNOWN++;continue;}
+      var _ownerSeen=false;
+      for(var _o=0;_o<_owners.length;_o++){
+        var _ownerKey=String(_owners[_o]||'').toUpperCase();
+        if(_ownerKey==='QR')_ownerKey='QRL';
+        if(_mvcOwnerCounts[_ownerKey]!==undefined&&_ownerKey!=='UNKNOWN'){
+          _mvcOwnerCounts[_ownerKey]++;_ownerSeen=true;
+        }
+      }
+      if(!_ownerSeen)_mvcOwnerCounts.UNKNOWN++;
+    }
+  }
+  var _scopeAvailable=(window.slqPsetScope&&window.slqPsetScope.listForStage)?
+    window.slqPsetScope.listForStage(tt.schema,stage).filter(function(x){
+      return _mvcOwnerCounts[String(x.owner||'').toUpperCase()]>0;
+    }):[];
+  var _scopeDeferred=_scopeAvailable.filter(function(x){return x.applicable&&!x.enabled});
+  var _scopeEnabled=_scopeAvailable.filter(function(x){return x.applicable&&x.enabled});
+  var _scopeNotDue=_scopeAvailable.filter(function(x){return !x.applicable});
+  var _scopeText=function(x){return Ti(x.owner+' — '+x.pset)};
+  var _scopeStatusText=_scopeDeferred.length?
+    'Deferred for this submission (excluded from validation; original LoIN unchanged)':
+    'All scheduled owner property sets enabled for this gate';
+  var _scopeReason=(tt.schema&&tt.schema.settings&&tt.schema.settings.ownerPsetGateReasons&&tt.schema.settings.ownerPsetGateReasons[stage])||'';
+  var _scopeBrief='<div id="mvc-scope" style="border:1px solid #d0dae7;border-left:4px solid '+(_scopeDeferred.length?'#d97706':'#0d9488')+';'+
+    'border-radius:4px;padding:6px 8px;margin:4px 0 8px;font-size:7.2pt;line-height:1.3;page-break-inside:avoid">'+
+    '<div style="font-weight:800;color:#0b2940;margin-bottom:2px">STAGE GATE LoIN PROPERTY SET SCOPE — '+Ti(stage)+'</div>'+
+    '<div><b>Model ownership:</b> '+_mvcOwnerCounts.QRL+' QRL; '+_mvcOwnerCounts.TMR+' TMR; '+_mvcOwnerCounts.SCC+' SCC; '+_mvcOwnerCounts.NA+' N.A. (project-only); '+_mvcOwnerCounts.UNKNOWN+' unclassified.</div>'+
+    '<div>'+_scopeAvailable.length+' applicable owner Psets: '+_scopeEnabled.length+' checked; '+_scopeDeferred.length+' deferred; '+_scopeNotDue.length+' not scheduled at this gate. <strong>'+_scopeStatusText+'</strong>.</div>'+
+    (_scopeDeferred.length?'<div><b>Deferred:</b> '+_scopeDeferred.map(_scopeText).join('; ')+'</div>':'')+
+    (_scopeDeferred.length&&_scopeReason?'<div><b>Reason:</b> '+Ti(_scopeReason)+'</div>':'')+
+    '<div style="font-size:6.5pt;color:#64748b">DSCRLP - PROJECT remains mandatory; a deferred Pset is not a passing result or formal waiver.</div></div>';
+  // V2.30 — independent object mapping completeness report (not property compliance).
+  // Only applied schema mappings count; auto-detected names and unapplied suggestions never do.
+  var _mvcMapRows=(typeof slqBuildMappingRows==='function'&&tt.schema&&tt.model)?slqBuildMappingRows(tt.schema):[];
+  var _mvcMapped=0,_mvcNA=0,_mvcUnmapped=0,_mvcOwnerMissing=0;
+  for(var _mrw of _mvcMapRows){
+    if(_mrw.notApplicable){_mvcNA+=_mrw.count;continue}
+    if(_mrw.mapped){_mvcMapped+=_mrw.count;continue}
+    _mvcUnmapped+=_mrw.count;
+    if(!_mrw.owner||_mrw.owner==='OTHER')_mvcOwnerMissing+=_mrw.count;
+  }
+  var _mvcMapTotal=_mvcMapped+_mvcNA+_mvcUnmapped;
+  var _mvcMapPercent=_mvcMapTotal?((_mvcMapped+_mvcNA)/_mvcMapTotal*100).toFixed(1):'0.0';
+  var _mvcMapState=_mvcUnmapped?'MAPPING INCOMPLETE':'MAPPING COMPLETE';
+  var _mvcMapBrief='<div id="mvc-mapping-coverage" style="border:1px solid #d0dae7;border-left:4px solid '+(_mvcUnmapped?'#d97706':'#0d9488')+';border-radius:4px;padding:6px 8px;margin:4px 0 8px;font-size:7.2pt;line-height:1.3;page-break-inside:avoid">'+
+    '<div style="font-weight:800;color:#0b2940;margin-bottom:2px">OBJECT CLASSIFICATION / MAPPING COVERAGE — '+_mvcMapState+'</div>'+
+    '<div>'+_mvcMapped+' classified + '+_mvcNA+' N.A. (project checks only) of '+_mvcMapTotal+' objects resolved ('+_mvcMapPercent+'%). <b>'+_mvcUnmapped+' unmapped</b>; '+_mvcOwnerMissing+' without recognized Returned Works Owner.</div>'+
+    (_mvcUnmapped?'<div style="color:#92400e">Review the Mapping tab or export the Unmapped Objects CSV. Unmapped objects are not deemed compliant merely because they have no applicable owner-specific checks.</div>':'')+
+    '</div>';
+  html=html.replace(/(<table class="t">\s*<thead>\s*<tr><th colspan="4" class="t-shdr">Model Review Comments)/,_mvcMapBrief+_scopeBrief+'$1');
+
+  // Move the Model Reviewer sign-off out of the original MVC page and place it
+  // at the end of the full MVC report, after all LoIN compliance pages.
+  var _reviewerBlock='';
+  if(includeLoinSummary){
+    var _reviewerMatch=html.match(/<table class="t">\s*<thead>\s*<tr><th colspan="3" class="t-shdr">Model Reviewer<\/th><\/tr>[\s\S]*?<\/table>/);
+    if(_reviewerMatch){
+      _reviewerBlock=_reviewerMatch[0];
+      html=html.replace(_reviewerBlock,'');
+    }
+  }
+
+  // ── LoIN parameter compliance pages (dynamic pagination) ──────────────
+  if(includeLoinSummary){
+  // Page 1 is left untouched. Compliance pages are generated as required so
+  // parameter rows remain readable instead of being compressed onto one A4 page.
+  var _res=tt.results;
+  var _paramMap=new Map();
+  var _reportGate=String(stage||'').trim();
+  var _scopeComplianceNote=_scopeDeferred.length?
+    '<div style="margin:0 0 8px;padding:7px 9px;background:#fff7ed;border:1px solid #fed7aa;border-radius:5px;font-size:7.2pt;color:#92400e">'+
+    '<b>Deferred at '+Ti(stage)+':</b> '+_scopeDeferred.map(_scopeText).join('; ')+
+    (_scopeReason?' — <b>Reason:</b> '+Ti(_scopeReason):'')+
+    '. These property sets are excluded from validation totals for this submission, not marked compliant.</div>':'';
+
+  // QR requirements are asset/profile-specific in the delivery matrix. Most QR
+  // technical object/class combinations share one standard requirement profile
+  // (15 Stage-1 parameters, +27 Stage-2, +3 Stage-3). RAIL ALIGNMENT is a
+  // separate Stage-1 profile with 19 parameters. Do not union every QR class
+  // into one artificial 34-parameter Stage-1 list.
+  var _compById=new Map((tt.schema.components||[]).map(function(c){return[c.id,c]}));
+  var _mappedCompIds=new Set();
+  var _qrMappedCompIds=new Set();
+  var _mapRows=(tt.schema.mapping&&Array.isArray(tt.schema.mapping.rows))?tt.schema.mapping.rows:[];
+  for(var _mr=0;_mr<_mapRows.length;_mr++){
+    var _mcs=_mapRows[_mr].components||[];
+    for(var _mi=0;_mi<_mcs.length;_mi++){
+      var _mid=_mcs[_mi];_mappedCompIds.add(_mid);
+      var _mc=_compById.get(_mid);
+      if(_mc&&String(_mc.owner||'').toUpperCase()==='QRL')_qrMappedCompIds.add(_mid);
+    }
+  }
+  // Older saved schemas may not carry owner on the component. Infer QR components
+  // from rules as well so explicit classification-sheet mappings are respected.
+  var _allRules=(tt.schema&&Array.isArray(tt.schema.rules))?tt.schema.rules:[];
+  var _qrCompIds=new Set();
+  for(var _ar=0;_ar<_allRules.length;_ar++){
+    if(String(_allRules[_ar].owner||'').toUpperCase()==='QRL'){
+      var _acs=_allRules[_ar].components||[];for(var _aci=0;_aci<_acs.length;_aci++)_qrCompIds.add(_acs[_aci]);
+    }
+  }
+  _mappedCompIds.forEach(function(id){if(_qrCompIds.has(id))_qrMappedCompIds.add(id)});
+  var _hasQrExplicitMapping=_qrMappedCompIds.size>0;
+  var _qrRuleProfile=function(rule){
+    var cs=rule.components||[];
+    for(var z=0;z<cs.length;z++){
+      var c=_compById.get(cs[z]);if(!c)continue;
+      var sc=String(c.subCategory||c.group||c.name||'').toUpperCase();
+      if(sc.indexOf('RAIL ALIGNMENT')>=0)return 'Rail Alignment';
+    }
+    return 'Standard QR Asset';
+  };
+  var _qrRuleRelevant=function(rule,rr){
+    var cs=rule.components||[];
+    if(_hasQrExplicitMapping){
+      for(var z=0;z<cs.length;z++)if(_qrMappedCompIds.has(cs[z]))return true;
+      return Number(rr&&rr.checked||0)>0;
+    }
+    // Without an explicit mapping there is no justification for generic QR
+    // requirements in this asset-specific certificate.
+    return Number(rr&&rr.checked||0)>0;
+  };
+
+  if(_res&&Array.isArray(_res.perRule)){
+    for(var _ri=0;_ri<_res.perRule.length;_ri++){
+      var _rr=_res.perRule[_ri];
+      var _rule=_rr.rule||{};
+      // Asset-specific MVC: no mapped object, no applicable parameter row.
+      // Missing values on mapped objects remain failures (checked > 0, passed = 0).
+      if(Number(_rr.checked||0)===0)continue;
+
+      // MVC compliance pages are gate-specific, not progressive.
+      // Example: at PDS, show only parameters explicitly marked R or P in the PDS column.
+      // Earlier-stage requirements may still be checked by the validation engine when
+      // Progressive stages is enabled, but they do not appear on this gate summary.
+      var _gateMark=_rule.stages&&_reportGate?String(_rule.stages[_reportGate]||'').trim().toUpperCase():'';
+      if(_gateMark!=='R'&&_gateMark!=='P')continue;
+
+      var _owner0=String(_rule.owner||'').toUpperCase();
+      if(_owner0==='QRL'&&!_qrRuleRelevant(_rule,_rr))continue;
+      var _qrProfile=_owner0==='QRL'?_qrRuleProfile(_rule):'';
+
+      // The MVC is driven by mapped elements AND the selected gate.
+      // Only requirements that matched one or more actual model objects are shown.
+
+      // Use the primary property specification to organise the MVC summary by
+      // IFC property set (e.g. TMR-Design, TMR-Asset, QR-Finance) rather than
+      // repeating the component/project selection group on every parameter row.
+      var _rawProp=String(_rule.prop||'').split('|')[0].trim();
+      var _pset='General / Unscoped';
+      var _propName=String(_rule.name||('Parameter '+(_ri+1))).trim();
+      if(/^attr\./i.test(_rawProp)){
+        _pset='IFC Attributes';
+        _propName=_rawProp.slice(5).trim()||_propName;
+      }else{
+        var _dot=_rawProp.indexOf('.');
+        if(_dot>0){
+          _pset=_rawProp.slice(0,_dot).trim()||_pset;
+          _propName=_rawProp.slice(_dot+1).trim()||_propName;
+        }else if(_rawProp){
+          _propName=_rawProp;
+        }
+      }
+      if(_pset==='*')_pset='Any Property Set';
+
+      // QR/QRL rows are additionally organised by their delivery stage from the
+      // matrix (Stage 1 / Stage 2 / Stage 3). This is presentation metadata only;
+      // the selected formal gate still controls whether the rule is included.
+      var _owner=String(_rule.owner||'').toUpperCase();
+      var _qrStage='';
+      if(_owner==='QRL'){
+        _qrStage=String(_rule.qrStage||'').trim();
+        if(!_qrStage&&Array.isArray(_rule.qrStages)&&_rule.qrStages.length)_qrStage=String(_rule.qrStages[0]||'').trim();
+        if(!_qrStage){
+          var _qm=String(_rule.note||'').match(/QR\s+(Stage\s*\d+)/i);
+          if(_qm)_qrStage=_qm[1].replace(/\s+/g,' ').trim();
+        }
+      }
+      var _pkey=_pset+'\u0000'+(_qrStage||'')+'\u0000'+(_qrProfile||'')+'\u0000'+_propName;
+      var _entry=_paramMap.get(_pkey);
+      if(!_entry){
+        _entry={key:_pkey,name:_propName,pset:_pset,owner:_owner,qrStage:_qrStage,qrProfile:_qrProfile,checked:0,passed:0,failed:0,rules:0,statuses:new Set(),gateMarks:new Set()};
+        _paramMap.set(_pkey,_entry);
+      }
+      _entry.checked+=Number(_rr.checked||0);
+      _entry.passed+=Number(_rr.passed||0);
+      _entry.failed+=Number(_rr.failed||0);
+      _entry.rules++;
+      _entry.gateMarks.add(_gateMark);
+      if(_rr.status)_entry.statuses.add(_rr.status);
+    }
+  }
+  var _qrStageOrder=function(v){var m=String(v||'').match(/(\d+)/);return m?Number(m[1]):99};
+  // Within each Property Set keep final-value requirements together first,
+  // then mixed requirements, and place placeholder-only attributes at the end.
+  var _reqSort=function(p){
+    var hasR=p.gateMarks&&p.gateMarks.has('R');
+    var hasP=p.gateMarks&&p.gateMarks.has('P');
+    if(hasP&&!hasR)return 2;
+    if(hasR&&hasP)return 1;
+    return 0;
+  };
+  var _params=[..._paramMap.values()].sort(function(a,b){
+    var ga=(a.pset||'').localeCompare(b.pset||'',undefined,{numeric:true,sensitivity:'base'});
+    if(ga)return ga;
+    var ra=_reqSort(a),rb=_reqSort(b);
+    if(ra!==rb)return ra-rb;
+    var qa=_qrStageOrder(a.qrStage),qb=_qrStageOrder(b.qrStage);
+    if(qa!==qb)return qa-qb;
+    var qp=(a.qrProfile||'').localeCompare(b.qrProfile||'',undefined,{numeric:true,sensitivity:'base'});
+    if(qp)return qp;
+    return a.name.localeCompare(b.name,undefined,{numeric:true,sensitivity:'base'});
+  });
+  var _psetCount=new Set(_params.map(function(p){return p.pset||'General / Unscoped'})).size;
+  var _requirementType=function(p){
+    var hasR=p.gateMarks&&p.gateMarks.has('R');
+    var hasP=p.gateMarks&&p.gateMarks.has('P');
+    if(hasP&&!hasR)return 'P';
+    if(hasR&&hasP)return 'M';
+    return 'R';
+  };
+  var _requiredCount=_params.filter(function(p){return _requirementType(p)==='R'}).length;
+  var _placeholderCount=_params.filter(function(p){return _requirementType(p)==='P'}).length;
+  var _mixedCount=_params.filter(function(p){return _requirementType(p)==='M'}).length;
+  var _qrCounts={'Stage 1':0,'Stage 2':0,'Stage 3':0};
+  for(var _qc=0;_qc<_params.length;_qc++){var _qp=_params[_qc];if(_qp.owner==='QRL'&&_qp.qrStage&&_qrCounts[_qp.qrStage]!==undefined)_qrCounts[_qp.qrStage]++;}
+  var _totalChecks=0,_totalPassed=0,_totalFailed=0,_full=0,_partial=0,_zero=0,_na=0,_mapped=0,_unmapped=0;
+  for(var _ai=0;_ai<_params.length;_ai++){
+    var _ap=_params[_ai];
+    _totalChecks+=_ap.checked;_totalPassed+=_ap.passed;_totalFailed+=_ap.failed;
+    if(!_ap.checked){_na++;_unmapped++;}
+    else{
+      _mapped++;
+      if(_ap.passed===_ap.checked)_full++;
+      else if(_ap.passed===0)_zero++;
+      else _partial++;
+    }
+  }
+  var _overall=_totalChecks?(_totalPassed/_totalChecks*100):0;
+  var _pct=function(p){return p.checked?(p.passed/p.checked*100):null};
+  var _pctText=function(p){var x=_pct(p);return x===null?'N/A':(Math.round(x*10)/10).toFixed(1)+'%'};
+  var _state=function(p){var x=_pct(p);if(x===null)return['N/A','#64748b','#f1f5f9'];if(x===100)return['Compliant','#15803d','#dcfce7'];if(x>=95)return['Minor gap','#3f7f22','#ecfccb'];if(x>=80)return['Attention','#b45309','#fef3c7'];return['Action','#b91c1c','#fee2e2']};
+  var _reqHtml=function(p){
+    var rt=_requirementType(p);
+    if(rt==='P')return '<span class="pc-req pc-req-p"><b>◐</b> Placeholder</span>';
+    if(rt==='M')return '<span class="pc-req pc-req-m"><b>●/◐</b> Mixed</span>';
+    return '<span class="pc-req pc-req-r"><b>●</b> Required</span>';
+  };
+  var _resultHtml=function(p){
+    var rt=_requirementType(p);
+    if(rt==='P')return '<span class="pc-placeholder">◐ Placeholder</span>';
+    var st=_state(p),pc=_pctText(p);
+    return '<span style="color:'+st[1]+';background:'+st[2]+'">'+pc+'</span>';
+  };
+  var _rowHtml=function(p){
+    var ms=p.checked?'Mapped & checked':'Not mapped / no applicable objects';
+    var mc=p.checked?'pc-map-ok':'pc-map-miss';
+    return '<tr><td class="pc-param"><b>'+Ti(p.name)+'</b></td>'+ 
+      '<td class="pc-requirement">'+_reqHtml(p)+'</td>'+ 
+      '<td class="pc-map '+mc+'">'+ms+'</td>'+ 
+      '<td class="pc-n">'+p.checked.toLocaleString()+'</td><td class="pc-n pc-pass">'+p.passed.toLocaleString()+'</td>'+ 
+      '<td class="pc-n pc-fail">'+p.failed.toLocaleString()+'</td>'+ 
+      '<td class="pc-pct">'+_resultHtml(p)+'</td></tr>';
+  };
+  var _table=function(arr){
+    var rows='',lastPset=null,lastReqType=null,lastQrStage=null,lastQrProfile=null;
+    for(var ti=0;ti<arr.length;ti++){
+      var p=arr[ti],ps=p.pset||'General / Unscoped';
+      if(ps!==lastPset){
+        rows+='<tr class="pc-pset"><td colspan="7"><span>Property Set</span><b>'+Ti(ps)+'</b></td></tr>';
+        lastPset=ps;lastReqType=null;lastQrStage=null;lastQrProfile=null;
+      }
+      var rt=_requirementType(p);
+      if(rt!==lastReqType){
+        var rlabel=rt==='P'?'Placeholder attributes':(rt==='M'?'Mixed requirements':'Required attributes');
+        var rsym=rt==='P'?'◐':(rt==='M'?'●/◐':'●');
+        var rcls=rt==='P'?'placeholder':(rt==='M'?'mixed':'required');
+        rows+='<tr class="pc-reqgroup '+rcls+'"><td colspan="7"><span>'+rsym+'</span><b>'+rlabel+'</b></td></tr>';
+        lastReqType=rt;lastQrStage=null;lastQrProfile=null;
+      }
+      if(p.owner==='QRL'&&p.qrProfile&&p.qrProfile!==lastQrProfile&&p.qrProfile!=='Standard QR Asset'){
+        rows+='<tr class="pc-qrstage"><td colspan="7"><span>QR Profile</span><b>'+Ti(p.qrProfile)+'</b></td></tr>';
+        lastQrProfile=p.qrProfile;lastQrStage=null;
+      }
+      if(p.owner==='QRL'&&p.qrStage&&p.qrStage!==lastQrStage){
+        rows+='<tr class="pc-qrstage"><td colspan="7"><span>QR Delivery</span><b>'+Ti(p.qrStage)+'</b></td></tr>';
+        lastQrStage=p.qrStage;
+      }
+      rows+=_rowHtml(p);
+    }
+    return '<table class="pc-table"><thead><tr><th>Parameter</th><th>Requirement</th><th>Model Status</th><th>Checks</th><th>Pass</th><th>Fail</th><th>Result</th></tr></thead><tbody>'+rows+'</tbody></table>';
+  };
+  var _count=_params.length;
+  var _hdrMatch=html.match(/<div class="hdr"><img[^>]*><\/div>/);
+  var _hdr2=_hdrMatch?_hdrMatch[0]:'<div class="pc-simplehdr"><b>SunLinQ</b><span>Direct Sunshine Coast Rail Line Project</span></div>';
+
+  // Keep rows comfortably readable. The first compliance page has the KPI summary,
+  // so it carries fewer rows. Continuation pages can carry more.
+  var _firstPageRows=22;
+  var _continuationRows=31;
+  var _paramPages=[];
+  if(!_params.length){
+    // Do not silently use non-applicable rules to fill an empty report.
+    _paramPages.push([]);
+  }else{
+    _paramPages.push(_params.slice(0,_firstPageRows));
+    for(var _ps=_firstPageRows;_ps<_params.length;_ps+=_continuationRows){
+      _paramPages.push(_params.slice(_ps,_ps+_continuationRows));
+    }
+  }
+
+  // Reserve vertical space for the Model Reviewer sign-off on the final report page.
+  // If the current final compliance page is too full, move its tail parameters to a
+  // new continuation page so the sign-off remains readable and never overlaps.
+  if(_reviewerBlock&&_paramPages.length){
+    var _reviewerReserveRows=10;
+    var _lastPageIndex=_paramPages.length-1;
+    var _lastPageCapacity=(_paramPages.length===1?_firstPageRows:_continuationRows)-_reviewerReserveRows;
+    if(_lastPageCapacity<8)_lastPageCapacity=8;
+    if(_paramPages[_lastPageIndex].length>_lastPageCapacity){
+      var _reviewerOverflow=_paramPages[_lastPageIndex].splice(_lastPageCapacity);
+      _paramPages.push(_reviewerOverflow);
+    }
+  }
+  var _reportPageCount=1+_paramPages.length; // includes the original MVC page
+
+  var _page2Css='<style id="pc-page-style">'+
+    '.pc-body{flex:1;padding:16px 22px 10px;overflow:hidden;background:#fff}.pc-title{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:3px solid #0d9488;padding-bottom:7px;margin-bottom:10px}.pc-title h1{font-size:18pt;color:#0b2940;margin:0}.pc-title .pc-gate{text-align:right;color:#52647a;font-size:8pt}.pc-title .pc-gate b{display:block;font-size:13pt;color:#0b2940}.pc-title .pc-cont{font-size:7.5pt;color:#718096;font-weight:700;text-transform:uppercase;letter-spacing:.45px;margin-top:2px}.pc-note{font-size:7.6pt;color:#66758a;margin:0 0 9px;line-height:1.35}.pc-kpis{display:grid;grid-template-columns:1.05fr repeat(4,.8fr);gap:7px;margin-bottom:10px}.pc-card{border:1px solid #dbe2ea;border-radius:7px;padding:7px 8px;background:#f8fafc}.pc-card label{display:block;text-transform:uppercase;letter-spacing:.45px;color:#718096;font-size:6.3pt;font-weight:700}.pc-card b{display:block;color:#0b2940;font-size:14pt;line-height:1.15;margin-top:2px}.pc-card.main{background:#0b2940;border-color:#0b2940}.pc-card.main label{color:#b8cadb}.pc-card.main b{color:#fff;font-size:18pt}.pc-mini{display:flex;gap:12px;flex-wrap:wrap;font-size:7.2pt;color:#52647a;margin:0 0 9px}.pc-mini b{color:#0b2940}.pc-context{display:flex;justify-content:space-between;gap:12px;align-items:center;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:6px 8px;margin:0 0 9px;font-size:7.4pt;color:#52647a}.pc-context b{color:#0b2940}.pc-table{border-collapse:collapse;width:100%;table-layout:fixed;font-size:8.2pt;line-height:1.18}.pc-table thead{display:table-header-group}.pc-table th{background:#0b2940;color:#fff;border:1px solid #d7dee8;padding:4px 4px;text-align:center;font-size:6.8pt;text-transform:uppercase;letter-spacing:.2px}.pc-table th:first-child{text-align:left}.pc-table td{border:1px solid #dde3ea;padding:3px 5px;vertical-align:middle}.pc-table tr:nth-child(even) td{background:#f8fafc}.pc-table .pc-pset td{background:#e8f4f3!important;border-color:#b9dcd8;padding:5px 7px;color:#0b2940}.pc-pset span{display:inline-block;text-transform:uppercase;letter-spacing:.55px;font-size:6.2pt;color:#5f7484;font-weight:700;margin-right:7px}.pc-pset b{font-size:8.4pt;color:#0f766e}.pc-table .pc-reqgroup td{padding:4px 9px;border-color:#d7dee8;font-size:7pt}.pc-reqgroup span{display:inline-block;font-size:8pt;font-weight:800;margin-right:6px}.pc-reqgroup b{font-size:7.7pt;letter-spacing:.15px}.pc-table .pc-reqgroup.required td{background:#edf8f0!important;color:#166534;border-left:3px solid #16a34a}.pc-table .pc-reqgroup.placeholder td{background:#f5f3ff!important;color:#6d28d9;border-left:3px solid #7c3aed}.pc-table .pc-reqgroup.mixed td{background:#fff7ed!important;color:#9a3412;border-left:3px solid #f97316}.pc-table .pc-qrstage td{background:#f1f5f9!important;border-color:#d7dee8;padding:4px 10px;color:#334155}.pc-qrstage span{display:inline-block;text-transform:uppercase;letter-spacing:.5px;font-size:6pt;color:#64748b;font-weight:700;margin-right:7px}.pc-qrstage b{font-size:8pt;color:#0b2940}.pc-param{width:31%;overflow-wrap:anywhere}.pc-param b{font-weight:700;color:#1e293b}.pc-requirement{width:15%;text-align:center;white-space:nowrap}.pc-req{display:inline-flex;align-items:center;gap:3px;padding:2px 5px;border-radius:10px;font-size:6.7pt;font-weight:700}.pc-req-r{color:#0f5132;background:#dcfce7}.pc-req-p{color:#6d28d9;background:#ede9fe}.pc-req-m{color:#9a3412;background:#ffedd5}.pc-req b{font-size:8.2pt}.pc-map{width:20%;font-size:6.8pt;text-align:center;font-weight:700}.pc-map-ok{color:#15803d;background:#f0fdf4!important}.pc-map-miss{color:#b45309;background:#fffbeb!important}.pc-n{text-align:center;width:6%;white-space:nowrap}.pc-pass{color:#15803d}.pc-fail{color:#b91c1c}.pc-pct{text-align:center;width:10%;white-space:nowrap}.pc-pct span{display:inline-block;min-width:45px;padding:2px 4px;border-radius:10px;font-weight:700}.pc-placeholder{color:#6d28d9!important;background:#ede9fe!important;border:1px solid #ddd6fe;min-width:62px!important}.pc-simplehdr{height:58px;background:#0b2940;color:white;padding:12px 22px;display:flex;justify-content:space-between;align-items:center}.pc-simplehdr b{font-size:17pt}.pc-simplehdr span{font-size:9pt}.pc-reviewer{margin-top:12px;padding-top:10px;border-top:1px solid #d7dee8}.pc-reviewer table.t{margin-bottom:0}.pc-reviewer textarea{min-height:38px!important;max-height:56px!important}.pc-footer{height:31px;border-top:1px solid #d7dee8;margin:0 22px;display:flex;justify-content:space-between;align-items:center;color:#64748b;font-size:7pt}'+
+    '</style>';
+  html=html.replace('</head>',_page2Css+'</head>');
+
+  var _compliancePages='';
+  var _paramOffset=0;
+  for(var _pg=0;_pg<_paramPages.length;_pg++){
+    var _arr=_paramPages[_pg];
+    var _pageNo=_pg+2;
+    var _from=_arr.length?_paramOffset+1:0;
+    var _to=_paramOffset+_arr.length;
+    var _isFirst=_pg===0;
+    var _body='';
+    if(_isFirst){
+      _body+=
+        '<div class="pc-title"><div><h1>LoIN Parameter Compliance Summary</h1></div><div class="pc-gate">FORMAL SUBMISSION GATE<b>'+Ti(stage)+'</b></div></div>'+ 
+        '<p class="pc-note">Every LoIN parameter explicitly applicable at the selected gate is included. <b>● Required</b> means a final value is required and is shown as compliance %. <b style="color:#6d28d9">◐ Placeholder</b> means a placeholder is permitted at this gate and is shown with the placeholder symbol instead of a misleading percentage. Model Status and Pass/Fail still show whether the attribute was present and checked.</p>'+ 
+        _scopeComplianceNote+
+        '<div class="pc-kpis"><div class="pc-card main"><label>Overall data compliance</label><b>'+(_totalChecks?(Math.round(_overall*10)/10).toFixed(1):'0.0')+'%</b></div>'+ 
+        '<div class="pc-card"><label>Gate parameters</label><b>'+_count+'</b></div><div class="pc-card"><label>Total checks</label><b>'+_totalChecks.toLocaleString()+'</b></div>'+ 
+        '<div class="pc-card"><label>Passed</label><b style="color:#15803d">'+_totalPassed.toLocaleString()+'</b></div><div class="pc-card"><label>Failed</label><b style="color:#b91c1c">'+_totalFailed.toLocaleString()+'</b></div></div>'+ 
+        '<div class="pc-mini"><span><b>'+_psetCount+'</b> property sets</span><span><b>'+_requiredCount+'</b> required ●</span><span><b>'+_placeholderCount+'</b> placeholder ◐</span>'+(_mixedCount?'<span><b>'+_mixedCount+'</b> mixed ●/◐</span>':'')+'<span><b>'+_mapped+'</b> mapped</span><span><b>'+_unmapped+'</b> not mapped / no objects</span><span><b>'+_full+'</b> fully compliant</span><span><b>'+_partial+'</b> partially compliant</span><span><b>'+_zero+'</b> zero-pass</span>'+
+        ((_qrCounts['Stage 1']+_qrCounts['Stage 2']+_qrCounts['Stage 3'])?'<span>QR: <b>Stage 1 '+_qrCounts['Stage 1']+'</b> · <b>Stage 2 '+_qrCounts['Stage 2']+'</b> · <b>Stage 3 '+_qrCounts['Stage 3']+'</b></span>':'')+
+        '<span>Model: <b>'+Ti(modelNum)+'</b></span>'+(pkgCode?'<span>Package: <b>'+Ti(pkgCode)+'</b></span>':'')+'</div>';
+    }else{
+      _body+=
+        '<div class="pc-title"><div><h1>LoIN Parameter Compliance Summary</h1><div class="pc-cont">Continued</div></div><div class="pc-gate">FORMAL SUBMISSION GATE<b>'+Ti(stage)+'</b></div></div>'+ 
+        '<div class="pc-context"><span>Model: <b>'+Ti(modelNum)+'</b>'+(pkgCode?' &nbsp; | &nbsp; Package: <b>'+Ti(pkgCode)+'</b>':'')+'</span><span>Parameters <b>'+_from+'–'+_to+'</b> of <b>'+_count+'</b></span></div>';
+    }
+    _body+=_table(_arr);
+    if(_reviewerBlock&&_pg===_paramPages.length-1){
+      _body+='<div class="pc-reviewer">'+_reviewerBlock+'</div>';
+    }
+    _compliancePages+='<div class="page pc-page">'+_hdr2+'<div class="pc-body">'+_body+'</div>'+ 
+      '<div class="pc-footer"><span>Direct Sunshine Coast Rail Line Project – Model Validation Certificate</span><span>- '+_pageNo+' -</span></div></div>';
+    _paramOffset+=_arr.length;
+  }
+
+  // Insert all generated compliance pages inside the same .page-wrap as the MVC page.
+  // A dedicated marker prevents the pages from ever being attached to the floating Print button.
+  if(html.includes('<!-- MVC_REPORT_PAGES -->')){
+    html=html.replace('<!-- MVC_REPORT_PAGES -->',_compliancePages);
+  }else{
+    console.warn('MVC report page marker not found; compliance pages were not inserted.');
+  }
+  }else{
+    // Standalone MVC certificate: keep Page 1 exactly as the certificate, including reviewer sign-off.
+    html=html.replace('<!-- MVC_REPORT_PAGES -->','');
+  }
+
+
+  // ── Package ID selector ──────────────────────────────────────────────────
+  // Reliable native selector. It is preselected from the IFC filename match.
+  // Changing Package ID immediately updates the linked Package Title dropdown.
+  var _pkeys=Object.keys(PKG).sort();
+  var _pkgOptions='<option value="">— Select Package ID —</option>';
+  for(var _pi=0;_pi<_pkeys.length;_pi++){
+    var _pk=_pkeys[_pi];
+    var _pd=PKG[_pk]||'';
+    _pkgOptions+='<option value="'+Ti(_pk)+'" data-title="'+Ti(_pd)+'"'
+      +(pkgCode===_pk?' selected':'')+'>'
+      +Ti(_pk)+'</option>';
+  }
+
+  var _pickerHtml='<select id="_pkgid" '
+    +'style="width:100%;box-sizing:border-box;background:#f0f4fa;border:1.5px solid #7a9abf;'
+    +'border-radius:6px;padding:4px 9px;height:30px;font-size:9.5pt;font-family:Calibri,Arial,sans-serif;'
+    +'color:#0b2940;font-weight:700;outline:none;cursor:pointer;" '
+    +'onchange="(function(s){var t=document.getElementById(\'_pkgtitle\');'
+    +'if(t){t.value=s.value||\'\';var o=t.options[t.selectedIndex];t.title=o&&t.value?o.textContent:\'\';var preview=document.getElementById(\'_pkgtitlepreview\');if(preview)preview.textContent=o&&t.value?o.textContent:\'\';}'
+    +'})(this)">'
+    +_pkgOptions+'</select>';
+
+  html=html.replace(
+    '<td><strong>Selection List from Package Register? Ie <span class="red">XXX-00ClAL</span></strong></td>',
+    '<td>'+_pickerHtml+'</td>');
+
+  // ── MVC model format logic ───────────────────────────────────────────────
+  // Exchange defaults to IFC. Native is inferred from the IFC source application
+  // when possible, while both remain normal dropdowns for manual override.
+  var _fmtVals=['DGN','RVT','DWG','12DA','XML','IFC'];
+  function _fmtSelect(_id,_selected,_title){
+    var _opts='<option value="">— select —</option>';
+    for(var _fi=0;_fi<_fmtVals.length;_fi++){
+      var _fv=_fmtVals[_fi];
+      _opts+='<option value="'+_fv+'"'+(_selected===_fv?' selected':'')+'>'+_fv+'</option>';
+    }
+    return '<select id="'+_id+'" title="'+Ti(_title||'Manual format selection')+'" '+
+      'style="border:1px solid #b0b8c8;border-radius:4px;padding:3px 5px;width:100%;font-size:9pt;'+
+      'font-family:Calibri,Arial,sans-serif;color:#1d2129;background:#fff;cursor:pointer">'+_opts+'</select>';
+  }
+  var _nativeFmt=tt.ifcSourceFormat||'';
+  var _srcHint=tt.ifcSourceText?('Auto-detected from IFC source: '+tt.ifcSourceText.slice(0,180)):
+    'IFC source application not recognised — select Native format manually';
+  html=html.replace(
+    /(<tr><td class="mt">Native<\/td><td>[\s\S]*?<\/td><td>)<select[\s\S]*?<\/select>(<\/td><td>[\s\S]*?<\/td><\/tr>)/,
+    '$1'+_fmtSelect('_nativeFormat',_nativeFmt,_srcHint)+'$2'
+  );
+  html=html.replace(
+    /(<tr><td class="mt">Exchange<\/td><td>[\s\S]*?<\/td><td>)<select[\s\S]*?<\/select>(<\/td><td>[\s\S]*?<\/td><\/tr>)/,
+    '$1'+_fmtSelect('_exchangeFormat','IFC','Exchange format defaults to IFC; change manually if required')+'$2'
+  );
+
+
+  html=html.replace('</body>',"<script>(function(){\n  'use strict';\n  var canvas=document.getElementById('mvcSignature');\n  if(!canvas)return;\n  var clear=document.getElementById('mvcSignatureClear');\n  var img=document.getElementById('mvcSignaturePrint');\n  var ctx=canvas.getContext('2d');if(!ctx)return;\n  var drawing=false,hasInk=false,last=null;\n  function pos(e){\n    var b=canvas.getBoundingClientRect();\n    return {x:(e.clientX-b.left)*canvas.width/Math.max(1,b.width),y:(e.clientY-b.top)*canvas.height/Math.max(1,b.height)};\n  }\n  ctx.lineWidth=2.7;ctx.strokeStyle='#102b43';ctx.lineCap='round';ctx.lineJoin='round';\n  canvas.addEventListener('pointerdown',function(e){\n    if(e.button!=null&&e.button!==0&&e.pointerType==='mouse')return;\n    e.preventDefault();canvas.setPointerCapture&&canvas.setPointerCapture(e.pointerId);\n    last=pos(e);drawing=true;ctx.beginPath();ctx.moveTo(last.x,last.y);\n    ctx.lineTo(last.x+.15,last.y+.15);ctx.stroke();hasInk=true;\n  });\n  canvas.addEventListener('pointermove',function(e){\n    if(!drawing)return;e.preventDefault();var p=pos(e);\n    ctx.beginPath();ctx.moveTo(last.x,last.y);ctx.lineTo(p.x,p.y);ctx.stroke();last=p;\n  });\n  function stop(e){if(!drawing)return;drawing=false;last=null;if(e&&canvas.hasPointerCapture&&canvas.hasPointerCapture(e.pointerId))canvas.releasePointerCapture(e.pointerId);}\n  canvas.addEventListener('pointerup',stop);canvas.addEventListener('pointercancel',stop);\n  if(clear)clear.addEventListener('click',function(){ctx.clearRect(0,0,canvas.width,canvas.height);hasInk=false;if(img){img.removeAttribute('src');img.style.display='none';}});\n  function printSignature(){if(!img)return;if(hasInk){try{img.src=canvas.toDataURL('image/png');}catch(e){}img.style.display='block';}else{img.removeAttribute('src');img.style.display='none';}}\n  window.addEventListener('beforeprint',printSignature);\n  window.addEventListener('afterprint',function(){if(img)img.style.display='none';});\n  // Keep reviewer name, selected package and dates editable until user prints.\n})();<\/script>"+'</body>');
+
+  var w=window.open("","_blank");
+  if(w){w.document.open();w.document.write(html);w.document.close();}
+  else p9(new Blob([html],{type:"text/html"}),H$()+"_MVC.html");
+}
+
+window.__irc={state:tt,loadFile:x$,validate:vD,viewer:Ln};
+function slqMapOwnerOf(el,settings){
+  // V2.23: project-controlled owner. "Return Works Owner" is authoritative.
+  // Accept "Returned Works Owner" as a compatibility alias for legacy exports/UI labels.
+  let raw="",source="";
+  const cleanKey=v=>String(v||"").toLowerCase().replace(/[_:\-\/]+/g," ").replace(/\s+/g," ").trim();
+  if(el?.props?.entries){
+    for(let [k,v] of el.props.entries()){
+      let nk=cleanKey(k),tail=nk.split(".").pop().trim();
+      if(tail==="return works owner"||tail==="returned works owner"||nk.endsWith(" return works owner")||nk.endsWith(" returned works owner")){
+        let vv=v&&typeof v==="object"&&"value" in v?v.value:v;
+        if(vv!=null&&!lS(vv)){raw=String(vv).trim();source=String(k);break}
+      }
+    }
+  }
+  if(!raw){
+    for(let spec of ["Return Works Owner","Returned Works Owner"]){
+      try{let hit=I2(spec,!0)(el.props);if(hit&&!lS(hit.value)){raw=String(hit.value).trim();source=spec;break}}catch(e){}
+    }
+  }
+  // Legacy configured owner field remains a fallback only when the fixed project field is absent.
+  if(!raw&&settings.ownerProp){
+    let getter=I2(settings.ownerProp,settings.anyPset),hit=getter?getter(el.props):null;
+    if(hit&&!lS(hit.value)){raw=String(hit.value).trim();source=settings.ownerProp}
+  }
+  if(!raw)return{owner:"",raw:"",source:""};
+  let low=a3(raw).toLowerCase().trim(),owner="OTHER";
+  if(/^(?:n\s*[.\/]\s*a\s*\.?|na|not\s+applicable)$/i.test(low))owner="NA";
+  else if(/(^|[^a-z0-9])tmr($|[^a-z0-9])|transport.*main.*roads|main roads/.test(low))owner="TMR";
+  else if(/(^|[^a-z0-9])(qr|qrl)($|[^a-z0-9])|queensland rail/.test(low))owner="QRL";
+  else if(/(^|[^a-z0-9])scc($|[^a-z0-9])|sunshine coast council/.test(low))owner="SCC";
+  else for(let [key,vals] of Object.entries(settings.ownerMap||{})){
+    for(let word of [].concat(vals||[])){
+      let w=String(word||"").trim().toLowerCase();if(!w)continue;
+      let rx=new RegExp("(^|[^a-z0-9])"+w.replace(/[.*+?^${}()[\]\\|]/g,"\\$&")+"($|[^a-z0-9])");
+      if(rx.test(low)){owner=String(key).toUpperCase();break}
+    }
