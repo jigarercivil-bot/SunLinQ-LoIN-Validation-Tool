@@ -1,0 +1,14 @@
+      const current=schema.settings?.[KEY]||{};
+      const forGate={...(current[gate]||{})};
+      for(const item of items)if(item.applicable)delete forGate[item.key];
+      schema.settings={...(schema.settings||{}),[KEY]:{...current,[gate]:forGate}};
+      if(typeof window.xo==='function')window.xo(false);
+      render();
+    };
+  }
+  window.slqPsetScope={render,listForStage:stageItems,isExcluded};
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',render);else render();
+})();
+</script>
+</body>
+</html>
