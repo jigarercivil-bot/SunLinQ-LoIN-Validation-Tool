@@ -1,0 +1,500 @@
+    if(owner!=="OTHER")break;
+  }
+  return{owner,raw,source:source||"Return Works Owner"};
+}
+function slqMapComponents(schema,owner,category,subCategory){
+  return (schema.components||[]).filter(c=>String(c.kind||"").toUpperCase()===owner&&String(c.category||c.group||"")===category&&String(c.subCategory||c.name||"")===subCategory);
+}
+function slqMapRequirementSet(schema,componentIds){
+  let settings=O1(schema),stage=settings.stage,ids=new Set(componentIds||[]),byProp=new Map;
+  for(let rule of schema.rules||[]){
+    if(!rule.components?.some(id=>ids.has(id)))continue;
+    let mark=r9(rule,stage,settings.progressive);if(mark!=="R"&&mark!=="P")continue;
+    let key=rule.prop||rule.id,prev=byProp.get(key);
+    if(!prev||mark==="R")byProp.set(key,{rule,mark});
+  }
+  let rows=[...byProp.values()],required=rows.filter(x=>x.mark==="R"),placeholder=rows.filter(x=>x.mark==="P"),psets=new Map;
+  for(let item of rows){
+    let [pset,param]=zy(item.rule.prop||"");
+    if(!psets.has(pset))psets.set(pset,{R:[],P:[]});
+    psets.get(pset)[item.mark].push(param);
+  }
+  return{stage,required,placeholder,rows,psets};
+}
+function slqBuildMappingRows(schema){
+  if(!tt.model)return[];
+  let settings=O1(schema),typeGet=I2("Attr.TypeName"),objGet=I2("Attr.ObjectType"),nameGet=I2("Attr.Name"),groups=new Map,exclude=tt.excl;
+  for(let el of tt.model.elements.values()){
+    if(exclude&&exclude(el.cls))continue;
+    let own=slqMapOwnerOf(el,settings),tv=typeGet(el.props),ov=objGet(el.props),nv=nameGet(el.props);
+    let type=tv&&!lS(tv.value)?String(tv.value).trim():ov&&!lS(ov.value)?String(ov.value).trim():"";
+    let basis=type?"type":"name",basisValue=type||(nv&&!lS(nv.value)?String(nv.value).trim():"");
+    if(!basisValue){basis="class";basisValue=""}
+    let key=[own.owner,el.cls,basis,basisValue].map(v=>encodeURIComponent(String(v||""))).join("|"),g=groups.get(key);
+    if(!g){g={key,owner:own.owner,ownerRaw:own.raw,ownerSource:own.source||"",cls:el.cls,type:basis==="type"?basisValue:"",name:basis==="name"?basisValue:"",basis,basisValue,count:0,ids:[]};groups.set(key,g)}
+    g.count++;if(g.ids.length<10000)g.ids.push(el.id);
+  }
+  let uiRows=(schema.mapping?.rows||[]).filter(r=>r.uiMapping),uiByKey=new Map(uiRows.map(r=>[r.mapKey,r])),components=new Map((schema.components||[]).map(c=>[c.id,c]));
+  let result=[...groups.values()].map(g=>{
+    let isNA=g.owner==="NA";
+    let map=isNA?null:(uiByKey.get(g.key)||null),compList=map?(map.components||[]).map(id=>components.get(id)).filter(Boolean):[];
+    let category=isNA?"N.A.":map?.uiCategory||compList[0]?.category||compList[0]?.group||"",subCategory=isNA?"N.A.":map?.uiSubCategory||compList[0]?.subCategory||compList[0]?.name||"";
+    let req=map?slqMapRequirementSet(schema,map.components||[]):{stage:O1(schema).stage,required:[],placeholder:[],rows:[],psets:new Map};
+    return{...g,map,category,subCategory,req,notApplicable:isNA,mapped:isNA||!!(map&&map.components?.length)};
+  });
+  return result.sort((a,b)=>(a.owner||"ZZZ").localeCompare(b.owner||"ZZZ")||a.cls.localeCompare(b.cls)||b.count-a.count||a.basisValue.localeCompare(b.basisValue));
+}
+function slqSaveUiMapping(item,category,subCategory){
+  let schema=tt.schema,components=slqMapComponents(schema,item.owner,category,subCategory),all=(schema.mapping?.rows||[]).filter(r=>!(r.uiMapping&&r.mapKey===item.key));
+  if(components.length){
+    let row={uiMapping:true,mapKey:item.key,uiOwner:item.owner,uiCategory:category,uiSubCategory:subCategory,cls:item.cls,type:item.basis==="type"?item.basisValue:"",name:"",prop:item.basis==="name"?"Attr.Name":"",value:item.basis==="name"?item.basisValue:"",components:components.map(c=>c.id),row:all.length+2};
+    all.push(row);
+  }
+  schema.mapping={...(schema.mapping||{}),mode:"only",source:"Schema Mapping",rows:all};
+  Kn.mapDrafts.delete(item.key);Kn.mapPreviewKey=null;tt.compStats=null;Kn.cache=null;Kn.cacheFor=null;xo(!1);
+}
+function slqClearUiMapping(item){
+  let schema=tt.schema,all=(schema.mapping?.rows||[]).filter(r=>!(r.uiMapping&&r.mapKey===item.key));
+  if(all.length)schema.mapping={...(schema.mapping||{}),mode:"only",rows:all};else delete schema.mapping;
+  Kn.mapDrafts.delete(item.key);Kn.mapPreviewKey=null;tt.compStats=null;Kn.cache=null;Kn.cacheFor=null;xo(!1);
+}
+function slqRenderMapPreview(item){
+  let box=Bt("#svMapPreview");if(!box)return;
+  if(!item||!item.mapped){box.classList.add("hidden");box.innerHTML="";return}
+  let req=item.req,psets=[...req.psets.entries()].sort((a,b)=>a[0].localeCompare(b[0]));
+  box.classList.remove("hidden");
+  box.innerHTML=`<div class="sv-map-preview-head"><b>${Ti(item.owner)} · ${Ti(item.category)} · ${Ti(item.subCategory)}</b><span class="badge">${Ti(req.stage)}</span><span class="muted sm">${item.count.toLocaleString()} model object${item.count===1?"":"s"}</span><span class="spacer"></span><button class="btn sm" id="svMapPreviewClose">Close</button></div>
+    <div class="muted sm" style="margin-bottom:8px">These are the LoIN parameters selected automatically by this mapping for the current stage gate. Required attributes are shown first; placeholders follow.</div>
+    <div>${psets.length?psets.map(([ps,v])=>`<div class="pset"><b>${Ti(ps||"Attributes")}</b><div class="plist">${v.R.map(p=>`<span>● ${Ti(p)}</span>`).join("")}${v.P.map(p=>`<span class="placeholder">◐ ${Ti(p)}</span>`).join("")}</div></div>`).join(""):'<div class="empty sm">No TMR/QR parameters are marked for this sub-category at the selected stage gate.</div>'}</div>`;
+  Bt("#svMapPreviewClose").onclick=()=>{Kn.mapPreviewKey=null;box.classList.add("hidden")};
+}
+function slqRenderMapping(){
+  let schema=tt.schema,rows=slqBuildMappingRows(schema),q=(Kn.q||"").trim().toLowerCase(),supported=new Set((schema.components||[]).map(c=>String(c.kind||"").toUpperCase()));
+  if(q)rows=rows.filter(r=>[r.owner,r.ownerRaw,r.cls,r.type,r.name,r.category,r.subCategory].some(v=>String(v||"").toLowerCase().includes(q)));
+  if(Kn.match==="mapped")rows=rows.filter(r=>r.mapped&&!r.notApplicable);
+  else if(Kn.match==="unmapped")rows=rows.filter(r=>!r.mapped&&supported.has(r.owner));
+  else if(Kn.match==="owner")rows=rows.filter(r=>!r.owner||r.owner==="OTHER");
+  let all=slqBuildMappingRows(schema),total=all.reduce((n,r)=>n+r.count,0),mapped=all.filter(r=>r.mapped&&!r.notApplicable).reduce((n,r)=>n+r.count,0),naCount=all.filter(r=>r.notApplicable).reduce((n,r)=>n+r.count,0),unmapped=all.filter(r=>!r.mapped&&supported.has(r.owner)).reduce((n,r)=>n+r.count,0),ownerMissing=all.filter(r=>!r.owner||r.owner==="OTHER").reduce((n,r)=>n+r.count,0);
+  let catsByOwner={};for(let c of schema.components||[]){let o=String(c.kind||"").toUpperCase(),cat=String(c.category||c.group||"");if(!o||!cat)continue;(catsByOwner[o]||(catsByOwner[o]=new Set)).add(cat)}
+  let header=`<thead><tr><th>#</th><th>IFC Class</th><th>Object Type / Name</th><th>Objects</th><th>Returned Works Owner</th><th>Category</th><th>Sub-category</th><th>${Ti(O1(schema).stage)} LoIN</th><th>Status</th></tr></thead>`;
+  let body=rows.slice(0,Kn.limit).map((r,idx)=>{
+    let draft=Kn.mapDrafts.get(r.key)||{},cat=draft.category!==undefined?draft.category:r.category,sub=draft.subCategory!==undefined?draft.subCategory:r.subCategory,cats=[...(catsByOwner[r.owner]||[])].sort(),subs=[...new Set((schema.components||[]).filter(c=>String(c.kind||"").toUpperCase()===r.owner&&String(c.category||c.group||"")===cat).map(c=>String(c.subCategory||c.name||"")).filter(Boolean))].sort(),ownerOk=supported.has(r.owner);
+    let catOpts=`<option value="">Select category…</option>`+cats.map(v=>`<option value="${Ti(v)}" ${v===cat?"selected":""}>${Ti(v)}</option>`).join(""),subOpts=`<option value="">Select sub-category…</option>`+subs.map(v=>`<option value="${Ti(v)}" ${v===sub?"selected":""}>${Ti(v)}</option>`).join("");
+    let state=r.notApplicable?'<span class="map-state ok">N.A. · Project only</span>':r.mapped?'<span class="map-state ok">✓ Mapped</span>':ownerOk?'<span class="map-state warn">Needs mapping</span>':'<span class="map-state bad">Owner missing / unsupported</span>';
+    let ownerClass=r.owner==="TMR"?"tmr":r.owner==="QRL"?"qrl":r.owner==="SCC"?"scc":"",ownerLabel=r.notApplicable?"N.A.":r.owner&&r.owner!=="OTHER"?r.owner:(r.ownerRaw||"Not set");
+    let basis=r.type?r.type:r.name?`Name: ${r.name}`:"Class only";
+    let req=r.notApplicable?'<span class="muted">DSCRLP – PROJECT only</span>':r.mapped?`<div class="map-req"><b class="req">● ${r.req.required.length}</b><span class="ph">◐ ${r.req.placeholder.length}</span></div><button class="map-view" data-map-view="${Ti(r.key)}">View parameters</button>`:'<span class="muted">—</span>';
+    return `<tr><td class="n">${idx+1}</td><td class="mono">${Ti(r.cls)}</td><td title="${Ti(basis)}">${Ti(basis)}</td><td class="n">${r.count.toLocaleString()}</td><td class="map-owner"><span class="map-owner-pill ${ownerClass}" title="${Ti(r.ownerRaw||"Returned Works Owner not found")}">${Ti(ownerLabel)}</span></td><td>${r.notApplicable?'<span class="muted">N.A.</span>':`<select class="map-select" data-map-cat="${Ti(r.key)}" ${ownerOk?"":"disabled"}>${catOpts}</select>`}</td><td>${r.notApplicable?'<span class="muted">N.A.</span>':`<select class="map-select" data-map-sub="${Ti(r.key)}" ${ownerOk&&cat?"":"disabled"}>${subOpts}</select>`}</td><td>${req}</td><td>${state}${r.mapped&&!r.notApplicable?` <button class="map-clear" data-map-clear="${Ti(r.key)}" title="Clear mapping">×</button>`:""}</td></tr>`;
+  }).join("");
+  Bt("#svTable").innerHTML=header+"<tbody>"+body+"</tbody>";
+  let wrap=Bt("#svWrap"),summary=Bt("#svMapSummary");if(!summary){summary=document.createElement("div");summary.id="svMapSummary";summary.className="sv-map-summary";wrap.insertBefore(summary,Bt("#svTable"))}
+  let pct=total?Math.round((mapped+naCount)/total*100):0;
+  summary.innerHTML=`<div class="sv-map-kpi"><b>${total.toLocaleString()}</b><span>model objects</span></div><div class="sv-map-kpi"><b>${mapped.toLocaleString()}</b><span>mapped</span></div><div class="sv-map-kpi"><b>${naCount.toLocaleString()}</b><span>N.A. · project only</span></div><div class="sv-map-kpi"><b>${unmapped.toLocaleString()}</b><span>unmapped</span></div>${ownerMissing?`<div class="sv-map-kpi"><b>${ownerMissing.toLocaleString()}</b><span>owner missing / unsupported</span></div>`:""}<div class="sv-map-help">Mapping order: <b>Returned Works Owner → IFC Class / Object Type → Category → Sub-category → ${Ti(O1(schema).stage)} LoIN parameters</b>. Category and Sub-category come directly from the imported LoIN matrix.</div>`;
+  Bt("#svFoot").innerHTML=`Showing ${Math.min(rows.length,Kn.limit).toLocaleString()} of ${rows.length.toLocaleString()} model classification groups. Once a Sub-category is selected, its TMR/QR/SCC LoIN parameters are applied automatically for the selected stage gate.${rows.length>Kn.limit?' <button class="btn sm" id="svMore">Show more</button>':""}`;
+  let more=Bt("#svMore");if(more)more.onclick=()=>{Kn.limit+=2000;slqRenderMapping()};
+  let byKey=new Map(all.map(r=>[r.key,r]));
+  vr("#svTable [data-map-cat]").forEach(el=>el.onchange=()=>{
+    let item=byKey.get(el.dataset.mapCat);if(!item)return;
+    Kn.mapDrafts.set(item.key,{category:el.value,subCategory:""});Kn.mapPreviewKey=null;slqRenderMapping();
+  });
+  vr("#svTable [data-map-sub]").forEach(el=>el.onchange=()=>{
+    let item=byKey.get(el.dataset.mapSub);if(!item)return;
+    let draft=Kn.mapDrafts.get(item.key)||{},category=draft.category!==undefined?draft.category:item.category;
+    if(!el.value){Kn.mapDrafts.set(item.key,{category,subCategory:""});return slqRenderMapping()}
+    slqSaveUiMapping(item,category,el.value);
+  });
+  vr("#svTable [data-map-clear]").forEach(el=>el.onclick=()=>{let item=byKey.get(el.dataset.mapClear);item&&slqClearUiMapping(item)});
+  vr("#svTable [data-map-view]").forEach(el=>el.onclick=()=>{let item=byKey.get(el.dataset.mapView);Kn.mapPreviewKey=item?.key||null;slqRenderMapPreview(item)});
+  let previewItem=Kn.mapPreviewKey?byKey.get(Kn.mapPreviewKey):null;slqRenderMapPreview(previewItem);
+}
+
+var Kn={tab:"mapping",q:"",kinds:new Set(["name","value","comp"]),match:"",sort:null,limit:800,rows:null,cache:null,cacheFor:null,mapDrafts:new Map,mapPreviewKey:null},Tme={mapping:[["","All groups"],["mapped","Mapped"],["unmapped","Needs mapping"],["owner","Owner missing / unsupported"]],selectors:[["","All rows"],["hit","Matching objects"],["miss","No match in model"]],attributes:[["","All rows"],["fail","With failures"],["pass","All passing"],["none","Not checked"]],values:[["","All rows"],["hit","Used in model"],["miss","Not used in model"]],alias:[["","All rows"],["hit","Found in model"],["miss","Not found in model"]]};function Eme(e){e&&(Kn.tab=e),Kn.rows=null,Kn.limit=800,Bt("#svModal").classList.remove("hidden"),uz(),setTimeout(()=>Bt("#svQuery").focus(),0)}function c9(){Bt("#svModal").classList.add("hidden")}Bt("#btnSchemaView").onclick=()=>Eme();Bt("#svClose").onclick=c9;Bt("#svModal").addEventListener("mousedown",e=>{e.target.id==="svModal"&&c9()});Bt("#svSearchBtn").onclick=()=>{Bt("#svSearchBar").classList.toggle("hidden"),Bt("#svSearchBar").classList.contains("hidden")||Bt("#svQuery").focus()};var Lte=null;Bt("#svQuery").oninput=e=>{clearTimeout(Lte),Lte=setTimeout(()=>{Kn.q=e.target.value,Kn.limit=800,f9()},150)};vr(".sv-tg").forEach(e=>e.onclick=()=>{e.classList.toggle("on"),Kn.kinds[e.classList.contains("on")?"add":"delete"](e.dataset.k),f9()});vr("#svTabs button").forEach(e=>e.onclick=()=>{Kn.tab=e.dataset.t,Kn.match="",Kn.sort=null,Kn.limit=800,uz()});Bt("#svMatch").onchange=e=>{Kn.match=e.target.value,Kn.limit=800,f9()};Bt("#svExportBtn").onclick=()=>{try{let e=vte($g,tt.schema);p9(new Blob([qg(e,{type:"array",bookType:"xlsx"})],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}),B$(tt.schema.name||"schema")+" - Schema.xlsx"),$s("Schema workbook downloaded (Selectors, Attributes, Values, Alias)")}catch(e){console.error(e),$s("Export failed: "+e.message,6e3)}};Bt("#svImportBtn").onclick=()=>Bt("#svFile").click();Bt("#svFile").onchange=async e=>{let t=e.target.files[0];if(e.target.value="",!!t)try{let i=gte($g,new Uint8Array(await t.arrayBuffer()),t.name);if(tt.schema.rules.length&&!confirm(`Replace the current ${tt.schema.rules.length} rules with ${i.stats.rules} rules from ${t.name}?
+
+${i.stats.groups} selection groups \xB7 ${i.stats.attributes} attribute rows \xB7 ${i.stats.values} value rows \xB7 ${i.stats.alias} alias rows`))return;tt.schema=i.schema,tt.groupFilter=null,tt.ruleFilter=null,tt.compStats=null,tt.loiNotes=i.warnings.map(o=>({level:"warn",text:o})),tt.closedGroups=new Set(i.schema.rules.map(o=>o.group||"")),xo(!0),Kn.rows=null,uz(),$s(`Imported ${i.stats.rules} rules from ${t.name}`+(i.warnings.length?" \u2014 "+i.warnings[0]:""),7e3)}catch(i){console.error(i),$s("Could not read schema workbook: "+i.message,7e3)}};function uz(){let e=tt.schema;slqEnforceProjectControlledRules(e);Kn.rows=Tte(e);let __ms=Bt("#svMapSummary"),__mp=Bt("#svMapPreview");if(__ms)__ms.style.display=Kn.tab==="mapping"?"":"none";if(__mp&&Kn.tab!=="mapping"){__mp.classList.add("hidden");Kn.mapPreviewKey=null}Bt("#svName").textContent=e.name||"Untitled schema";let t=O1(e);Bt("#svMeta").textContent=[`${e.rules.length} rules`,e.components?.length?`${e.components.length} components`:"",e.mapping?.rows?.length?`${e.mapping.rows.length} classification mappings`:"",O$()?`stage ${t.stage}`:"",e.compiledFrom?"from "+e.compiledFrom:"",tt.model?"matched against "+tt.fileName:"load a model to see matches"].filter(Boolean).join(" \xB7 "),vr("#svTabs button").forEach(i=>{i.classList.toggle("on",i.dataset.t===Kn.tab),i.querySelector("i").textContent=Kn.rows[i.dataset.t].length.toLocaleString()}),Bt("#svMatch").innerHTML=Tme[Kn.tab].map(([i,o])=>`<option value="${i}" ${Kn.match===i?"selected":""}>${o}</option>`).join(""),Bt("#svMatch").disabled=!tt.model,f9()}function bte(){if(!tt.model||!tt.results)return null;if(Kn.cacheFor===tt.results&&Kn.cache)return Kn.cache;let e=tt.schema,t=O1(e),i=[...tt.model.elements.values()],o=tt.excl,r=i.filter(h=>!(o&&o(h.cls))),u={sel:new Map,rule:new Map(tt.results.perRule.map(h=>[h.rule.id,h])),vals:new Map,alias:new Map};if(Kn.cache=u,Kn.cacheFor=tt.results,e.components?.length){tt.compStats||(tt.compStats=kte());let h=tt.compStats.ap,v=new Map;for(let T of r)for(let O of h.matchedComponents(T))v.has(O)||v.set(O,[]),v.get(O).push(T.id);for(let T of e.components)u.sel.set("comp:"+T.id,v.get(T.id)||[])}(e.mapping?.rows||[]).forEach((h,v)=>{let T=l9({...e,mapping:{mode:"only",rows:[h]},settings:{...t,ownership:!1}},[{id:"_m",components:h.components}]),O={id:"_m",classes:"",where:[],components:h.components};u.sel.set("map:"+v,r.filter(U=>T(O,U)).map(U=>U.id))});for(let[h,v]of Object.entries(e.selectors||{})){let T={classes:"",where:v||[]};u.sel.set("bw:"+h,r.filter(O=>O_(T,O,t.anyPset)).map(O=>O.id))}let d=tt.results.applies.ownerOf;if(d)for(let h of Object.keys(t.ownerMap||{}))u.sel.set("owner:"+h,r.filter(v=>{let T=d(v);return T&&T.includes(h.toUpperCase())}).map(v=>v.id));o&&u.sel.set("excl",i.filter(h=>o(h.cls)).map(h=>h.id));for(let h of e.rules)!h.components?.length&&(String(h.classes||"").trim()||(h.where||[]).some(v=>v.prop))&&u.sel.set("rule:"+h.id,r.filter(v=>O_(h,v,t.anyPset)).map(v=>v.id));for(let h of e.rules){if(!(h.check?.type==="allowed"?h.check:h.format?.type==="allowed"?h.format:null)||!u.rule.has(h.id))continue;let T=I2(h.prop,t.anyPset),O=new Map;for(let U of r){if(!tt.results.applies(h,U))continue;let _=T(U.props);if(!_||_.value===""||_.value==null)continue;let V=String(_.value).trim().toLowerCase();O.set(V,(O.get(V)||0)+1)}u.vals.set(h.id,O)}return u}function Cte(e){return e.type==="bw"?"bw:"+e.name:e.type==="comp"?"comp:"+e.id:e.type==="map"?"map:"+e.index:e.type==="owner"?"owner:"+e.cat:e.type==="rule"?"rule:"+e.id:"excl"}function vme(e,t){if(!t)return null;let i=Kn.tab;if(i==="selectors"){let o=t.sel.get(Cte(e.sel));if(!o)return{html:'<span class="muted">\u2014</span>',sort:-1,st:"miss"};let r=o.length;return{html:`<span class="${r?"":"zero"}"><b>${r.toLocaleString()}</b> obj.</span>${r?`<button class="lnk" data-show="${Ti(Cte(e.sel))}">Show</button>`:""}`,sort:r,st:r?"hit":"miss"}}if(i==="attributes"){let o=t.rule.get(e.ruleId);return o?o.checked?{html:`<span class="p">${o.passed.toLocaleString()}\u2713</span> <span class="f">${o.failed.toLocaleString()}\u2717</span><button class="lnk" data-rule="${Ti(e.ruleId)}">Show</button>`,sort:o.failed*1e6+o.checked,st:o.failed?"fail":"pass"}:{html:'<span class="muted">0 checked</span>',sort:0,st:"none"}:{html:'<span class="muted">not active</span>',sort:-1,st:"none"}}if(i==="values"){let o=t.vals.get(e.ruleId);if(!o)return{html:'<span class="muted">\u2014</span>',sort:-1,st:"miss"};let r=o.get(String(e.value).trim().toLowerCase())||0;return{html:`<span class="${r?"":"muted"}"><b>${r.toLocaleString()}</b> obj.</span>`,sort:r,st:r?"hit":"miss"}}if(i==="alias"){let o=t.alias.get(e.spec);return o||(o=ote(e.spec,!1),t.alias.set(e.spec,o)),{html:o.length?`<span title="${Ti(o.join(`
+`))}">\u2713 ${Ti(o.slice(0,2).join(", "))}${o.length>2?` +${o.length-2}`:""}</span>`:'<span class="zero">not in model</span>',sort:o.length,st:o.length?"hit":"miss"}}return null}function f9(){if(!Kn.rows)return;if(Kn.tab==="mapping")return slqRenderMapping();let e=mte[Kn.tab],t=Kn.rows[Kn.tab],i=bte(),o=Kn.q.trim().toLowerCase(),r=e.filter(K=>Kn.kinds.has(K[2])||K[2]==="meta").map(K=>K[0]),u=t.map((K,ie)=>({r:K,i:ie,m:vme(K,i)}));if(o&&(u=u.filter(({r:K})=>r.some(ie=>String(K[ie]??"").toLowerCase().includes(o)))),Kn.match&&i&&(u=u.filter(({m:K})=>K&&K.st===Kn.match)),Kn.sort){let{k:K,dir:ie}=Kn.sort;u.sort((ye,pe)=>ie*(K==="_m"?(ye.m?.sort??-2)-(pe.m?.sort??-2):String(ye.r[K]??"").localeCompare(String(pe.r[K]??""),void 0,{numeric:!0})))}let d=(K,ie)=>{if(K=String(K??""),!o||!r.includes(ie))return Ti(K);let ye=K.toLowerCase().indexOf(o);return ye<0?Ti(K):Ti(K.slice(0,ye))+"<mark>"+Ti(K.slice(ye,ye+o.length))+"</mark>"+Ti(K.slice(ye+o.length))},h=new Set(["format","cPattern","pPattern"]),v=new Set(["comparator","check","min","max","minLen","maxLen","req","dComparator","used","source"]),T=new Set(["group","category","property","mCategory","mProperty","tags","format"]),O=K=>Kn.sort?.k===K?`<span class="ar">${Kn.sort.dir>0?"\u25B2":"\u25BC"}</span>`:"",U={selectors:"Matched",attributes:"Result",values:"In model",alias:"Resolves to"}[Kn.tab],_=`<thead><tr><th>#</th>${e.map(([K,ie])=>`<th data-k="${K}">${ie}${O(K)}</th>`).join("")}${i?`<th data-k="_m">${U}${O("_m")}</th>`:""}</tr></thead>`,V=u.slice(0,Kn.limit),J=V.map(({r:K,i:ie,m:ye})=>`<tr data-i="${ie}" class="${K.ruleId||K.sel?.type==="comp"?"click":""} ${K.inactive?"dim":""}">
+    <td class="n">${ie+2}</td>${e.map(([pe])=>`<td class="${h.has(pe)?"mono":""} ${v.has(pe)?"nw":""} ${T.has(pe)?"wide":pe==="value"||pe==="dValue"?"mid":""}" ${K.title&&pe==="property"?`title="${Ti(K.title)}"`:""}>${d(K[pe],pe)}</td>`).join("")}${i?`<td class="m">${ye?ye.html:""}</td>`:""}</tr>`).join("");Bt("#svTable").innerHTML=_+"<tbody>"+J+"</tbody>";let Z=u.length>V.length;Bt("#svFoot").innerHTML=`Showing ${V.length.toLocaleString()} of ${u.length.toLocaleString()}${u.length!==t.length?` (filtered from ${t.length.toLocaleString()})`:""} rows. `+(Z?'<button class="btn sm" id="svMore">Show more</button> ':"")+{selectors:"Rows with the same Selection Group must all match. Click a component row to edit its keywords.",attributes:"One row per rule. Click a row to open the rule.",values:"Allowed values per property. Click a row to open the rule.",alias:"How each property name is looked up in the model (aliases and any-property-set matching)."}[Kn.tab],Z&&(Bt("#svMore").onclick=()=>{Kn.limit+=2e3,f9()}),vr("#svTable th[data-k]").forEach(K=>K.onclick=()=>{let ie=K.dataset.k;Kn.sort=Kn.sort?.k===ie?Kn.sort.dir>0?{k:ie,dir:-1}:null:{k:ie,dir:1},f9()}),vr("#svTable [data-show]").forEach(K=>K.onclick=ie=>{ie.stopPropagation();let ye=bte()?.sel.get(K.dataset.show)||[];ye.length&&(c9(),Ln.setVisible(ye),Ln.zoomTo(ye),$s(`${ye.length.toLocaleString()} objects isolated \u2014 "Show all" to restore`))}),vr("#svTable [data-rule]").forEach(K=>K.onclick=ie=>{ie.stopPropagation(),c9(),oz(K.dataset.rule),ED("results")}),vr("#svTable tbody tr.click").forEach(K=>K.onclick=()=>{let ie=t[+K.dataset.i];if(c9(),ie.sel?.type==="comp"&&!ie.ruleId){let ye=tt.schema.components.find(pe=>pe.id===ie.sel.id);ED("comps"),Bt("#compFilter").value=ye?.name||"",Bt("#compShow").value="",aR();return}Rme(ie.ruleId)})}function Rme(e){let t=tt.schema.rules.find(i=>i.id===e);t&&(tt.ruleQuery="",Bt("#ruleSearch").value="",tt.closedGroups.delete(t.group||""),tt.openRule=e,ED("rules"),lL(),setTimeout(()=>document.querySelector(`#ruleList [data-rid="${e}"]`)?.scrollIntoView({block:"center"}),0))}function gme(){let e=tt.model,t=e?.tree;if(tt.tree=null,!t)return;let i=new Map,o=(r,u)=>{i.has(r)||i.set(r,[]),i.get(r).push(u)};for(let r of t.spatial.keys())o(t.parent.has(r)?"s:"+t.parent.get(r):"f","s:"+r);for(let r of e.elements.keys()){if(t.spatial.has(r))continue;let u=t.parent.get(r);o(u==null?"u":t.spatial.has(u)?"s:"+u:"e:"+u,r)}i.has("u")&&o("f","u"),tt.tree={kids:i,open:new Set(["f"]),desc:new Map,limit:new Map};for(let r of i.get("f")||[])tt.tree.open.add(r)}function dz(e){let t=tt.tree,i=tt.model;if(e.startsWith("g:")){let h=e.lastIndexOf("|");return(t.kids.get(e.slice(2,h))||[]).filter(v=>typeof v=="number"&&i.elements.get(v).cls===e.slice(h+1)).map(v=>"e:"+v)}if(e.startsWith("x:"))return[];let o=t.kids.get(e)||[],r=o.filter(h=>typeof h=="string"),u=o.filter(h=>typeof h=="number");if(e.startsWith("e:")){r.push(...u.map(v=>"e:"+v));let h=i.elements.get(+e.slice(2));for(let[v]of h?.geo||[])r.push("x:"+h.id+":"+v);return r}if(e.startsWith("s:")){let h=i.elements.get(+e.slice(2));for(let[v]of h?.geo||[])r.push("x:"+h.id+":"+v)}let d=new Map;for(let h of u){let v=i.elements.get(h).cls;d.set(v,(d.get(v)||0)+1)}for(let h of[...d.keys()].sort())r.push("g:"+e+"|"+h);return r}function P_(e){let t=tt.tree;if(t.desc.has(e))return t.desc.get(e);let i=[];if(e.startsWith("e:")&&i.push(+e.slice(2)),e.startsWith("s:")&&tt.model.elements.has(+e.slice(2))&&i.push(+e.slice(2)),!e.startsWith("x:"))for(let o of dz(e))for(let r of P_(o))i.push(r);return e.startsWith("e:")&&(i=[...new Set(i)]),t.desc.set(e,i),i}function zte(e){let t=tt.model,i=t.tree;if(e==="f")return{icon:"\u25A4",text:tt.fileName};if(e==="u")return{icon:"\u25A2",text:"Not in a spatial structure"};if(e.startsWith("s:")){let o=i.spatial.get(+e.slice(2)),r=o.cls.toUpperCase().replace(/^IFC/,"");return{icon:{PROJECT:"\u25C8",SITE:"\u26F0",BUILDING:"\u25A5",BUILDINGSTOREY:"\u2261"}[r]||"\u25A6",text:o.name||(r==="SITE"?"<No Site>":o.cls),sub:(o.name&&r!=="PROJECT","")}}if(e.startsWith("g:"))return{icon:"\u25A3",text:e.slice(e.lastIndexOf("|")+1).toUpperCase()};if(e.startsWith("e:")){let o=t.elements.get(+e.slice(2));return{icon:"\u25FB",text:o.props.get("Attr.Name")||o.cls+" #"+o.id}}if(e.startsWith("x:")){let[,o,r]=e.split(":"),u=(t.elements.get(+o)?.geo||[]).find(d=>String(d[0])===r);return{icon:"\u25C7",text:u?String(u[1]).toUpperCase():"geometry"}}return{icon:"",text:e}}function sL(){let e=Bt("#tree");if(!e)return;if(!tt.tree){e.innerHTML='<div class="empty">No structure.</div>';return}let t=tt.tree,i=[],o=(r,u)=>{let d=r.startsWith("x:")?[]:dz(r),h=t.open.has(r),v=zte(r),T=r.startsWith("g:")||r==="u"||r.startsWith("s:")?P_(r).length:0,O="";if(r.startsWith("e:")&&tt.results&&(O=`<i class="st" style="background:var(--${C$(+r.slice(2))})"></i>`),i.push(`<div class="tn ${r.startsWith("x:")?"geo":""}" data-k="${Ti(r)}" style="padding-left:${4+u*14}px"><span class="tc">${d.length?h?"\u25BE":"\u25B8":""}</span><span class="ti">${v.icon}</span>${O}<span class="tl" title="${Ti(v.text)}">${Ti(v.text)}</span>${T?`<span class="tn-n">${T.toLocaleString()}</span>`:""}</div>`),!h)return;let U=t.limit.get(r)||300;d.slice(0,U).forEach(_=>o(_,u+1)),d.length>U&&i.push(`<div class="tn more" data-more="${Ti(r)}" style="padding-left:${4+(u+1)*14}px"><span class="tc"></span>\u2026 ${(d.length-U).toLocaleString()} more \u2014 click to show</div>`)};o("f",0),e.innerHTML=i.join(""),F$()}function F$(){let e=Bt("#tree");if(!e)return;let t=tt.selNode||(tt.selected!=null?"e:"+tt.selected:null);e.querySelectorAll(".tn.sel").forEach(i=>i.classList.remove("sel")),t&&e.querySelector(`.tn[data-k="${CSS.escape(t)}"]`)?.classList.add("sel")}function N$(e){let t=tt.model.tree;if(e.startsWith("e:")){let i=+e.slice(2),o=t.parent.get(i),r=tt.model.elements.get(i);return o==null?"g:u|"+r.cls:t.spatial.has(o)?"g:s:"+o+"|"+r.cls:"e:"+o}if(e.startsWith("g:"))return e.slice(2,e.lastIndexOf("|"));if(e.startsWith("s:")){let i=t.parent.get(+e.slice(2));return i!=null?"s:"+i:"f"}return e==="f"?null:"f"}function _$(e){if(!tt.tree)return;let t=N$("e:"+e),i=0;for(;t&&i++<40;)tt.tree.open.add(t),t=N$(t);let o=N$("e:"+e),r=dz(o),u=r.indexOf("e:"+e);u>=(tt.tree.limit.get(o)||300)&&tt.tree.limit.set(o,u+50),sL(),Bt("#tree").querySelector(".tn.sel")?.scrollIntoView({block:"nearest"})}function Sme(e,t){if(e.startsWith("e:")||e.startsWith("s:")&&tt.model.elements.has(+e.slice(2))&&!dz(e).some(o=>!o.startsWith("x:")))return nL(+e.slice(2),t);if(e.startsWith("x:"))return nL(+e.split(":")[1],t);let i=P_(e);tt.selected=null,tt.selNode=e,Ln.select(i),t&&i.length&&Ln.zoomTo(i),rz(),F$(),Bt(".layout").classList.remove("noprops")}function Ame(e){let t=tt.selNode,i=tt.model.tree,o=P_(t),r=zte(t),u=[["Elements",o.length.toLocaleString()]];if(t.startsWith("s:")){let v=i.spatial.get(+t.slice(2));u.push(["Express ID",v.id],["Global ID",v.gid||""],["GUID",a$(v.gid)||""],["Icon","Group"],["Name",v.name||""],["Type",v.cls.toUpperCase()])}else u.push(["Icon","Group"],["Name",r.text],["Type",t.startsWith("g:")?r.text:"Group"]);let d={pass:0,fail:0,warn:0,na:0};for(let v of o)d[C$(v)]++;let h=new Map;for(let v of o){let T=tt.model.elements.get(v).cls;h.set(T,(h.get(T)||0)+1)}e.innerHTML=`<div class="ptitle">${Ti(r.text)}</div>
+    <div class="muted sm">${o.length.toLocaleString()} objects${tt.results?` \xB7 <span style="color:var(--pass)">${d.pass} pass</span> \xB7 <span style="color:var(--fail)">${d.fail} errors</span> \xB7 ${d.warn} warnings \xB7 ${d.na} not checked`:""}</div>
+    <div class="row wrap"><button class="btn sm" id="pZoom">Zoom</button><button class="btn sm" id="pIso">Isolate</button></div>
+    <div class="pgroup"><div class="gh">Item</div><table>${u.map(([v,T])=>`<tr><td>${Ti(v)}</td><td>${Ti(C_(T))}</td></tr>`).join("")}</table></div>
+    ${h.size>1?`<div class="pgroup"><div class="gh">Classes</div><table>${[...h].sort((v,T)=>T[1]-v[1]).map(([v,T])=>`<tr><td>${Ti(v)}</td><td>${T.toLocaleString()}</td></tr>`).join("")}</table></div>`:""}`,e.querySelectorAll(".gh").forEach(v=>v.onclick=()=>v.parentElement.classList.toggle("closed")),Bt("#pZoom").onclick=()=>o.length&&Ln.zoomTo(o),Bt("#pIso").onclick=()=>{o.length&&(Ln.setVisible(o),Ln.zoomTo(o))}}Bt("#tree").addEventListener("click",e=>{let t=e.target.closest(".tn");if(!t)return;if(t.dataset.more){let o=t.dataset.more;tt.tree.limit.set(o,(tt.tree.limit.get(o)||300)+1e3),sL();return}let i=t.dataset.k;if(e.target.classList.contains("tc")){tt.tree.open.has(i)?tt.tree.open.delete(i):tt.tree.open.add(i),sL();return}i.startsWith("x:")||Sme(i,!1)});Bt("#tree").addEventListener("dblclick",e=>{let t=e.target.closest(".tn");if(!t||!t.dataset.k||t.dataset.k.startsWith("x:"))return;let i=P_(t.dataset.k);i.length&&(Ln.setVisible(i),Ln.zoomTo(i),$s(`${i.length.toLocaleString()} objects isolated \u2014 "Show all" to restore`))});Bt("#btnTreeCollapse").onclick=()=>{tt.tree&&(tt.tree.open=new Set(["f"]),sL())};Bt("#btnTreeReveal").onclick=()=>{tt.selected!=null?_$(tt.selected):$s("Select an object first")};(()=>{let e=Bt("#welcome"),t=Bt("#heroLogo");!e||!t||(e.addEventListener("mousemove",i=>{let o=e.getBoundingClientRect(),r=(i.clientX-o.left)/o.width-.5,u=(i.clientY-o.top)/o.height-.5;t.style.setProperty("--ry",(r*14).toFixed(2)+"deg"),t.style.setProperty("--rx",(-u*10).toFixed(2)+"deg")}),e.addEventListener("mouseleave",()=>{t.style.setProperty("--ry","0deg"),t.style.setProperty("--rx","0deg")}))})();window.tt=tt;window.Kn=Kn;window.Ln=Ln;window.slqBuildMappingRows=slqBuildMappingRows;window.slqMapComponents=slqMapComponents;window.slqClearUiMapping=slqClearUiMapping;window.xo=xo;window.nL=nL;window.Eme=Eme;window.$s=$s;})();
+/*! Bundled license information:
+
+xlsx/xlsx.mjs:
+  (*! xlsx.js (C) 2013-present SheetJS -- http://sheetjs.com *)
+
+xlsx/xlsx.mjs:
+  (*! sheetjs (C) 2013-present SheetJS -- http://sheetjs.com *)
+
+three/build/three.core.js:
+three/build/three.module.js:
+  (**
+   * @license
+   * Copyright 2010-2026 Three.js Authors
+   * SPDX-License-Identifier: MIT
+   *)
+*/
+</script>
+
+<script id="premium-ui-enhancements">
+(() => {
+  const byId = (id) => document.getElementById(id);
+  const modelInfo = byId('modelInfo');
+  const modelStatus = byId('modelStatus');
+  const syncStatus = () => {
+    if (!modelInfo || !modelStatus) return;
+    const txt = (modelInfo.textContent || '').trim();
+    const loaded = txt && !/^No model loaded/i.test(txt);
+    modelStatus.classList.toggle('loaded', !!loaded);
+    const label = modelStatus.querySelector('.status-text');
+    if (label) label.textContent = loaded ? 'Model ready' : 'Ready';
+  };
+  syncStatus();
+  if (modelInfo) new MutationObserver(syncStatus).observe(modelInfo, {childList:true, subtree:true, characterData:true});
+
+  const labels = {
+    btnOpen: 'Open IFC model',
+    btnOpen2: 'Open IFC model',
+    btnSchemaView: 'Open validation schema',
+    btnExport: 'Export validation outputs'
+  };
+  Object.entries(labels).forEach(([id, title]) => { const el = byId(id); if (el) el.setAttribute('aria-label', title); });
+
+  document.querySelectorAll('.tabs button').forEach((b) => {
+    b.setAttribute('aria-label', b.textContent.trim());
+    b.addEventListener('click', () => {
+      document.querySelectorAll('.tabs button').forEach(x => x.setAttribute('aria-selected', x === b ? 'true' : 'false'));
+    });
+  });
+  const active = document.querySelector('.tabs button.on');
+  if (active) active.setAttribute('aria-selected','true');
+})();
+</script>
+
+
+<style id="sunlinq-v230-mapping-coverage-css">
+.mapv-kpis{grid-template-columns:repeat(5,minmax(0,1fr))!important}
+.mapv-pill.na{background:#eef2f6;color:#435468;border:1px solid #b4bec8}
+.mapv-card.mapv-card-na{box-shadow:inset 3px 0 0 #718096}
+.mapv-current.na{border-left:3px solid #718096}
+@media(max-width:1100px){.mapv-kpis{grid-template-columns:repeat(3,minmax(0,1fr))!important}}
+.mapv-coverage{margin:-2px 0 10px;padding:8px 10px;border:1px solid var(--line);border-radius:9px;background:var(--panel2)}
+.mapv-cover-head{display:flex;justify-content:space-between;gap:8px;font-size:11px;align-items:center;margin-bottom:6px}
+.mapv-cover-head strong{color:var(--navy-2)}
+.mapv-cover-track{height:9px;background:color-mix(in srgb,var(--line) 80%,transparent);border-radius:99px;overflow:hidden}
+.mapv-cover-fill{height:100%;background:#0d9488;transition:width .2s ease}
+.mapv-cover-note{font-size:10px;color:var(--muted);margin-top:6px}
+.mapv-kpis button.mapv-stat{border:1px solid var(--line);background:var(--panel2);color:inherit;border-radius:9px;padding:9px 8px;text-align:left;cursor:pointer;min-width:0;display:flex;flex-direction:column;gap:2px}
+.mapv-kpis button.mapv-stat:hover,.mapv-kpis button.mapv-stat:focus-visible{border-color:var(--accent);outline:2px solid transparent}
+.mapv-kpis button.mapv-stat.active{box-shadow:inset 3px 0 var(--accent);border-color:var(--accent)}
+.mapv-kpis button.mapv-stat b{font-size:18px;line-height:1.1;color:var(--navy-2)}
+.mapv-kpis button.mapv-stat span{font-size:10px;color:var(--muted);line-height:1.3}
+.mapv-kpis button.mapv-stat[data-mapv-stat="unmapped"] b{color:#b45309}
+.mapv-kpis button.mapv-stat[data-mapv-stat="review"] b{color:#b45309}
+.mapv-actions{margin:4px 0 9px;gap:5px}
+.mapv-actions .btn{font-size:10.5px;padding:6px 8px}
+.mapv-current{margin:2px 0 10px;padding:8px 10px;background:var(--panel2);border:1px solid var(--line);border-radius:8px;font-size:11px;line-height:1.5}
+.mapv-current b{display:block;font-size:12px;margin-top:2px;color:var(--navy-2)}
+.mapv-current .mapv-flag{font-size:10px;text-transform:uppercase;letter-spacing:.5px;font-weight:700}
+.mapv-current.mapped{border-left:3px solid #0d9488}.mapv-current.unmapped{border-left:3px solid #d97706}
+.mapv-map-note{font-size:10px;margin-top:3px;color:var(--muted)}
+.mapv-card.mapv-card-unmapped{box-shadow:inset 3px 0 0 #d97706}
+@media(max-width:900px){.mapv-actions{display:flex;flex-wrap:wrap}}
+</style>
+<script id="sunlinq-v222-mapping-js">
+(()=>{
+  const RULE_KEY='sunlinq.mappingRules.v1', AUTO_KEY='sunlinq.mappingAuto.v1';
+  const S={q:'',status:'',selected:null,rules:[],lastSig:''};
+  const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  function loadRules(){try{S.rules=JSON.parse(localStorage.getItem(RULE_KEY)||'[]')||[]}catch(e){S.rules=[]}}
+  function saveRules(){localStorage.setItem(RULE_KEY,JSON.stringify(S.rules));}
+  function norm(s){return String(s||'').toLowerCase().replace(/\b\d{6,}\b/g,' ').replace(/[0-9]+(?:x[0-9]+){1,3}/g,' ').replace(/[_:\-\/]+/g,' ').replace(/\s+/g,' ').trim()}
+  const DETECT=[
+    [/bearings? elastomeric|elastomeric bearing/,'Elastomeric Bearing',98],[/taper ?plate/,'Bearing Taper Plate',96],[/keeper ?plate/,'Bearing Keeper Plate',96],[/super ?t\b/,'Super-T Girder',95],[/noise barrier/,'Noise Barrier',96],[/maintenance access safety rail|safety rail/,'Safety Railing',94],[/fauna/,'Fauna Fence',95],[/chainwire/,'Chainwire Fence',92],[/concrete gully|\bgully\b/,'Drainage Gully Pit',96],[/headwall/,'Headwall',95],[/\brcp\b|reinforced concrete pipe/,'Drainage Pipe (RCP)',95],[/culvert|\brcbc\b/,'Box Culvert (RCBC)',96],[/passenger seat|platform furniture/,'Platform Furniture',96],[/switchboard|switchgear/,'Electrical Switchboard',95],[/transformer/,'Transformer',95],[/underground.*tank|tank underground/,'Underground Tank',94],[/\brafter\b/,'Rafter',94],[/\bdoor\b/,'Door',90],[/\bwindow\b/,'Window',90],[/\bgutter\b/,'Gutter',92]
+  ];
+  function detect(r){let t=norm([r.basisValue,r.type,r.name,r.cls].join(' '));for(let [rx,n,c] of DETECT)if(rx.test(t))return{name:n,confidence:c};let cls=String(r.cls||'').replace(/^Ifc/i,'').replace(/([a-z])([A-Z])/g,'$1 $2');if(cls&&!/building element proxy|annotation/i.test(cls))return{name:cls,confidence:72};return{name:'Unknown asset',confidence:42}}
+  function ruleMatches(rule,row){if(rule.owner&&rule.owner!==row.owner)return false;if(rule.cls&&rule.cls!==row.cls)return false;if(rule.basis&&rule.basis!==row.basis)return false;let v=norm(row.basisValue),p=norm(rule.pattern);return !!p && (rule.mode==='contains'?v.includes(p):v===p)}
+  function matchedRule(row){return S.rules.find(r=>ruleMatches(r,row))||null}
+  function rowStatus(row){
+    // N.A. is intentionally out of owner-specific LoIN scope but still subject to project rules.
+    if(row.notApplicable)return{key:'na',label:'N.A. · Project only',cls:'na'};
+    // A suggested category or an approved but unapplied rule does not count as mapped.
+    if(row.mapped){
+      if(row.map?.slqV223Manual||row.map?.slqV222Manual)return{key:'mapped',label:'Mapped · manual',cls:'manual'};
+      if(row.map?.slqAutoRuleId)return{key:'mapped',label:'Mapped · rule',cls:'auto'};
+      if(row.map?.slqTaxonomyAuto)return{key:'mapped',label:'Mapped · taxonomy',cls:'auto'};
+      return{key:'mapped',label:'Mapped',cls:'existing'};
+    }
+    if(!row.owner||row.owner==='OTHER')return{key:'owner',label:'Owner missing',cls:'unmapped'};
+    if(matchedRule(row))return{key:'review',label:'Rule ready · not applied',cls:'suggested'};
+    let tx=taxonomySuggestion(row),d=detect(row);
+    if(tx||d.confidence>=90)return{key:'review',label:'Needs review',cls:'suggested'};
+    return{key:'unmapped',label:'Unmapped',cls:'unmapped'};
+  }
+  function coverage(rows){
+    let total=0,mapped=0,na=0,unmapped=0,review=0,ownerMissing=0;
+    for(const r of rows){let n=Number(r.count)||0;total+=n;
+      if(r.notApplicable)na+=n;
+      else if(r.mapped)mapped+=n;else{unmapped+=n;let st=rowStatus(r);
+        if(st.key==='review')review+=n;
+        if(st.key==='owner')ownerMissing+=n;
+      }
+    }
+    return{total,mapped,na,unmapped,review,ownerMissing,groups:rows.length,percent:total?(mapped+na)/total*100:0};
+  }
+  function setStatus(status){S.status=status;let select=$('#mapvStatus');if(select)select.value=status;render(null,false)}
+  function getUnmappedIds(){return getRows().filter(r=>!r.mapped).flatMap(r=>r.ids||[])}
+  function isolateUnmapped(){let ids=getUnmappedIds();if(!ids.length){window.$s?.('No unmapped objects to isolate');return}
+    try{if(!window.Ln?.setVisible)throw Error('3D isolation unavailable');window.Ln.setVisible(new Set(ids));window.Ln.zoomTo?.(ids);window.$s?.(ids.length+' unmapped objects shown in 3D')}
+    catch(e){window.$s?.('3D isolation unavailable in the current model or data-only mode')}
+  }
+  function exportUnmapped(){let rows=getRows().filter(r=>!r.mapped);if(!rows.length){window.$s?.('All mapped; no exceptions to export');return}
+    const quote=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
+    let csv=[['Object ID','Object name / type','IFC class','Returned Works Owner','Mapping status','Detected asset','Candidate category','Candidate sub-category'].map(quote).join(',')];
+    for(const r of rows){let tx=taxonomySuggestion(r),st=rowStatus(r),d=detect(r);
+      for(const id of r.ids||[])csv.push([id,r.basisValue||r.name||'',r.cls,r.ownerRaw||r.owner||'',st.label,d.name,tx?.category||'',tx?.subCategory||''].map(quote).join(','));
+    }
+    let blob=new Blob(['\ufeff'+csv.join('\r\n')],{type:'text/csv;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');
+    a.href=url;a.download='SunLinQ_Unmapped_Objects.csv';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),5000);
+  }
+  function categories(owner){let a=(window.tt?.schema?.components||[]).filter(c=>String(c.kind||'').toUpperCase()===owner).map(c=>String(c.category||c.group||'')).filter(Boolean);return [...new Set(a)].sort()}
+  function subcats(owner,cat){let a=(window.tt?.schema?.components||[]).filter(c=>String(c.kind||'').toUpperCase()===owner&&String(c.category||c.group||'')===cat).map(c=>String(c.subCategory||c.name||'')).filter(Boolean);return [...new Set(a)].sort()}
+  const STOP=new Set(['asset','system','component','components','element','elements','the','and','of','for','new','existing','network']);
+  function words(s){return norm(s).split(' ').filter(x=>x.length>2&&!STOP.has(x)).map(x=>x.endsWith('ies')?x.slice(0,-3)+'y':x.endsWith('s')&&x.length>4?x.slice(0,-1):x)}
+  function taxonomySuggestion(row){
+    if(!row?.owner||row.owner==='OTHER')return null;
+    const comps=(window.tt?.schema?.components||[]).filter(c=>String(c.kind||'').toUpperCase()===row.owner);
+    if(!comps.length)return null;
+    const d=detect(row),asset=norm(d.name),finger=norm([row.basisValue,row.type,row.name,row.cls].join(' ')),aw=new Set(words(d.name+' '+row.basisValue));
+    const uniq=new Map;
+    for(const c of comps){let category=String(c.category||c.group||''),subCategory=String(c.subCategory||c.name||'');if(!category||!subCategory)continue;let k=category+'||'+subCategory;if(uniq.has(k))continue;
+      let sn=norm(subCategory),cn=norm(category),sw=new Set(words(subCategory)),cw=new Set(words(category)),score=0,reasons=[];
+      if(sn===asset){score=100;reasons.push('exact asset = sub-category')}
+      else if(asset.length>4&&sn.includes(asset)){score=Math.max(score,96);reasons.push('sub-category contains detected asset')}
+      else if(sn.length>4&&asset.includes(sn)){score=Math.max(score,94);reasons.push('detected asset contains sub-category')}
+      let overlap=[...aw].filter(x=>sw.has(x));if(overlap.length){let ratio=overlap.length/Math.max(1,Math.min(aw.size,sw.size));score=Math.max(score,65+Math.round(ratio*25));reasons.push('matching terms: '+overlap.join(', '))}
+      let catOverlap=[...aw].filter(x=>cw.has(x));if(catOverlap.length){score+=Math.min(8,catOverlap.length*4);reasons.push('category context: '+catOverlap.join(', '))}
+      // Known semantic normalisations from the project IFC corpus. These do not assign owner; owner is already fixed above.
+      if(/drainage pipe|\brcp\b/.test(asset+' '+finger)&&/pipe/.test(sn)&&/drainage/.test(cn)){score=Math.max(score,96);reasons.push('drainage pipe fingerprint')}
+      if(/gully/.test(asset+' '+finger)&&/gully|inlet/.test(sn)&&/drainage/.test(cn)){score=Math.max(score,93);reasons.push('gully fingerprint')}
+      if(/elastomeric bearing/.test(asset+' '+finger)&&/bearing/.test(sn)&&/bridge/.test(cn)){score=Math.max(score,96);reasons.push('bridge bearing fingerprint')}
+      if(/switchboard|switchgear/.test(asset+' '+finger)&&/switchboard|junction box/.test(sn)){score=Math.max(score,95);reasons.push('switchboard fingerprint')}
+      if(/fauna fence/.test(asset+' '+finger)&&/fauna|fenc/.test(sn)){score=Math.max(score,94);reasons.push('fauna fence fingerprint')}
+      uniq.set(k,{owner:row.owner,category,subCategory,score:Math.min(100,score),reasons});
+    }
+    let arr=[...uniq.values()].sort((a,b)=>b.score-a.score||a.subCategory.localeCompare(b.subCategory)),best=arr[0];if(!best||best.score<55)return null;best.margin=best.score-(arr[1]?.score||0);best.auto=best.score>=92&&best.margin>=6;return best;
+  }
+  function upsertMapping(row,category,subCategory,meta={}){
+    const schema=window.tt?.schema;if(!schema||!row||row.notApplicable||!category||!subCategory)return false;
+    const comps=window.slqMapComponents(schema,row.owner,category,subCategory);if(!comps.length)return false;
+    const all=(schema.mapping?.rows||[]).filter(r=>!(r.uiMapping&&r.mapKey===row.key));
+    all.push({uiMapping:true,mapKey:row.key,uiOwner:row.owner,uiCategory:category,uiSubCategory:subCategory,cls:row.cls,type:row.basis==='type'?row.basisValue:'',name:'',prop:row.basis==='name'?'Attr.Name':'',value:row.basis==='name'?row.basisValue:'',components:comps.map(c=>c.id),row:all.length+2,...meta});
+    schema.mapping={...(schema.mapping||{}),mode:'only',source:'Schema Mapping + V2.26 Accordion Mapping Toggle',rows:all};
+    window.tt.compStats=null;if(window.Kn){Kn.cache=null;Kn.cacheFor=null}
+    return true;
+  }
+  function applyApprovedRules(rows){if(!$('#mapvAuto')?.checked)return 0;let n=0;for(const row of rows){if(row.mapped)continue;let r=matchedRule(row);if(!r)continue;if(upsertMapping(row,r.category,r.subCategory,{slqAutoRuleId:r.id,slqV222Detected:r.commonAsset||detect(row).name,slqV222Confidence:r.confidence||99}))n++}if(n&&window.xo)window.xo(false);return n}
+  function applyTaxonomyAuto(rows){if(!$('#mapvAuto')?.checked)return 0;let n=0;for(const row of rows){if(row.mapped||matchedRule(row))continue;let t=taxonomySuggestion(row);if(!t?.auto)continue;if(upsertMapping(row,t.category,t.subCategory,{slqTaxonomyAuto:true,slqV222Detected:detect(row).name,slqV222Confidence:t.score,slqTaxonomyReason:t.reasons.join('; ')}))n++}if(n&&window.xo)window.xo(false);return n}
+  function getRows(){if(!window.tt?.model||!window.tt?.schema||!window.slqBuildMappingRows)return[];return window.slqBuildMappingRows(window.tt.schema)}
+  function currentSelected(rows){return rows.find(r=>r.key===S.selected)||null}
+  function options(vals,current,placeholder){return `<option value="">${esc(placeholder)}</option>`+vals.map(v=>`<option value="${esc(v)}" ${v===current?'selected':''}>${esc(v)}</option>`).join('')}
+  function renderEditor(row){const box=$('#mapvEditor'),list=$('#mapvList');if(!box)return;if(!row){box.classList.add('hidden');return}box.classList.remove('hidden');const card=list?.querySelector(`[data-mapv-key=\"${CSS.escape(row.key)}\"]`);if(card&&box.previousElementSibling!==card)card.insertAdjacentElement('afterend',box);let d=detect(row),rule=matchedRule(row),tx=taxonomySuggestion(row);$('#mapvEditAsset').textContent=row.mapped?(row.subCategory||row.category||d.name):d.name;
+    const current=$('#mapvCurrent');if(current){let status=rowStatus(row);current.className='mapv-current '+(row.notApplicable?'na':row.mapped?'mapped':'unmapped');current.innerHTML=row.notApplicable?
+      `<span class="mapv-flag">N.A. — Project only</span><b>Returned Works Owner: N.A.</b><div class="mapv-map-note">No TMR or QR asset classification is required. DSCRLP – PROJECT parameters remain mandatory.</div>`:row.mapped?
+      `<span class="mapv-flag">${esc(status.label)}</span><b>${esc(row.owner)} › ${esc(row.category)} › ${esc(row.subCategory)}</b><div class="mapv-map-note">Confirmed mapping, separate from automatic object detection below.</div>`:
+      `<span class="mapv-flag">${esc(status.label)}</span><b>No owner taxonomy classification applied</b><div class="mapv-map-note">Select the exact Category and Sub-category from the imported LoIN, then Apply Mapping.</div>`;}
+    $('#mapvEditFingerprint').textContent=`${row.basis}: ${row.basisValue||'(class only)'}`;$('#mapvDetected').textContent=d.name;$('#mapvConfidence').textContent=`${d.confidence}% (automatic detection)`;$('#mapvOwner').textContent=(row.owner||row.ownerRaw||'Not set')+(row.ownerSource?' · IFC':'');$('#mapvOwner').title=row.ownerSource?`Source: ${row.ownerSource}`:'';$('#mapvClass').textContent=row.cls||'';
+    const cat=$('#mapvCategory'),sub=$('#mapvSubCategory');let cats=categories(row.owner),curCat=row.category||rule?.category||tx?.category||'',curSub=row.subCategory||rule?.subCategory||tx?.subCategory||'';cat.innerHTML=options(cats,curCat,'Select category…');sub.innerHTML=options(curCat?subcats(row.owner,curCat):[],curSub,'Select sub-category…');cat.onchange=()=>{sub.innerHTML=options(subcats(row.owner,cat.value),'','Select sub-category…')};
+    let note=$('#mapvTaxNote');if(!note){note=document.createElement('div');note.id='mapvTaxNote';note.className='muted sm';note.style.margin='5px 0 2px';sub.parentElement.after(note)}
+    if(row.notApplicable)note.textContent='N.A. confirmed from the IFC owner property. Asset-owner mapping is not applicable; project-wide LoIN parameters still apply.';
+    else if(row.mapped)note.textContent=row.map?.slqTaxonomyAuto?`Auto-mapped from ${row.owner} taxonomy${row.map?.slqTaxonomyReason?' — '+row.map.slqTaxonomyReason:''}`:'Mapped';
+    else if(tx)note.textContent=`${tx.auto?'Strong':'Possible'} ${row.owner} taxonomy match (${tx.score}%): ${tx.category} › ${tx.subCategory}`;
+    else if(row.owner&&row.owner!=='OTHER')note.textContent=`${row.owner} owner confirmed, but no defensible Category/Sub-category match was found in the imported LoIN matrix. Review manually and optionally save a rule.`;
+    else note.textContent='Return Works Owner is missing.';
+    cat.disabled=!!row.notApplicable;sub.disabled=!!row.notApplicable;
+    $('#mapvApply').disabled=!!row.notApplicable;
+    $('#mapvReset').disabled=!!row.notApplicable;
+    $$('#mapvEditor input[name="mapvScope"], #mapvSaveRule').forEach(el=>el.disabled=!!row.notApplicable);
+  }
+  function selectRow(key,focus=false,forceOpen=false){
+    // Accordion behavior: clicking the currently open asset closes its editor.
+    // Review Mapping uses forceOpen=true so it always opens the target asset.
+    if(!forceOpen && S.selected===key){
+      S.selected=null;
+      render(null,false);
+      const editor=$('#mapvEditor');
+      if(editor)editor.classList.add('hidden');
+      return;
+    }
+    S.selected=key;
+    let rows=getRows(),row=currentSelected(rows);
+    render(rows,false);
+    renderEditor(row);
+    if(row?.ids?.length&&window.nL){try{window.nL(row.ids[0]);if(window.Ln?.zoomTo)window.Ln.zoomTo([row.ids[0]])}catch(e){}}
+    if(focus){
+      requestAnimationFrame(()=>{
+        const card=$('#mapvList')?.querySelector(`[data-mapv-key=\"${CSS.escape(key)}\"]`),editor=$('#mapvEditor');
+        const target=editor&&!editor.classList.contains('hidden')?editor:card;
+        if(target){target.scrollIntoView({behavior:'smooth',block:'center'});target.classList.add('mapv-review-focus');setTimeout(()=>target.classList.remove('mapv-review-focus'),1400)}
+      });
+    }
+  }
+  function reviewMapping(key){
+    // A suggestion can refer to a row hidden by the current search/status filter.
+    // Clear those filters so its asset card and inline editor are guaranteed visible.
+    S.q='';S.status='';
+    const q=$('#mapvSearch'),st=$('#mapvStatus');if(q)q.value='';if(st)st.value='';
+    selectRow(key,true,true);
+  }
+  function renderRules(){let box=$('#mapvRules'),count=$('#mapvRuleCount');if(!box)return;count.textContent=`${S.rules.length} rule${S.rules.length===1?'':'s'}`;box.innerHTML=S.rules.length?S.rules.map(r=>`<div class="mapv-rule"><div class="r1">${esc(r.commonAsset||'Mapping rule')}</div><div class="r2">${esc(r.cls)} · ${esc(r.pattern)} → ${esc(r.owner)} / ${esc(r.category)} / ${esc(r.subCategory)}</div><button class="btn sm del" data-mapv-del="${esc(r.id)}">Delete</button></div>`).join(''):'<div class="muted sm" style="padding:8px 0">No approved rules yet. Save a user correction as a rule to start the knowledge base.</div>';$$('[data-mapv-del]').forEach(b=>b.onclick=()=>{S.rules=S.rules.filter(r=>r.id!==b.dataset.mapvDel);saveRules();render()})}
+  function renderSuggestions(rows){let box=$('#mapvSuggestions');if(!box)return;let sug=rows.filter(r=>!r.mapped&&!matchedRule(r)).map(r=>({r,d:detect(r),tx:taxonomySuggestion(r)})).filter(x=>x.tx||x.d.confidence>=90).sort((a,b)=>(b.tx?.score||b.d.confidence)-(a.tx?.score||a.d.confidence)||b.r.count-a.r.count).slice(0,5);box.innerHTML=sug.length?sug.map(x=>`<div class="mapv-suggestion"><div class="s1"><b>${x.tx?'Taxonomy suggestion':'New fingerprint'} · ${esc(x.d.name)}</b><span class="mapv-conf">${x.tx?.score||x.d.confidence}%</span></div><div class="s2">${x.tx?esc(`${x.tx.owner} › ${x.tx.category} › ${x.tx.subCategory}`):esc(`${x.r.cls} · ${x.r.basisValue||'class only'}`)} · ${x.r.count} object${x.r.count===1?'':'s'}</div><button class="btn sm" data-mapv-review="${esc(x.r.key)}">Review mapping</button></div>`).join(''):'<div class="muted sm" style="padding-top:7px">No taxonomy or high-confidence fingerprint suggestions waiting for review.</div>';$$('[data-mapv-review]').forEach(b=>b.onclick=e=>{e.preventDefault();e.stopPropagation();reviewMapping(b.dataset.mapvReview)})}
+  function render(rowsArg,auto=true){
+    let rows=rowsArg||getRows(),empty=$('#mapvEmpty'),body=$('#mapvBody');if(!empty||!body)return;
+    if(!window.tt?.model){empty.hidden=false;body.hidden=true;return}
+    empty.hidden=true;body.hidden=false;
+    if(auto){let n1=applyApprovedRules(rows);if(n1)rows=getRows();let n2=applyTaxonomyAuto(rows);if(n2)rows=getRows()}
+    let q=(S.q||'').trim().toLowerCase();
+    let filtered=rows.filter(r=>{
+      let d=detect(r),st=rowStatus(r);
+      if(q&&!([d.name,r.owner,r.ownerRaw,r.cls,r.basisValue,r.category,r.subCategory].join(' ').toLowerCase().includes(q)))return false;
+      if(S.status==='unmapped')return !r.mapped&&!r.notApplicable; // includes review and missing owner
+      if(S.status==='owner')return !r.mapped&&st.key==='owner';
+      if(S.status&&st.key!==S.status)return false;
+      return true;
+    });
+    const c=coverage(rows),pct=c.percent.toFixed(1);
+    $('#mapvKpis').innerHTML=`<button class="mapv-stat ${S.status===''?'active':''}" data-mapv-stat=""><b>${c.total.toLocaleString()}</b><span>Total objects · ${c.groups} logical groups</span></button>`+
+      `<button class="mapv-stat ${S.status==='mapped'?'active':''}" data-mapv-stat="mapped"><b>${c.mapped.toLocaleString()}</b><span>Mapped to owner taxonomy</span></button>`+
+      `<button class="mapv-stat ${S.status==='na'?'active':''}" data-mapv-stat="na"><b>${c.na.toLocaleString()}</b><span>N.A. · Project only</span></button>`+
+      `<button class="mapv-stat ${S.status==='unmapped'?'active':''}" data-mapv-stat="unmapped"><b>${c.unmapped.toLocaleString()}</b><span>Unmapped (incl. review)</span></button>`+
+      `<button class="mapv-stat ${S.status==='review'?'active':''}" data-mapv-stat="review"><b>${c.review.toLocaleString()}</b><span>Needs review (subset)</span></button>`;
+    $$('[data-mapv-stat]').forEach(b=>b.onclick=()=>setStatus(b.dataset.mapvStat));
+    $('#mapvCoverage').innerHTML=`<div class="mapv-cover-head"><strong>Classification resolved: ${pct}%</strong><span>${c.mapped.toLocaleString()} mapped + ${c.na.toLocaleString()} N.A. / ${c.total.toLocaleString()} objects</span></div>`+
+      `<div class="mapv-cover-track"><div class="mapv-cover-fill" style="width:${c.percent}%"></div></div>`+
+      `<div class="mapv-cover-note">${c.unmapped?`${c.unmapped.toLocaleString()} object(s) require mapping, including ${c.ownerMissing.toLocaleString()} with missing owner.`:'No owner classifications outstanding.'} N.A. objects require DSCRLP – PROJECT checks only. Suggestions are not mapped until applied.</div>`;
+    const filterButton=$('#mapvUnmappedOnly');filterButton.textContent=S.status==='unmapped'?'Show all objects':'Show unmapped only';
+    const isolator=$('#mapvIsolateUnmapped');isolator.disabled=c.unmapped===0;
+    const exporter=$('#mapvExportUnmapped');exporter.disabled=c.unmapped===0;
+    const __mapvList=$('#mapvList'),__mapvEditor=$('#mapvEditor');
+    if(__mapvEditor&&__mapvEditor.parentElement===__mapvList)__mapvList.insertAdjacentElement('afterend',__mapvEditor);
+    __mapvList.innerHTML=filtered.length?filtered.slice(0,500).map(r=>{
+      let d=detect(r),rr=matchedRule(r),st=rowStatus(r),tx=taxonomySuggestion(r);
+      let conf=tx?.score||d.confidence;
+      let path=r.notApplicable?'N.A. · Owner-specific mapping not applicable · DSCRLP – PROJECT mandatory':r.mapped?`${r.owner} › ${r.category} › ${r.subCategory}`:
+        rr?`Rule available, not applied: ${rr.owner} › ${rr.category} › ${rr.subCategory}`:
+        tx?`Suggested, not applied: ${tx.owner} › ${tx.category} › ${tx.subCategory}`:
+        (r.owner&&r.owner!=='OTHER'?`${r.owner} owner confirmed · no mapped asset category`:'Return Works Owner missing');
+      // The mapped classification is the card title, not the uncertain automatic detector label.
+      let displayName=r.notApplicable?(r.basisValue||r.name||r.type||r.cls||'N.A. object'):r.mapped?(r.subCategory||r.category||d.name):d.name;
+      return `<div class="mapv-card ${S.selected===r.key?'sel':''} ${r.notApplicable?'mapv-card-na':r.mapped?'':'mapv-card-unmapped'}" data-mapv-key="${esc(r.key)}">`+
+        `<div class="mapv-row1"><span class="mapv-asset">${esc(displayName)}</span><span class="mapv-count">${r.count.toLocaleString()} obj</span><span class="mapv-pill ${st.cls}">${esc(st.label)}</span></div>`+
+        `<div class="mapv-row2"><span class="mapv-pill owner">${esc((r.notApplicable?'N.A.':(r.owner||r.ownerRaw||'No owner'))+(r.ownerSource?' · IFC':''))}</span>`+
+        `<span class="mapv-ifc">${esc(r.cls)} · ${esc(r.basisValue||'class only')}</span>`+
+        `${r.mapped?'':`<span class="mapv-conf ${conf<70?'low':''}" title="Automatic detection/suggestion, not mapping approval">${conf}% suggestion</span>`}</div>`+
+        `<div class="mapv-path">${esc(path)}</div></div>`;
+    }).join(''):'<div class="mapv-noresults">No mapping groups match this filter.</div>';
+    $$('[data-mapv-key]').forEach(c=>c.onclick=()=>selectRow(c.dataset.mapvKey));
+    renderSuggestions(rows);renderRules();renderEditor(currentSelected(filtered));
+  }
+  function applySelection(){let rows=getRows(),row=currentSelected(rows);if(!row||row.notApplicable)return;let cat=$('#mapvCategory').value,sub=$('#mapvSubCategory').value;if(!cat||!sub){window.$s?window.$s('Select Category and Sub-category first'):alert('Select Category and Sub-category first');return}let scope=$('input[name="mapvScope"]:checked')?.value||'fingerprint',targets=scope==='similar'?rows.filter(r=>r.owner===row.owner&&r.cls===row.cls&&detect(r).name===detect(row).name):[row],changed=0;for(let t of targets)if(upsertMapping(t,cat,sub,{slqV223Manual:true,slqV222Detected:detect(t).name,slqV222Confidence:99,slqOwnerSource:t.ownerSource||''}))changed+=t.count;
+    if($('#mapvSaveRule').checked){let id='MAP-'+String(Date.now()).slice(-8),r={id,owner:row.owner,cls:row.cls,basis:row.basis,pattern:norm(row.basisValue),mode:'exact',commonAsset:detect(row).name,category:cat,subCategory:sub,confidence:99,createdAt:new Date().toISOString()};S.rules.unshift(r);saveRules()}
+    if(window.xo)window.xo(false);window.$s&&window.$s(`Mapping applied to ${changed.toLocaleString()} object${changed===1?'':'s'}${$('#mapvSaveRule').checked?' and rule saved':''}`);setTimeout(()=>render(),50)
+  }
+  function resetSelection(){let row=currentSelected(getRows());if(!row)return;if(window.slqClearUiMapping)window.slqClearUiMapping(row);setTimeout(()=>render(),50)}
+  function boot(){loadRules();let auto=localStorage.getItem(AUTO_KEY);if(auto!==null)$('#mapvAuto').checked=auto==='1';$('#mapvSearch').oninput=e=>{S.q=e.target.value;render(null,false)};$('#mapvStatus').onchange=e=>{S.status=e.target.value;render(null,false)};
+    $('#mapvUnmappedOnly').onclick=()=>setStatus(S.status==='unmapped'?'':'unmapped');
+    $('#mapvIsolateUnmapped').onclick=isolateUnmapped;
+    $('#mapvShowAllObjects').onclick=()=>{try{window.Ln?.setVisible(null);window.Ln?.fitAll?.()}catch(e){window.$s?.('3D viewer unavailable')}};
+    $('#mapvExportUnmapped').onclick=exportUnmapped;
+    $('#mapvAuto').onchange=e=>{localStorage.setItem(AUTO_KEY,e.target.checked?'1':'0');render()};$('#mapvOpenSchema').onclick=()=>window.Eme?window.Eme('mapping'):$('#btnSchemaView')?.click();$('#mapvEditClose').onclick=()=>{S.selected=null;$('#mapvEditor').classList.add('hidden');render(null,false)};$('#mapvApply').onclick=applySelection;$('#mapvReset').onclick=resetSelection;
+    let btn=document.querySelector('.tabs button[data-tab="mapping"]');if(btn)btn.addEventListener('click',()=>setTimeout(()=>render(),0));
+    setInterval(()=>{let active=document.querySelector('.tabs button[data-tab="mapping"]')?.classList.contains('on');if(!active)return;let sig=[window.tt?.fileName||'',window.tt?.model?.elements?.size||0,window.tt?.schema?.components?.length||0,window.tt?.schema?.mapping?.rows?.length||0,S.rules.length].join('|');if(sig!==S.lastSig){S.lastSig=sig;render()}},1200);
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
+})();
+</script>
+<script id="slq-stage-gate-pset-controls">
+(()=>{
+  'use strict';
+  const KEY='ownerPsetGateOverrides';
+  const REASONS='ownerPsetGateReasons';
+  const state=()=>window.__irc?.state;
+  const standardOwner=o=>{const v=String(o||'').trim().toUpperCase();return v==='QR'?'QRL':v};
+  const clean=s=>String(s||'').replace(/\s+/g,' ').trim();
+  const norm=s=>clean(s).replace(/[\s_-]+/g,' ').toUpperCase();
+  function identify(rule){
+    const owner=standardOwner(rule?.owner);
+    if(owner!=='TMR'&&owner!=='QRL')return null;
+    const raw=String(rule?.prop||'').split('|')[0].trim();
+    const pos=raw.indexOf('.');
+    if(pos<1)return null;
+    const pset=clean(raw.slice(0,pos));
+    // Owner Pset opt-outs can never suppress common DSCRLP project checks.
+    if(!pset||pset==='*'||/^Attr$/i.test(pset)||/^DSCRLP[ _-]*PROJECT/i.test(pset))return null;
+    return {owner,pset,key:owner+'::'+norm(pset)};
+  }
+  function stageItems(schema,gate){
+    // Always list every TMR and QR Pset defined in the imported project LoIN,
+    // including property sets not scheduled for the currently selected gate.
+    // No fabricated Pset names or requirements.
+    const all=new Map();
+    for(const r of schema?.rules||[]){
+      const v=identify(r);if(!v)continue;
+      if(!all.has(v.key))all.set(v.key,{...v,required:0,placeholder:0});
+      const mark=r.stages? r.stages[gate] : 'R';
+      if(mark==='P')all.get(v.key).placeholder++;
+      else if(mark==='R')all.get(v.key).required++;
+    }
+    const saved=schema?.settings?.[KEY]?.[gate]||{};
+    return [...all.values()].map(x=>({
+      ...x,applicable:(x.required+x.placeholder)>0,
+      enabled:saved[x.key]!==false
+    })).sort((a,b)=>a.owner.localeCompare(b.owner)||a.pset.localeCompare(b.pset));
+  }
+  function isExcluded(rule,gate,schema){
+    const v=identify(rule);
+    const mark=rule?.stages?rule.stages[gate]:'R';
+    return !!(v&&(mark==='R'||mark==='P')&&schema?.settings?.[KEY]?.[gate]?.[v.key]===false);
+  }
+  // Used directly by the application validator. A rule's required stage and
+  // source matrix markers are retained untouched for future submissions.
+  window.slqGateExcluded=isExcluded;
+  const htmlEscape=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const currentGate=()=>document.getElementById('stageSel')?.value||state()?.schema?.settings?.stage||'';
+  function render(){
+    const root=document.getElementById('slqStageScope'),app=state();
+    if(!root||!app)return;
+    const schema=app.schema,gate=currentGate();
+    if(!schema||!gate){root.hidden=true;return;}
+    const items=stageItems(schema,gate);
+    if(!items.length){root.hidden=true;root.innerHTML='';return;}
+    root.hidden=false;
+    const counts={TMR:items.filter(x=>x.owner==='TMR'),QRL:items.filter(x=>x.owner==='QRL')};
+    const nDeferred=items.filter(x=>x.applicable&&!x.enabled).length;
+    const nDue=items.filter(x=>x.applicable).length;
+    const nNotDue=items.length-nDue;
+    const reasons=schema.settings?.[REASONS]||{};
+    root.innerHTML='<div class="slq-scope-head">TMR / QR property set delivery <span style="font-size:11px;opacity:.72">'+htmlEscape(gate)+'</span></div>'+
+      '<div class="slq-scope-sub">All imported TMR and QR property sets are shown. Tick or untick those scheduled at the selected stage. Greyed-out sets are not due at this gate. Unchecked = deferred, not passed. Original LoIN unchanged.</div>'+
+      ['TMR','QRL'].map(owner=>!counts[owner].length?'':'<div class="slq-scope-owner">'+(owner==='QRL'?'QR':owner)+'</div><div class="slq-scope-grid">'+counts[owner].map(item=>
+        '<label class="slq-scope-option '+(!item.applicable?'notdue':item.enabled?'':'deferred')+'"><input type="checkbox" data-scope-key="'+encodeURIComponent(item.key)+'" '+(item.applicable&&item.enabled?'checked':'')+' '+(item.applicable?'':'disabled')+'><span><b>'+htmlEscape(item.pset)+'</b><small style="display:block;opacity:.72">'+(item.applicable?(item.required+' required · '+item.placeholder+' placeholder'):'Not scheduled at '+htmlEscape(gate))+'</small></span></label>').join('')+'</div>').join('')+
+      '<div class="slq-scope-meta">'+items.length+' source Psets: '+(nDue-nDeferred)+' checked / '+nDeferred+' deferred / '+nNotDue+' not yet scheduled at '+htmlEscape(gate)+'. DSCRLP – PROJECT requirements remain compulsory.</div>'+
+      (nDeferred?'<div class="slq-scope-note"><label for="slq-scope-reason">Reason for deferral (recorded in MVC)</label><textarea id="slq-scope-reason" placeholder="e.g. asset owner information not established for this stage">'+htmlEscape(reasons[gate]||'')+'</textarea></div>':'')+
+      '<div class="slq-scope-actions"><span class="slq-scope-warn">A deferred property set is excluded from the compliance percentage; formal approval is separate.</span><button type="button" id="slq-scope-reset">Enable all</button></div>';
+    root.querySelectorAll('[data-scope-key]').forEach(box=>{
+      box.onchange=()=>{
+        const key=decodeURIComponent(box.dataset.scopeKey);
+        const current=schema.settings?.[KEY]||{};
+        const forGate={...(current[gate]||{}),[key]:box.checked};
+        schema.settings={...(schema.settings||{}),[KEY]:{...current,[gate]:forGate}};
+        if(typeof window.xo==='function')window.xo(false);
+        render();
+      };
+    });
+    const reason=root.querySelector('#slq-scope-reason');
+    if(reason)reason.oninput=()=>{
+      const prev=schema.settings?.[REASONS]||{};
+      schema.settings={...(schema.settings||{}),[REASONS]:{...prev,[gate]:reason.value}};
+      if(typeof window.xo==='function')window.xo(false);
+    };
+    root.querySelector('#slq-scope-reset').onclick=()=>{
