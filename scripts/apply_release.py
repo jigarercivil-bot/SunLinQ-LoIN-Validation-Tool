@@ -30,8 +30,8 @@ if '"})();<\\\\/script>"' in result:
 # Use the source IFC filename as the MVC print-to-PDF document title.
 # Browsers ordinarily suggest the document title as the Save as PDF filename.
 # Preserve every filename segment; remove only the final file extension.
-old_mvc_title = r'\\n<title>Model Validation Certificate</title>\\n'
-new_mvc_title = r'\\n<title>"+Ti(_mvcPrintName)+"</title>\\n'
+old_mvc_title = r'\n<title>Model Validation Certificate</title>\n'
+new_mvc_title = r'\n<title>"+Ti(_mvcPrintName)+"</title>\n'
 if result.count(old_mvc_title) != 1:
     raise RuntimeError("Expected exactly one MVC report title in generated HTML")
 result = result.replace(
