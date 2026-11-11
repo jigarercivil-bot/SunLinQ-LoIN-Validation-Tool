@@ -42,7 +42,7 @@ result = result.replace(
 old_mvc_start = '  var html="<!DOCTYPE html>'
 new_mvc_start = (
     '  var _mvcPrintName=String(tt.fileName||H$()||"Model Validation Certificate")'
-    '.replace(/\\.[^.\\/\\\\]+$/,"");\\n'
+    '.replace(/\\.[^./\\\\]+$/,"");\n'
     + old_mvc_start
 )
 if result.count(old_mvc_start) != 1:
