@@ -386,7 +386,7 @@
       '<dt>Mapping</dt><dd>Links each IFC object group to its owner category and sub-category.</dd>' +
       '<dt>Schema</dt><dd>Lists the attributes each owner requires and the values they accept.</dd>' +
       '<dt>Returned works owner</dt><dd>Who takes the asset over: TMR, QR or SCC. Read from “Project - Returned Works Owner” and decides which owner rules apply.</dd>' +
-      '<dt>N.A. owner</dt><dd>Not returned to an owner. Only the DSCRLP project rules apply.</dd>' +
+      '<dt>N.A. owner</dt><dd>Returned Works Owner is NA / N.A. / N/A. TMR and QR owner rules are skipped; the DSCRLP project attributes are still required.</dd>' +
       '<dt>Progressive stages</dt><dd>Anything required at an earlier stage is still required later.</dd>' +
       '<dt>T.B.C placeholder</dt><dd>Accepted only at stages where the LoIN allows a placeholder.</dd>' +
       '<dt>Data-only mode</dt><dd>Skips the 3D view so very large models still open. Checks and exports work as normal.</dd>' +

@@ -103,7 +103,31 @@ for old, new in mvc_edits:
         raise SystemExit("MVC sign-off code is not in the expected v2.35 shape: " + old[:60])
     html = html.replace(old, new, 1)
 
-# 5. Layout layer at the very end of the page, after the engine has bound its handlers
+# 5. DSCRLP project-controlled values agreed on 12 Nov 2026 (exact-match edits; the build stops if the
+#    engine text has moved): Project - Name = THE WAVE (RAIL) STAGE 2 GREENFIELD; Project - Suitability =
+#    S2 or S4; Project - Package Number = 044-<package ID>, matching the IFC filename's package ID when it
+#    has one. (Objects with Returned Works Owner N.A. / NA keep the DSCRLP project checks and skip the
+#    TMR / QR owner rules: unchanged engine behaviour.)
+rule_edits = [
+    # b) project-controlled values
+    ('"project - name":{type:"fixed",value:"The Wave (Rail) Stage 2 Greenfield Package",label:"The Wave (Rail) Stage 2 Greenfield Package"}',
+     '"project - name":{type:"fixed",value:"THE WAVE (RAIL) STAGE 2 GREENFIELD",label:"THE WAVE (RAIL) STAGE 2 GREENFIELD"}', 1),
+    ('"project - package number":{type:"package",label:"Package ID from IFC filename"}',
+     '"project - package number":{type:"package",label:"044-XXXXX (package ID from IFC filename)"}', 1),
+    ('"project - suitability":{type:"fixed",value:"S4",label:"S4"}',
+     '"project - suitability":{type:"allowed",value:"S2\\nS4",label:"S2 or S4"}', 1),
+    ('if(o.type==="fixed")i.check={type:"fixed",value:o.value,caseSensitive:!1};else i.check={type:o.type};',
+     'if(o.type==="fixed")i.check={type:"fixed",value:o.value,caseSensitive:!1};else if(o.type==="allowed")i.check={type:"allowed",values:o.value,caseSensitive:!1};else i.check={type:o.type};', 1),
+    ('case"package":{let d=slqPackageIdFromFileName(typeof tt!=="undefined"&&tt?tt.fileName:"");return d?i.toUpperCase()===d.toUpperCase()?null:`Package Number is "${i}" but the IFC filename resolves to Package ID ${d}`:"Package ID could not be determined from the IFC filename"}',
+     'case"package":{let m=/^044-([A-Z0-9]+)$/i.exec(String(i).trim());if(!m)return`Package Number "${i}" must be 044-XXXXX (044- followed by the package ID)`;let d=slqPackageIdFromFileName(typeof tt!=="undefined"&&tt?tt.fileName:"");return d&&m[1].toUpperCase()!==d.toUpperCase()?`Package Number is "${i}" but the IFC filename resolves to Package ID ${d} (expected 044-${d})`:null}', 1),
+    ('value="${Ti(p||"Package ID will be detected from IFC filename")}"', 'value="${Ti(p?"044-"+p:"044-XXXXX (package ID from IFC filename)")}"', 1),
+]
+for old, new, n in rule_edits:
+    if html.count(old) != n:
+        raise SystemExit(f"Rule edit anchor found {html.count(old)}x (expected {n}): {old[:70]}")
+    html = html.replace(old, new)
+
+# 6. Layout layer at the very end of the page, after the engine has bound its handlers
 body_end = html.rfind("</body>")
 if body_end < 0:
     raise SystemExit("No </body> found")
