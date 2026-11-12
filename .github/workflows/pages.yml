@@ -21,6 +21,8 @@ jobs:
       - uses: actions/configure-pages@v5
       - name: Build LoIN v2.35 HTML
         run: python3 scripts/apply_release.py
+      - name: Add v2.36 layout and built-in DSCRLP rules
+        run: python3 scripts/build_release.py
       - uses: actions/upload-pages-artifact@v4
         with:
           path: .

@@ -10,6 +10,19 @@ Private source repository for the SunLinQ Level of Information Need (LoIN) valid
 - `scripts/assemble.py` — deterministic assembler.
 - `.github/workflows/assemble.yml` — automatically commits `index.html` when source parts change.
 
+## Release build (V2.36)
+The published tool is built in three steps, each layered on the one before:
+
+1. `index.html` — the V2.34 baseline (assembled from `source/v2.34`).
+2. `python3 scripts/apply_release.py` — applies `releases/v2.35.patch.json` (V2.35).
+3. `python3 scripts/build_release.py` — adds V2.36:
+   - `rules/dscrlp-ruleset.json` — the **built-in DSCRLP rule set**, with its display name and revision in `rules/ruleset.meta.json`. Users no longer import or export a JSON file.
+   - `releases/v2.36/ui.css`, `ui.js`, `boot.js` — the clean layout (stage switcher in the header, icon rail, Help tab). These only rearrange and restyle existing elements; the validation engine, exports and MVC are unchanged.
+
+`.github/workflows/pages.yml` runs steps 2 and 3 on every push to `main`.
+
+**Updating the rules:** in the tool, open Help and turn on *Maintainer mode*, make the change under Rules → Maintainer tools, use *Save JSON*, replace `rules/dscrlp-ruleset.json` with that file, update the revision text in `rules/ruleset.meta.json`, and push. Each user's browser picks up the new revision on next load and keeps their mapping work where the categories still exist.
+
 ## How to use
 Open `index.html` in the private repository and choose **Download raw file**, then open locally in a supported browser. GitHub's file viewer does not execute HTML applications.
 
