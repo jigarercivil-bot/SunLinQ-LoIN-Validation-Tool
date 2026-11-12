@@ -85,7 +85,25 @@ html = (html[:start] + old_head + "if(active&&active.builtin)return active;"
         + "return active||(window.__SLQ_BUILTIN__?JSON.parse(JSON.stringify(window.__SLQ_BUILTIN__)):E$())}"
         + html[tail + len(old_tail):])
 
-# 4. Layout layer at the very end of the page, after the engine has bound its handlers
+# 4. MVC sign-off: one name only. The typed signature uses the reviewer Name on the left of the
+#    Model Reviewer table; the separate name box above the signature is removed (kept as a hidden field
+#    so the existing signing script keeps working).
+mvc_edits = [
+    ('\'<input type="text" id="mvcSignatureName" aria-label="Typed electronic signature" placeholder="Type your full name" autocomplete="name" />\'+',
+     '\'<input type="hidden" id="mvcSignatureName" />\'+'),
+    ('"  reviewer.addEventListener(\'input\',function(){if(!signatureName.value.trim())signatureName.value=reviewer.value;});\\n"+',
+     '"  reviewer.addEventListener(\'input\',function(){signatureName.value=reviewer.value;});\\n"+'),
+    ('"    var name=signatureName.value.trim()||reviewer.value.trim();\\n"+',
+     '"    var name=reviewer.value.trim();\\n"+'),
+    ('"    if(!name){alert(\'Enter the full name of the reviewer to sign.\');signatureName.focus();return;}\\n"+',
+     '"    if(!name){alert(\'Enter the reviewer full name in the Name column to sign.\');reviewer.focus();return;}\\n"+'),
+]
+for old, new in mvc_edits:
+    if html.count(old) != 1:
+        raise SystemExit("MVC sign-off code is not in the expected v2.35 shape: " + old[:60])
+    html = html.replace(old, new, 1)
+
+# 5. Layout layer at the very end of the page, after the engine has bound its handlers
 body_end = html.rfind("</body>")
 if body_end < 0:
     raise SystemExit("No </body> found")
