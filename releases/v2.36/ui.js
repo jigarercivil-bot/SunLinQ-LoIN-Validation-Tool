@@ -194,6 +194,43 @@
   rulesTab.insertBefore(maint, (stageBox || ruleCard).nextSibling);
   tabHead(rulesTab, 'Rules', 'The requirements every model is checked against at the selected stage.');
 
+  /* Two collapsible sections: Owner property sets (which TMR / QR Psets are due at this stage)
+     and Attributes (every rule). The engine keeps rendering into its own elements inside them. */
+  function section(id, title, openByDefault) {
+    var saved = store.get('slq.sec.' + id);
+    var d = el('details', { 'class': 'slq-section', id: id });
+    if (saved === null ? openByDefault : saved === '1') d.open = true;
+    d.innerHTML = '<summary><span class="slq-sec-title">' + esc(title) + '</span><span class="slq-sec-meta"></span>' + icon('chevron', 16) + '</summary><div class="slq-sec-body"></div>';
+    d.addEventListener('toggle', function () { store.set('slq.sec.' + id, d.open ? '1' : '0'); });
+    return d;
+  }
+  var stageInfo = $('#stageInfo'), scope = $('#slqStageScope');
+  var secPsets = section('slqSecPsets', 'Owner property sets', true);
+  var secAttrs = section('slqSecAttrs', 'Attributes', true);
+  if (stageInfo) { stageInfo.classList.add('slq-stageinfo'); rulesTab.insertBefore(stageInfo, ruleCard.nextSibling); }
+  if (stageBox) stageBox.classList.add('slq-emptied');
+  if (scope) $('.slq-sec-body', secPsets).appendChild(scope);
+  var ruleSearchRow = $('#ruleSearch') && $('#ruleSearch').closest('.row');
+  [ruleSearchRow, $('#ruleList')].forEach(function (n) { if (n) $('.slq-sec-body', secAttrs).appendChild(n); });
+  rulesTab.appendChild(secPsets);
+  rulesTab.appendChild(secAttrs);
+  function renderSections() {
+    var s = state();
+    if (!s || !s.schema) return;
+    var gate = ($('#stageSel') || {}).value || (s.schema.settings || {}).stage || '';
+    var meta = '';
+    if (window.slqPsetScope && gate) {
+      var items = window.slqPsetScope.listForStage(s.schema, gate);
+      var due = items.filter(function (x) { return x.applicable; });
+      var deferred = due.filter(function (x) { return !x.enabled; }).length;
+      meta = due.length + ' of ' + items.length + ' due at ' + (STAGE_SHORT[gate] || gate) + (deferred ? ' · ' + deferred + ' deferred' : '');
+      secPsets.hidden = !items.length;
+    }
+    $('.slq-sec-meta', secPsets).textContent = meta;
+    var n = (s.schema.rules || []).filter(function (r) { return r.enabled !== false; }).length;
+    $('.slq-sec-meta', secAttrs).textContent = n + ' rules';
+  }
+
   function resetToBuiltin() {
     if (!window.__SLQ_BUILTIN__) return;
     if (!confirm('Replace the current rules with the built-in DSCRLP rules? Mapping work for matching categories is kept.')) return;
@@ -370,7 +407,7 @@
       var s = state();
       body.classList.toggle('slq-nomodel', !(s && s.model));
       var mi = $('#modelInfo'); if (mi && mi.title !== mi.textContent) mi.title = mi.textContent;
-      renderStages(); renderChip(); renderRuleCard(); renderVerdict(); renderSteps();
+      renderStages(); renderChip(); renderRuleCard(); renderSections(); renderVerdict(); renderSteps();
     } catch (e) { /* never break the app */ }
   }
   var sel = $('#stageSel');

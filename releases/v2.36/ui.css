@@ -239,3 +239,22 @@ body.slq3:not(.slq-admin) #svImportBtn { display: none !important; } /* workbook
 body.slq3:not(.slq-admin) .slq-maint-only { display: none !important; }
 .slq-sv-values { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 18px 10px; }
 .slq3 #svTabs button.on { color: var(--accent-h); border-bottom-color: var(--accent-bright); }
+
+/* Rules tab: Owner property sets + Attributes as collapsible sections */
+.slq3 .stagebox.slq-emptied { display: none !important; }
+.slq3 .slq-stageinfo { margin: -4px 2px 14px; font-size: 12px; color: var(--muted); }
+.slq-section { margin: 0 0 14px; background: var(--panel); border: 1px solid var(--line); border-radius: 16px; }
+.slq-section[hidden] { display: none; }
+.slq-section > summary { list-style: none; display: flex; align-items: center; gap: 10px; padding: 14px 16px; cursor: pointer; border-radius: 16px; }
+.slq-section > summary::-webkit-details-marker { display: none; }
+.slq-section > summary:hover { background: var(--panel2); }
+.slq-section > summary:focus-visible { outline: 2px solid var(--accent-bright); outline-offset: -2px; }
+.slq-sec-title { font-size: 14px; font-weight: 650; }
+.slq-sec-meta { flex: 1; font-size: 12px; color: var(--muted); }
+.slq-section > summary svg { color: var(--muted); transition: transform .15s; transform: rotate(-90deg); }
+.slq-section[open] > summary svg { transform: none; }
+.slq-section[open] > summary { border-bottom: 1px solid var(--line); border-radius: 16px 16px 0 0; }
+.slq-sec-body { padding: 12px 14px 14px; }
+.slq-sec-body #slqStageScope { margin: 0; padding: 0; border: 0; background: none; box-shadow: none; }
+.slq-sec-body .slq-scope-head { display: none; }
+.slq-sec-body > .row:first-child { margin-top: 0; }
