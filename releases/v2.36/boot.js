@@ -4,6 +4,18 @@
  * - Same revision already active: kept as-is, so mapping work and the last stage survive a reload.
  * - Maintainer mode with a custom rule set: left alone until "Reset to built-in rules".
  */
+/* Hide the page until the v2.36 layout has been applied, so the old layout never flashes.
+ * Safety nets: reveal on any script error, and after 5 seconds regardless. */
+(function () {
+  var root = document.documentElement;
+  var reveal = function () { root.classList.remove('slq-preload'); };
+  root.classList.add('slq-preload');
+  window.__slqReveal = reveal;
+  window.addEventListener('error', reveal);
+  setTimeout(reveal, 5000);
+  try { if (localStorage.getItem('irc.theme') === 'dark') root.setAttribute('data-theme', 'dark'); } catch (e) {}
+})();
+
 (function () {
   var el = document.getElementById('slq-builtin-rules');
   if (!el) return;

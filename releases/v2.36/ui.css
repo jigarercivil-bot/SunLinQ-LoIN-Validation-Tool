@@ -1,5 +1,15 @@
 /* SunLinQ LoIN v2.36 — clean layout layer. Loaded after all earlier styles; scoped to body.slq3. */
 
+/* ---------- Loading screen (until ui.js has applied the layout) ---------- */
+html.slq-preload { background: #eef1f4; }
+html.slq-preload[data-theme="dark"] { background: #0c141e; }
+html.slq-preload body { visibility: hidden; }
+html.slq-preload::after {
+  content: "SunLinQ LoIN Validation · loading…"; position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
+  font: 600 14px "Inter", "Segoe UI", system-ui, sans-serif; color: #586473; letter-spacing: .02em;
+}
+html.slq-preload[data-theme="dark"]::after { color: #9aabbd; }
+
 /* ---------- Tokens ---------- */
 body.slq3 {
   --navy: #0b1f33; --navy-2: #13293f; --navy-line: #24384d;

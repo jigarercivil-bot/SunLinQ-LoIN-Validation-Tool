@@ -417,4 +417,6 @@
   }
   tick();
   setInterval(tick, 700);
+  // New layout is in place: show the page (see boot.js).
+  requestAnimationFrame(function () { if (window.__slqReveal) window.__slqReveal(); });
 })();
