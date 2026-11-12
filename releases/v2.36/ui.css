@@ -258,3 +258,21 @@ body.slq3:not(.slq-admin) .slq-maint-only { display: none !important; }
 .slq-sec-body #slqStageScope { margin: 0; padding: 0; border: 0; background: none; box-shadow: none; }
 .slq-sec-body .slq-scope-head { display: none; }
 .slq-sec-body > .row:first-child { margin-top: 0; }
+
+/* Stage switcher: selected stage is a raised, embossed key in a recessed track */
+.slq-stages { background: #0a1a2b; box-shadow: inset 0 2px 4px rgba(0,0,0,.45), inset 0 -1px 0 rgba(255,255,255,.05); padding: 4px; gap: 3px; }
+.slq-stages button { transition: background .15s, box-shadow .15s, transform .15s, color .15s; }
+.slq-stages button[aria-pressed="true"] {
+  background: linear-gradient(180deg, #4fe0d3 0%, #1db5a8 55%, #128f84 100%);
+  color: #032421; font-weight: 700;
+  text-shadow: 0 1px 0 rgba(255,255,255,.35);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.65),
+    inset 0 -2px 0 rgba(0,0,0,.22),
+    0 2px 0 #0b6b63,
+    0 4px 8px rgba(0,0,0,.45);
+  transform: translateY(-1px);
+}
+.slq-stages button[aria-pressed="true"]:hover { background: linear-gradient(180deg, #5fe8dc 0%, #22bfb2 55%, #149a8e 100%); color: #032421; }
+.slq-stages button[aria-pressed="true"]:active { transform: translateY(0); box-shadow: inset 0 1px 0 rgba(255,255,255,.5), inset 0 -1px 0 rgba(0,0,0,.2), 0 1px 0 #0b6b63, 0 2px 4px rgba(0,0,0,.4); }
+@media (prefers-reduced-motion: reduce) { .slq-stages button { transition: none; } }
