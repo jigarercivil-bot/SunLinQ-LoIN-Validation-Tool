@@ -28,6 +28,7 @@
     comps: '<path d="M12 3l8 9-8 9-8-9z"/>',
     model: '<path d="M12 2 3 7v10l9 5 9-5V7z"/><path d="M3 7l9 5 9-5M12 12v10"/>',
     search: '<circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/>',
+    schema: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 4v16"/>',
     help: '<circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14M12 17.5v.01"/>',
     check: '<path d="M20 6 9 17l-5-5"/>',
     lock: '<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',
@@ -119,6 +120,17 @@
     var ico = $('.tab-ico', b);
     if (ico && ICONS[b.dataset.tab]) ico.innerHTML = icon(b.dataset.tab, 20);
   });
+  // Schema: its own rail item directly below Mapping. It opens the Schema window
+  // (mapping table, selectors, attributes, values, alias) using the engine's own button.
+  var schemaBtn = $('#btnSchemaView');
+  var mappingBtn = $('button[data-tab="mapping"]', nav);
+  if (schemaBtn && mappingBtn) {
+    schemaBtn.hidden = true;
+    var schemaRail = el('button', { type: 'button', 'data-rail': 'schema', title: 'Schema window: IFC mapping, selectors, attributes, values and alias' },
+      '<span class="tab-ico">' + icon('schema', 20) + '</span><span>Schema</span>');
+    schemaRail.addEventListener('click', function () { schemaBtn.click(); });
+    mappingBtn.insertAdjacentElement('afterend', schemaRail);
+  }
   nav.appendChild(el('div', { 'class': 'slq-rail-spacer' }));
   var helpBtn = el('button', { type: 'button', 'data-tab': 'help' }, '<span class="tab-ico">' + icon('help', 20) + '</span><span>Help</span>');
   nav.appendChild(helpBtn);
@@ -143,8 +155,6 @@
   var resetBtn = el('button', { type: 'button', 'class': 'btn sm' }, 'Reset to built-in rules');
   resetBtn.onclick = resetToBuiltin;
   resetRow.appendChild(resetBtn);
-  var schemaBtn = $('#btnSchemaView');
-  if (schemaBtn) { schemaBtn.className = 'btn sm'; schemaBtn.textContent = 'Rules table view'; resetRow.appendChild(schemaBtn); }
   [ $('#schemaName') && $('#schemaName').closest('.row'), $('#btnLoi') && $('#btnLoi').closest('.row'), resetRow, $('#settingsBox'), $('#loiNotes') ]
     .forEach(function (n) { if (n) maint.appendChild(n); });
   var stageBox = $('#stageBox');

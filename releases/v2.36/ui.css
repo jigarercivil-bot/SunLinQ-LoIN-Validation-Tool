@@ -121,11 +121,10 @@ body.slq3 {
 .slq-maint > summary { cursor: pointer; font-weight: 650; font-size: 13px; }
 .slq-maint p { margin: 6px 0 8px; }
 body.slq3:not(.slq-admin) .slq-maint,
-body.slq3:not(.slq-admin) #mapvOpenSchema,
 body.slq3:not(.slq-admin) .slq-rail button[data-tab="comps"] { display: none !important; }
 
 /* Duplicates removed from view (same action is available elsewhere) */
-.slq3 #btnShowAll, .slq3 #btnAllOn, .slq3 #mapvShowAllObjects, .slq3 #btnOpen2, .slq3 #btnRestoreDscrlp { display: none !important; }
+.slq3 #mapvOpenSchema, .slq3 #btnShowAll, .slq3 #btnAllOn, .slq3 #mapvShowAllObjects, .slq3 #btnOpen2, .slq3 #btnRestoreDscrlp { display: none !important; }
 
 /* Results verdict */
 .slq-verdict { display: flex; gap: 12px; align-items: flex-start; padding: 14px 16px; margin: 0 0 14px; border-radius: 16px; border: 1px solid var(--line); background: var(--panel); }
@@ -233,3 +232,5 @@ body.slq3:not(.slq-admin) .slq-rail button[data-tab="comps"] { display: none !im
   .slq3 .slq-chip, .slq3 .top .check { display: none; }
   .slq3 .quickflow { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+.slq3 #btnSchemaView[hidden] { display: none !important; }
+body.slq3:not(.slq-admin) #svImportBtn { display: none !important; } /* workbook import replaces the built-in rules: maintainers only */
