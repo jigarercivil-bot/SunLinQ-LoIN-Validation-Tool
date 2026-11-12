@@ -128,7 +128,7 @@
     schemaBtn.hidden = true;
     var schemaRail = el('button', { type: 'button', 'data-rail': 'schema', title: 'Schema window: IFC mapping, selectors, attributes, values and alias' },
       '<span class="tab-ico">' + icon('schema', 20) + '</span><span>Schema</span>');
-    schemaRail.addEventListener('click', function () { schemaBtn.click(); });
+    schemaRail.addEventListener('click', openSchema);
     mappingBtn.insertAdjacentElement('afterend', schemaRail);
   }
   nav.appendChild(el('div', { 'class': 'slq-rail-spacer' }));
@@ -139,6 +139,37 @@
     $$('.left > .tab').forEach(function (x) { x.classList.toggle('on', x.id === 'tab-help'); });
     renderHelp();
   });
+
+  /* ---------- Schema window: owner attributes and their possible values ----------
+   * Mapping (IFC object -> owner category) lives only in the Mapping tab, so the Schema
+   * window's Mapping and Selectors tabs are maintainer-only and it opens on Attributes. */
+  function openSchema() {
+    var admin = body.classList.contains('slq-admin');
+    var current = ($('#svTabs button.on') || {}).dataset;
+    var tab = current && current.t;
+    if (!admin && (!tab || tab === 'mapping' || tab === 'selectors')) tab = 'attributes';
+    if (typeof window.Eme === 'function') window.Eme(tab); else if (schemaBtn) schemaBtn.click();
+  }
+  (function () {
+    var modal = $('#svModal');
+    if (!modal) return;
+    var title = $('.sv-top b', modal);
+    if (title) title.textContent = 'Schema · owner attributes and possible values';
+    $$('#svTabs button', modal).forEach(function (b) {
+      if (b.dataset.t === 'mapping' || b.dataset.t === 'selectors') b.classList.add('slq-maint-only');
+    });
+    var card = $('.sv-card', modal);
+    var tpl = $('#btnValuesTpl'), imp = $('#btnValues');
+    if (card && tpl && imp) {
+      var row = el('div', { 'class': 'slq-sv-values' },
+        '<span class="muted sm">Possible values per attribute:</span>');
+      tpl.textContent = 'Download values sheet';
+      imp.textContent = 'Import allowed values';
+      imp.classList.add('slq-maint-only');
+      row.appendChild(tpl); row.appendChild(imp);
+      card.insertAdjacentElement('afterend', row);
+    }
+  })();
 
   function tabHead(section, title, text) {
     var h = el('div', { 'class': 'slq-tabhead' }, '<h2>' + esc(title) + '</h2>' + (text ? '<p>' + esc(text) + '</p>' : ''));
@@ -315,6 +346,8 @@
       '<li><i>4</i><div><b>Review and export</b><span>Results shows what fails and why. Export gives the Excel report and the MVC.</span></div></li>' +
       '</ol>' +
       '<h3>What the terms mean</h3><dl>' +
+      '<dt>Mapping</dt><dd>Links each IFC object group to its owner category and sub-category.</dd>' +
+      '<dt>Schema</dt><dd>Lists the attributes each owner requires and the values they accept.</dd>' +
       '<dt>Returned works owner</dt><dd>Who takes the asset over: TMR, QR or SCC. Read from “Project - Returned Works Owner” and decides which owner rules apply.</dd>' +
       '<dt>N.A. owner</dt><dd>Not returned to an owner. Only the DSCRLP project rules apply.</dd>' +
       '<dt>Progressive stages</dt><dd>Anything required at an earlier stage is still required later.</dd>' +

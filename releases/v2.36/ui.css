@@ -234,3 +234,8 @@ body.slq3:not(.slq-admin) .slq-rail button[data-tab="comps"] { display: none !im
 }
 .slq3 #btnSchemaView[hidden] { display: none !important; }
 body.slq3:not(.slq-admin) #svImportBtn { display: none !important; } /* workbook import replaces the built-in rules: maintainers only */
+
+/* Schema window: attributes and possible values only (mapping lives in the Mapping tab) */
+body.slq3:not(.slq-admin) .slq-maint-only { display: none !important; }
+.slq-sv-values { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 18px 10px; }
+.slq3 #svTabs button.on { color: var(--accent-h); border-bottom-color: var(--accent-bright); }
