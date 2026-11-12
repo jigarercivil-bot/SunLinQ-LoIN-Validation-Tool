@@ -42,6 +42,10 @@ def attr(s):
     return (str(s).replace("&", "&amp;").replace('"', "&quot;").replace("<", "&lt;"))
 
 
+class_map = json.loads((root / "rules" / "ifc-class-map.json").read_text(encoding="utf-8"))
+if not class_map.get("rows"):
+    raise SystemExit("rules/ifc-class-map.json has no rows")
+class_map_json = json.dumps(class_map, ensure_ascii=False, separators=(",", ":")).replace("<", "\\u003c")
 css = (rel / "ui.css").read_text(encoding="utf-8")
 boot = (rel / "boot.js").read_text(encoding="utf-8")
 ui = (rel / "ui.js").read_text(encoding="utf-8")
@@ -63,6 +67,7 @@ head_add = (
     f'<script type="application/json" id="slq-builtin-rules" data-id="{rules_id}" '
     f'data-name="{attr(meta.get("name", "DSCRLP LoIN rules"))}" data-rev="{attr(meta.get("revision", ""))}">'
     f"{rules_json}</script>\n"
+    f'<script type="application/json" id="slq-class-map">{class_map_json}</script>\n'
     f'<script id="slq-v236-boot">\n{boot}\n</script>\n'
 )
 html = html[:head_end] + head_add + html[head_end:]
@@ -127,7 +132,37 @@ for old, new, n in rule_edits:
         raise SystemExit(f"Rule edit anchor found {html.count(old)}x (expected {n}): {old[:70]}")
     html = html.replace(old, new)
 
-# 6. Layout layer at the very end of the page, after the engine has bound its handlers
+# 6. Mapping tab uses the IFC class map (rules/ifc-class-map.json):
+#    - suggestions only consider the TMR / QR categories that fit the object's IFC class (+ predefined type);
+#    - one primary match for that class -> auto-mapped (when Auto-apply is on) and labelled "Mapped · IFC class",
+#      unless the object's name clearly points to an asset the class does not allow (then: review);
+#    - the Category / Sub-category lists are filtered the same way, with "Show all categories" to override;
+#    - generic classes (IfcBuildingElementProxy, IfcBuiltElement) and classes with no entry behave as before.
+map_edits = [
+    ("if(!comps.length)return null;\n    const d=detect(row)",
+     "if(!comps.length)return null;\n    const cc=(!arguments[1]&&window.slqClassCandidates)?window.slqClassCandidates(row):null,ccOn=!!(cc&&!cc.generic&&cc.byKey&&cc.byKey.size);let strongAlt=0;\n    const d=detect(row)"),
+    # Name evidence must come from the object's own name/type, not from the IFC class fallback of detect().
+    ("const d=detect(row),asset=norm(d.name)",
+     "const d0=detect(row),d=(((cc&&!cc.generic&&cc.byKey&&cc.byKey.size)||arguments[1])&&d0.confidence<=72)?{name:'',confidence:0}:d0,asset=norm(d.name)"),
+    ("let k=category+'||'+subCategory;if(uniq.has(k))continue;",
+     "let k=category+'||'+subCategory;if(uniq.has(k))continue;let cm=ccOn?cc.byKey.get(k):null;if(ccOn&&!cm)continue;"),
+    ("uniq.set(k,{owner:row.owner,category,subCategory,score:Math.min(100,score),reasons});",
+     "if(cm==='A'&&score>=85)strongAlt=Math.max(strongAlt,score);if(cm==='P'){score=cc.primaryCount===1?Math.max(97,score):Math.min(96,80+Math.round(score*0.15));reasons.unshift('IFC class '+cc.label+(cc.primaryCount===1?' → only primary match':' → primary match'))}else if(cm==='A'){score=Math.min(95,60+Math.round(score*0.35));reasons.unshift('IFC class '+cc.label+' → possible match')}\n      uniq.set(k,{owner:row.owner,category,subCategory,score:Math.min(100,score),reasons});"),
+    ("best.margin=best.score-(arr[1]?.score||0);best.auto=best.score>=92&&best.margin>=6;return best;",
+     "best.margin=best.score-(arr[1]?.score||0);best.auto=best.score>=92&&best.margin>=6;best.top=arr.filter(x=>x.score>=best.score-5);if(ccOn&&best.auto&&strongAlt&&cc.byKey.get(best.category+'||'+best.subCategory)==='P'){best.auto=false;best.reasons.push('name matches another sub-category that IFC class '+cc.label+' can also represent — confirm which')}if(ccOn&&best.auto){const nb=taxonomySuggestion(row,true);if(nb&&nb.score>=90&&(nb.top||[nb]).every(x=>!cc.byKey.has(x.category+'||'+x.subCategory))){best.auto=false;best.reasons.push('name suggests '+nb.subCategory+', which IFC class '+cc.label+' does not normally represent — check the class')}}return best;"),
+    ("if(row.map?.slqTaxonomyAuto)return{key:'mapped',label:'Mapped · taxonomy',cls:'auto'};",
+     "if(row.map?.slqTaxonomyAuto)return{key:'mapped',label:/^IFC class/.test(row.map?.slqTaxonomyReason||'')?'Mapped · IFC class':'Mapped · taxonomy',cls:'auto'};"),
+    ("let cats=categories(row.owner),curCat=row.category||rule?.category||tx?.category||'',curSub=row.subCategory||rule?.subCategory||tx?.subCategory||'';cat.innerHTML=options(cats,curCat,'Select category…');sub.innerHTML=options(curCat?subcats(row.owner,curCat):[],curSub,'Select sub-category…');cat.onchange=()=>{sub.innerHTML=options(subcats(row.owner,cat.value),'','Select sub-category…')};",
+     "let cc=window.slqClassCandidates?window.slqClassCandidates(row):null,ccHas=!!(cc&&!cc.generic&&cc.byKey&&cc.byKey.size),useCC=ccHas&&!S.showAllCats,curCat=row.category||rule?.category||tx?.category||'',curSub=row.subCategory||rule?.subCategory||tx?.subCategory||'',withCur=(a,v)=>v&&!a.includes(v)?[v,...a]:a,subList=c=>useCC?cc.subsFor(c):subcats(row.owner,c);let cats=withCur(useCC?cc.categories:categories(row.owner),curCat);cat.innerHTML=options(cats,curCat,'Select category…');sub.innerHTML=options(curCat?withCur(subList(curCat),curSub):[],curSub,'Select sub-category…');cat.onchange=()=>{sub.innerHTML=options(subList(cat.value),'','Select sub-category…')};\n    let sa=$('#mapvShowAllCats');if(!sa){const lab=document.createElement('label');lab.className='check';lab.style.margin='4px 0';lab.innerHTML='<input type=\"checkbox\" id=\"mapvShowAllCats\"> Show all categories (ignore IFC class)';sub.parentElement.after(lab);sa=lab.querySelector('input')}sa.checked=!!S.showAllCats;sa.parentElement.style.display=ccHas?'':'none';sa.onchange=()=>{S.showAllCats=sa.checked;renderEditor(row)};"),
+    ("    cat.disabled=!!row.notApplicable;sub.disabled=!!row.notApplicable;",
+     "    if(useCC&&!row.mapped&&!row.notApplicable)note.textContent=note.textContent.replace(/\\.?$/,'.')+' Options limited to '+cc.byKey.size+' that fit '+cc.label+'.';\n    if(tx&&!row.mapped){const cf=(tx.reasons||[]).find(x=>/^name (suggests|matches)/.test(x));if(cf)note.textContent+=' ⚠ The '+cf+'.'}\n    cat.disabled=!!row.notApplicable;sub.disabled=!!row.notApplicable;"),
+]
+for old, new in map_edits:
+    if html.count(old) != 1:
+        raise SystemExit(f"Mapping edit anchor found {html.count(old)}x (expected 1): {old[:70]}")
+    html = html.replace(old, new)
+
+# 7. Layout layer at the very end of the page, after the engine has bound its handlers
 body_end = html.rfind("</body>")
 if body_end < 0:
     raise SystemExit("No </body> found")

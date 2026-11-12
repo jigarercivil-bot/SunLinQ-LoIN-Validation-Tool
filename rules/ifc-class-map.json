@@ -1,0 +1,3375 @@
+{
+"source": "ifc-class-map.xlsx",
+"rows": [
+{
+"c": "IfcBeam",
+"t": "GIRDER_SEGMENT",
+"k": "TMR",
+"cat": "Bridges",
+"sub": "Concrete Girders",
+"m": "P"
+},
+{
+"c": "IfcBeam",
+"t": "DIAPHRAGM",
+"k": "TMR",
+"cat": "Bridges",
+"sub": "Cross Girder",
+"m": "P"
+},
+{
+"c": "IfcBeam",
+"t": "PIERCAP",
+"k": "TMR",
+"cat": "Bridges",
+"sub": "Headstocks",
+"m": "P"
+},
+{
+"c": "IfcBeam",
+"t": "HOLLOWCORE",
+"k": "TMR",
+"cat": "Bridges",
+"sub": "PSC Deck Units",
+"m": "P"
+},
+{
+"c": "IfcBeam",
+"t": "T_BEAM",
+"k": "TMR",
+"cat": "Bridges",
+"sub": "Concrete Girders",
+"m": "A"
+},
+{
+"c": "IfcBeam",
+"t": "BEAM",
+"k": "TMR",
+"cat": "Bridges",
+"sub": "Cross Girder",
+"m": "A"
+},
+{
+"c": "IfcBearing",
+"t": "",
+"k": "TMR",
+"cat": "Bridges",
+"sub": "Bearings",
+"m": "P"
+},
+{
+"c": "IfcBearing",
+"t": "ELASTOMERIC",
+"k": "TMR",
+"cat": "Bridges",
+"sub": "Bearings",
+"m": "A"
+},
+{
+"c": "IfcBuiltElement",
+"t": "",
+"k": "TMR",
+"cat": "Bridges",
+"sub": "Bearing Pedestals",
+"m": "A"
+},
+{
+"c": "IfcBuiltElement",
+"t": "",
+"k": "TMR",
+"cat": "Bridges",
+"sub": "Restraint Blocks",
+"m": "A"
+},
+{
+"c": "IfcColumn",
+"t": "PIERSTEM",
+"k": "TMR",
+"cat": "Bridges",
+"sub": "Pier Columns",
+"m": "P"
+},
+{
+"c": "IfcColumn",
+"t": "PIERSTEM",
+"k": "TMR",
+"cat": "Bridges",
+"sub": "Blade Walls",
+"m": "A"
+},
+{
+"c": "IfcColumn",
+"t": "STANDCOLUMN",
+"k": "TMR",
+"cat": "Lighting",
+"sub": "Mounts",
+"m": "A"
+},
+{
+"c": "IfcColumn",
+"t": "STANDCOLUMN",
+"k": "TMR",
+"cat": "Traffic Signal",
+"sub": "Mounts Pedestals",
+"m": "A"
+},
+{
+"c": "IfcCourse",
+"t": "ARMOUR",
+"k": "TMR",
+"cat": "Bridges",
+"sub": "Abutment Protection (Rock)",
+"m": "P"
+},
+{
+"c": "IfcCourse",
+"t": "PROTECTION",
+"k": "TMR",
+"cat": "Bridges",
+"sub": "Abutment Protection (RC)",
+"m": "A"
+},
+{
+"c": "IfcCourse",
+"t": "PROTECTION",
+"k": "TMR",
+"cat": "Bridges",
+"sub": "Abutment Protection (Rock)",
+"m": "A"
+},
+{
+"c": "IfcCourse",
+"t": "PAVEMENT",
+"k": "TMR",
+"cat": "Bridges",
+"sub": "Deck Wearing Surface",
+"m": "A"
+},
+{
+"c": "IfcCourse",
+"t": "PAVEMENT",
+"k": "TMR",
+"cat": "Drainage System",
+"sub": "Pavements",
+"m": "A"
+},
+{
+"c": "IfcFooting",
+"t": "PAD_FOOTING",
+"k": "TMR",
+"cat": "Bridges",
+"sub": "Pad Foundations",
+"m": "P"
+},
+{
+"c": "IfcFooting",
+"t": "PILE_CAP",
+"k": "TMR",
+"cat": "Bridges",
+"sub": "Pile Caps",
+"m": "P"
+},
+{
+"c": "IfcFooting",
+"t": "PAD_FOOTING",
+"k": "TMR",
+"cat": "Lighting",
+"sub": "Mounts",
+"m": "A"
+},
+{
+"c": "IfcKerb",
+"t": "",
+"k": "TMR",
+"cat": "Bridges",
+"sub": "Cast Insitu Kerb",
+"m": "P"
+},
+{
+"c": "IfcKerb",
+"t": "",
+"k": "TMR",
+"cat": "Road Furniture",
+"sub": "Kerb and Channels",
+"m": "P"
+},
+{
+"c": "IfcMember",
+"t": "POST",
+"k": "TMR",
+"cat": "Lighting",
+"sub": "Mounts",
+"m": "P"
+},
+{
+"c": "IfcMember",
+"t": "POST",
+"k": "TMR",
+"cat": "Traffic Signal",
+"sub": "Mounts Pedestals",
+"m": "P"
+},
+{
+"c": "IfcMember",
+"t": "POST",
+"k": "TMR",
+"cat": "ITS & Electrical",
+"sub": "ITS Mounting Structures",
+"m": "A"
+},
+{
+"c": "IfcMember",
+"t": "POST",
+"k": "TMR",
+"cat": "Road Furniture",
+"sub": "Signages",
+"m": "A"
+},
+{
+"c": "IfcMember",
+"t": "POST",
+"k": "TMR",
+"cat": "Traffic Signal",
+"sub": "Mounts Masts Arms",
+"m": "A"
+},
+{
+"c": "IfcPavement",
+"t": "",
+"k": "TMR",
+"cat": "Drainage System",
+"sub": "Pavements",
+"m": "P"
+},
+{
+"c": "IfcPile",
+"t": "DRIVEN",
+"k": "TMR",
+"cat": "Bridges",
+"sub": "550 Octagonal PSC Piles",
+"m": "P"
+},
+{
+"c": "IfcPile",
+"t": "BORED",
+"k": "TMR",
+"cat": "Bridges",
+"sub": "Bored Piles",
+"m": "P"
+},
+{
+"c": "IfcPile",
+"t": "DRIVEN",
+"k": "TMR",
+"cat": "Bridges",
+"sub": "Driven Tube Piles",
+"m": "P"
+},
+{
+"c": "IfcPlate",
+"t": "",
+"k": "TMR",
+"cat": "Bridges",
+"sub": "Restraint Plates",
+"m": "P"
+},
+{
+"c": "IfcPlate",
+"t": "",
+"k": "TMR",
+"cat": "Bridges",
+"sub": "Winged Plates",
+"m": "P"
+},
+{
+"c": "IfcPlate",
+"t": "CURTAIN_PANEL",
+"k": "TMR",
+"cat": "Bridges",
+"sub": "Safety Screen / Anti Throw Screen",
+"m": "A"
+},
+{
+"c": "IfcRailing",
+"t": "GUARDRAIL",
+"k": "TMR",
+"cat": "Bridges",
+"sub": "Guard Rail",
+"m": "P"
+},
+{
+"c": "IfcRailing",
+"t": "BALUSTRADE",
+"k": "TMR",
+"cat": "Bridges",
+"sub": "Pedestrian Balustrades",
+"m": "P"
+},
+{
+"c": "IfcRailing",
+"t": "HANDRAIL",
+"k": "TMR",
+"cat": "Bridges",
+"sub": "Safety Rails",
+"m": "P"
+},
+{
+"c": "IfcRailing",
+"t": "FENCE",
+"k": "TMR",
+"cat": "Bridges",
+"sub": "Safety Screen / Anti Throw Screen",
+"m": "P"
+},
+{
+"c": "IfcRailing",
+"t": "GUARDRAIL",
+"k": "TMR",
+"cat": "Bridges",
+"sub": "Steel Poist Traffic Barriers",
+"m": "P"
+},
+{
+"c": "IfcRailing",
+"t": "FENCE",
+"k": "TMR",
+"cat": "Road Furniture",
+"sub": "Fences",
+"m": "P"
+},
+{
+"c": "IfcRailing",
+"t": "GUARDRAIL",
+"k": "TMR",
+"cat": "Road Furniture",
+"sub": "Safety Barrier Transitions",
+"m": "P"
+},
+{
+"c": "IfcRailing",
+"t": "GUARDRAIL",
+"k": "TMR",
+"cat": "Road Furniture",
+"sub": "Safety Barriers",
+"m": "P"
+},
+{
+"c": "IfcRailing",
+"t": "GUARDRAIL",
+"k": "TMR",
+"cat": "Bridges",
+"sub": "Concrete Traffic Barriers",
+"m": "A"
+},
+{
+"c": "IfcRailing",
+"t": "GUARDRAIL",
+"k": "TMR",
+"cat": "Bridges",
+"sub": "Safety Rails",
+"m": "A"
+},
+{
+"c": "IfcReinforcedSoil",
+"t": "",
+"k": "TMR",
+"cat": "Bridges",
+"sub": "RSS Walls",
+"m": "A"
+},
+{
+"c": "IfcSlab",
+"t": "",
+"k": "TMR",
+"cat": "Bridges",
+"sub": "Abutment Protection (RC)",
+"m": "P"
+},
+{
+"c": "IfcSlab",
+"t": "FLOOR",
+"k": "TMR",
+"cat": "Bridges",
+"sub": "Cast Insitu Decks",
+"m": "P"
+},
+{
+"c": "IfcSlab",
+"t": "WEARING",
+"k": "TMR",
+"cat": "Bridges",
+"sub": "Deck Wearing Surface",
+"m": "P"
+},
+{
+"c": "IfcSlab",
+"t": "SIDEWALK",
+"k": "TMR",
+"cat": "Bridges",
+"sub": "Footways",
+"m": "P"
+},
+{
+"c": "IfcSlab",
+"t": "",
+"k": "TMR",
+"cat": "Bridges",
+"sub": "PSC Deck Units",
+"m": "A"
+},
+{
+"c": "IfcSlab",
+"t": "PAVING",
+"k": "TMR",
+"cat": "Drainage System",
+"sub": "Pavements",
+"m": "A"
+},
+{
+"c": "IfcWall",
+"t": "",
+"k": "TMR",
+"cat": "Bridges",
+"sub": "Blade Walls",
+"m": "P"
+},
+{
+"c": "IfcWall",
+"t": "PARAPET",
+"k": "TMR",
+"cat": "Bridges",
+"sub": "Concrete Traffic Barriers",
+"m": "P"
+},
+{
+"c": "IfcWall",
+"t": "",
+"k": "TMR",
+"cat": "Bridges",
+"sub": "Deflection Walls",
+"m": "P"
+},
+{
+"c": "IfcWall",
+"t": "SOLIDWALL",
+"k": "TMR",
+"cat": "Bridges",
+"sub": "Noise Barriers",
+"m": "P"
+},
+{
+"c": "IfcWall",
+"t": "RETAININGWALL",
+"k": "TMR",
+"cat": "Bridges",
+"sub": "RSS Walls",
+"m": "P"
+},
+{
+"c": "IfcWall",
+"t": "SOLIDWALL",
+"k": "TMR",
+"cat": "Road Furniture",
+"sub": "Noise Barriers",
+"m": "P"
+},
+{
+"c": "IfcWall",
+"t": "PARAPET",
+"k": "TMR",
+"cat": "Road Furniture",
+"sub": "Safety Barriers",
+"m": "A"
+},
+{
+"c": "IfcBuildingElementPart",
+"t": "",
+"k": "TMR",
+"cat": "Bridges",
+"sub": "Bearing Pedestals",
+"m": "P"
+},
+{
+"c": "IfcBuildingElementPart",
+"t": "",
+"k": "TMR",
+"cat": "Bridges",
+"sub": "Restraint Blocks",
+"m": "P"
+},
+{
+"c": "IfcBuildingElementPart",
+"t": "PRECASTPANEL",
+"k": "TMR",
+"cat": "Bridges",
+"sub": "RSS Walls",
+"m": "A"
+},
+{
+"c": "IfcDiscreteAccessory",
+"t": "EXPANSION_JOINT_DEVICE",
+"k": "TMR",
+"cat": "Bridges",
+"sub": "Expansion Joint",
+"m": "P"
+},
+{
+"c": "IfcDiscreteAccessory",
+"t": "SOUNDABSORPTION",
+"k": "TMR",
+"cat": "Bridges",
+"sub": "Noise Barriers",
+"m": "A"
+},
+{
+"c": "IfcDiscreteAccessory",
+"t": "ANCHORPLATE",
+"k": "TMR",
+"cat": "Bridges",
+"sub": "Restraint Plates",
+"m": "A"
+},
+{
+"c": "IfcDiscreteAccessory",
+"t": "SOUNDABSORPTION",
+"k": "TMR",
+"cat": "Road Furniture",
+"sub": "Noise Barriers",
+"m": "A"
+},
+{
+"c": "IfcImpactProtectionDevice",
+"t": "CRASHCUSHION",
+"k": "TMR",
+"cat": "Road Furniture",
+"sub": "Safety Barrier Transitions",
+"m": "A"
+},
+{
+"c": "IfcSign",
+"t": "",
+"k": "TMR",
+"cat": "Road Furniture",
+"sub": "Signages",
+"m": "P"
+},
+{
+"c": "IfcSign",
+"t": "",
+"k": "TMR",
+"cat": "ITS & Electrical",
+"sub": "Electronic Signs / Dynamic Signs",
+"m": "A"
+},
+{
+"c": "IfcElementAssembly",
+"t": "SUPPORTINGASSEMBLY",
+"k": "TMR",
+"cat": "ITS & Electrical",
+"sub": "ITS Mounting Structures",
+"m": "P"
+},
+{
+"c": "IfcElementAssembly",
+"t": "MAST",
+"k": "TMR",
+"cat": "Traffic Signal",
+"sub": "Mounts Masts Arms",
+"m": "P"
+},
+{
+"c": "IfcElementAssembly",
+"t": "DECK",
+"k": "TMR",
+"cat": "Bridges",
+"sub": "Cast Insitu Decks",
+"m": "A"
+},
+{
+"c": "IfcElementAssembly",
+"t": "",
+"k": "TMR",
+"cat": "Drainage System",
+"sub": "Culverts",
+"m": "A"
+},
+{
+"c": "IfcFurniture",
+"t": "TECHNICALCABINET",
+"k": "TMR",
+"cat": "ITS & Electrical",
+"sub": "ITS Enclosures",
+"m": "P"
+},
+{
+"c": "IfcFurniture",
+"t": "TECHNICALCABINET",
+"k": "TMR",
+"cat": "Traffic Signal",
+"sub": "Cabinet Housing",
+"m": "P"
+},
+{
+"c": "IfcAudioVisualAppliance",
+"t": "DISPLAY",
+"k": "TMR",
+"cat": "ITS & Electrical",
+"sub": "Electronic Signs / Dynamic Signs",
+"m": "P"
+},
+{
+"c": "IfcAudioVisualAppliance",
+"t": "CAMERA",
+"k": "TMR",
+"cat": "Traffic Signal",
+"sub": "Cameras",
+"m": "P"
+},
+{
+"c": "IfcCableCarrierSegment",
+"t": "CONDUITSEGMENT",
+"k": "TMR",
+"cat": "Lighting",
+"sub": "Linear Segments (e.g. Conduit Runs etc)",
+"m": "P"
+},
+{
+"c": "IfcCableCarrierSegment",
+"t": "CONDUITSEGMENT",
+"k": "TMR",
+"cat": "PUP",
+"sub": "PUP Existing",
+"m": "A"
+},
+{
+"c": "IfcCableCarrierSegment",
+"t": "CONDUITSEGMENT",
+"k": "TMR",
+"cat": "PUP",
+"sub": "PUP Proposed",
+"m": "A"
+},
+{
+"c": "IfcCableSegment",
+"t": "CABLESEGMENT",
+"k": "TMR",
+"cat": "Lighting",
+"sub": "Linear Segments (e.g. Conduit Runs etc)",
+"m": "P"
+},
+{
+"c": "IfcCableSegment",
+"t": "",
+"k": "TMR",
+"cat": "PUP",
+"sub": "PUP Existing",
+"m": "P"
+},
+{
+"c": "IfcCableSegment",
+"t": "",
+"k": "TMR",
+"cat": "PUP",
+"sub": "PUP Proposed",
+"m": "P"
+},
+{
+"c": "IfcCommunicationsAppliance",
+"t": "COMPUTER",
+"k": "TMR",
+"cat": "Traffic Signal",
+"sub": "Field Processors",
+"m": "P"
+},
+{
+"c": "IfcController",
+"t": "PROGRAMMABLE",
+"k": "TMR",
+"cat": "Traffic Signal",
+"sub": "Control Logic",
+"m": "P"
+},
+{
+"c": "IfcController",
+"t": "",
+"k": "TMR",
+"cat": "Traffic Signal",
+"sub": "Field Processors",
+"m": "A"
+},
+{
+"c": "IfcDistributionBoard",
+"t": "DISTRIBUTIONBOARD",
+"k": "TMR",
+"cat": "Lighting",
+"sub": "Point of Supply",
+"m": "P"
+},
+{
+"c": "IfcDistributionBoard",
+"t": "SWITCHBOARD",
+"k": "TMR",
+"cat": "Lighting",
+"sub": "Switchboards / Junction Boxes",
+"m": "P"
+},
+{
+"c": "IfcDistributionChamberElement",
+"t": "MANHOLE",
+"k": "TMR",
+"cat": "Drainage System",
+"sub": "Access Chamber",
+"m": "P"
+},
+{
+"c": "IfcDistributionChamberElement",
+"t": "SUMP",
+"k": "TMR",
+"cat": "Drainage System",
+"sub": "Gully Pits",
+"m": "P"
+},
+{
+"c": "IfcDistributionChamberElement",
+"t": "INSPECTIONPIT",
+"k": "TMR",
+"cat": "Lighting",
+"sub": "Pits Barries Voids",
+"m": "P"
+},
+{
+"c": "IfcDistributionChamberElement",
+"t": "INSPECTIONCHAMBER",
+"k": "TMR",
+"cat": "Drainage System",
+"sub": "Access Chamber",
+"m": "A"
+},
+{
+"c": "IfcDistributionChamberElement",
+"t": "",
+"k": "TMR",
+"cat": "PUP",
+"sub": "PUP Existing",
+"m": "A"
+},
+{
+"c": "IfcDistributionChamberElement",
+"t": "",
+"k": "TMR",
+"cat": "PUP",
+"sub": "PUP Proposed",
+"m": "A"
+},
+{
+"c": "IfcFlowMeter",
+"t": "ENERGYMETER",
+"k": "TMR",
+"cat": "Lighting",
+"sub": "Point of Supply",
+"m": "A"
+},
+{
+"c": "IfcJunctionBox",
+"t": "POWER",
+"k": "TMR",
+"cat": "Lighting",
+"sub": "Switchboards / Junction Boxes",
+"m": "P"
+},
+{
+"c": "IfcJunctionBox",
+"t": "DATA",
+"k": "TMR",
+"cat": "ITS & Electrical",
+"sub": "ITS Enclosures",
+"m": "A"
+},
+{
+"c": "IfcLamp",
+"t": "LED",
+"k": "TMR",
+"cat": "Lighting",
+"sub": "Luminaire",
+"m": "A"
+},
+{
+"c": "IfcLightFixture",
+"t": "",
+"k": "TMR",
+"cat": "ITS & Electrical",
+"sub": "Luminaires",
+"m": "P"
+},
+{
+"c": "IfcLightFixture",
+"t": "",
+"k": "TMR",
+"cat": "Lighting",
+"sub": "Luminaire",
+"m": "P"
+},
+{
+"c": "IfcPipeFitting",
+"t": "",
+"k": "TMR",
+"cat": "Drainage System",
+"sub": "Pipe (Network)",
+"m": "A"
+},
+{
+"c": "IfcPipeSegment",
+"t": "CULVERT",
+"k": "TMR",
+"cat": "Drainage System",
+"sub": "Culverts",
+"m": "P"
+},
+{
+"c": "IfcPipeSegment",
+"t": "RIGIDSEGMENT",
+"k": "TMR",
+"cat": "Drainage System",
+"sub": "Pipe (Network)",
+"m": "P"
+},
+{
+"c": "IfcPipeSegment",
+"t": "",
+"k": "TMR",
+"cat": "PUP",
+"sub": "PUP Existing",
+"m": "P"
+},
+{
+"c": "IfcPipeSegment",
+"t": "",
+"k": "TMR",
+"cat": "PUP",
+"sub": "PUP Proposed",
+"m": "P"
+},
+{
+"c": "IfcSensor",
+"t": "",
+"k": "TMR",
+"cat": "ITS & Electrical",
+"sub": "Detectors ITS",
+"m": "P"
+},
+{
+"c": "IfcSensor",
+"t": "MOVEMENTSENSOR",
+"k": "TMR",
+"cat": "Traffic Signal",
+"sub": "Detectors",
+"m": "P"
+},
+{
+"c": "IfcSensor",
+"t": "",
+"k": "TMR",
+"cat": "Traffic Signal",
+"sub": "Detectors",
+"m": "A"
+},
+{
+"c": "IfcSignal",
+"t": "VISUAL",
+"k": "TMR",
+"cat": "ITS & Electrical",
+"sub": "Lanterns",
+"m": "P"
+},
+{
+"c": "IfcSignal",
+"t": "VISUAL",
+"k": "TMR",
+"cat": "Traffic Signal",
+"sub": "Lanterns",
+"m": "P"
+},
+{
+"c": "IfcUnitaryControlElement",
+"t": "CONTROLPANEL",
+"k": "TMR",
+"cat": "Traffic Signal",
+"sub": "Control Logic",
+"m": "A"
+},
+{
+"c": "IfcWasteTerminal",
+"t": "GULLYSUMP",
+"k": "TMR",
+"cat": "Drainage System",
+"sub": "Gully Pits",
+"m": "A"
+},
+{
+"c": "IfcBeam",
+"t": "GIRDER_SEGMENT",
+"k": "QRL",
+"cat": "Floc",
+"sub": "BRIDGE (1150)",
+"m": "A"
+},
+{
+"c": "IfcBeam",
+"t": "PIERCAP",
+"k": "QRL",
+"cat": "Eq",
+"sub": "PIER (1300)",
+"m": "A"
+},
+{
+"c": "IfcBeam",
+"t": "GIRDER_SEGMENT",
+"k": "QRL",
+"cat": "Eq",
+"sub": "SPAN (1320)",
+"m": "A"
+},
+{
+"c": "IfcBeam",
+"t": "",
+"k": "QRL",
+"cat": "Eq",
+"sub": "FOOTBRIDGE (3630)",
+"m": "A"
+},
+{
+"c": "IfcBuildingElementProxy",
+"t": "",
+"k": "QRL",
+"cat": "Floc",
+"sub": "THIRD PARTY ASSETS (1440)",
+"m": "A"
+},
+{
+"c": "IfcBuildingElementProxy",
+"t": "",
+"k": "QRL",
+"cat": "Floc",
+"sub": "SUBSTATION (2030)",
+"m": "A"
+},
+{
+"c": "IfcBuiltElement",
+"t": "",
+"k": "QRL",
+"cat": "Floc",
+"sub": "TUNNEL (1000)",
+"m": "P"
+},
+{
+"c": "IfcColumn",
+"t": "",
+"k": "QRL",
+"cat": "Floc",
+"sub": "GANTRY (1040)",
+"m": "A"
+},
+{
+"c": "IfcColumn",
+"t": "PIERSTEM",
+"k": "QRL",
+"cat": "Eq",
+"sub": "PIER (1300)",
+"m": "A"
+},
+{
+"c": "IfcCourse",
+"t": "BALLASTBED",
+"k": "QRL",
+"cat": "Eq",
+"sub": "BALLAST (1472)",
+"m": "P"
+},
+{
+"c": "IfcCovering",
+"t": "COPING",
+"k": "QRL",
+"cat": "Eq",
+"sub": "PLATFORM (3360)",
+"m": "A"
+},
+{
+"c": "IfcDoor",
+"t": "GATE",
+"k": "QRL",
+"cat": "Floc",
+"sub": "ACCESS GATES (1230)",
+"m": "P"
+},
+{
+"c": "IfcDoor",
+"t": "BOOM_BARRIER",
+"k": "QRL",
+"cat": "Eq",
+"sub": "LX PROTECTION (7061)",
+"m": "P"
+},
+{
+"c": "IfcDoor",
+"t": "GATE",
+"k": "QRL",
+"cat": "Eq",
+"sub": "PX PROTECTION (7062)",
+"m": "P"
+},
+{
+"c": "IfcDoor",
+"t": "BOOM_BARRIER",
+"k": "QRL",
+"cat": "Floc",
+"sub": "LEVEL CROSSING (1180)",
+"m": "A"
+},
+{
+"c": "IfcDoor",
+"t": "DOOR",
+"k": "QRL",
+"cat": "Eq",
+"sub": "BUILDING (3001)",
+"m": "A"
+},
+{
+"c": "IfcDoor",
+"t": "GATE",
+"k": "QRL",
+"cat": "Eq",
+"sub": "FENCING (3870)",
+"m": "A"
+},
+{
+"c": "IfcMember",
+"t": "",
+"k": "QRL",
+"cat": "Floc",
+"sub": "GANTRY (1040)",
+"m": "A"
+},
+{
+"c": "IfcMember",
+"t": "POST",
+"k": "QRL",
+"cat": "Eq",
+"sub": "COMMUNICATION STRUCTURE (9006)",
+"m": "A"
+},
+{
+"c": "IfcPavement",
+"t": "",
+"k": "QRL",
+"cat": "Eq",
+"sub": "BUS INTERCHANGE (3120)",
+"m": "P"
+},
+{
+"c": "IfcPavement",
+"t": "",
+"k": "QRL",
+"cat": "Eq",
+"sub": "CARPARK (3030)",
+"m": "P"
+},
+{
+"c": "IfcPavement",
+"t": "",
+"k": "QRL",
+"cat": "Eq",
+"sub": "PATHWAYS (3480)",
+"m": "A"
+},
+{
+"c": "IfcPlate",
+"t": "",
+"k": "QRL",
+"cat": "Floc",
+"sub": "GRID (1120)",
+"m": "P"
+},
+{
+"c": "IfcRail",
+"t": "RAIL",
+"k": "QRL",
+"cat": "Eq",
+"sub": "RAIL (1470)",
+"m": "P"
+},
+{
+"c": "IfcRail",
+"t": "CHECKRAIL",
+"k": "QRL",
+"cat": "Eq",
+"sub": "RAIL (1470)",
+"m": "A"
+},
+{
+"c": "IfcRail",
+"t": "GUARDRAIL",
+"k": "QRL",
+"cat": "Eq",
+"sub": "RAIL (1470)",
+"m": "A"
+},
+{
+"c": "IfcRail",
+"t": "RAIL",
+"k": "QRL",
+"cat": "Floc",
+"sub": "TRACK (1220)",
+"m": "A"
+},
+{
+"c": "IfcRailing",
+"t": "GUARDRAIL",
+"k": "QRL",
+"cat": "Eq",
+"sub": "FALL PROTECTION (3210)",
+"m": "P"
+},
+{
+"c": "IfcRailing",
+"t": "FENCE",
+"k": "QRL",
+"cat": "Eq",
+"sub": "FENCING (3870)",
+"m": "P"
+},
+{
+"c": "IfcRamp",
+"t": "",
+"k": "QRL",
+"cat": "Eq",
+"sub": "STAIRS/RAMPS (3510)",
+"m": "P"
+},
+{
+"c": "IfcRampFlight",
+"t": "",
+"k": "QRL",
+"cat": "Eq",
+"sub": "STAIRS/RAMPS (3510)",
+"m": "A"
+},
+{
+"c": "IfcReinforcedSoil",
+"t": "",
+"k": "QRL",
+"cat": "Floc",
+"sub": "RETAINING WALL (1090)",
+"m": "A"
+},
+{
+"c": "IfcRoof",
+"t": "",
+"k": "QRL",
+"cat": "Eq",
+"sub": "BUILDING (3001)",
+"m": "P"
+},
+{
+"c": "IfcRoof",
+"t": "",
+"k": "QRL",
+"cat": "Floc",
+"sub": "EQUIPMENT BUILDING (3810)",
+"m": "A"
+},
+{
+"c": "IfcRoof",
+"t": "",
+"k": "QRL",
+"cat": "Eq",
+"sub": "SHELTER (3570)",
+"m": "A"
+},
+{
+"c": "IfcSlab",
+"t": "PAVING",
+"k": "QRL",
+"cat": "Floc",
+"sub": "LEVEL CROSSING (1180)",
+"m": "P"
+},
+{
+"c": "IfcSlab",
+"t": "",
+"k": "QRL",
+"cat": "Eq",
+"sub": "BUILDING (3001)",
+"m": "P"
+},
+{
+"c": "IfcSlab",
+"t": "SIDEWALK",
+"k": "QRL",
+"cat": "Eq",
+"sub": "PATHWAYS (3480)",
+"m": "P"
+},
+{
+"c": "IfcSlab",
+"t": "",
+"k": "QRL",
+"cat": "Eq",
+"sub": "PLATFORM (3360)",
+"m": "P"
+},
+{
+"c": "IfcSlab",
+"t": "",
+"k": "QRL",
+"cat": "Floc",
+"sub": "BRIDGE (1150)",
+"m": "A"
+},
+{
+"c": "IfcSlab",
+"t": "",
+"k": "QRL",
+"cat": "Floc",
+"sub": "LOADING AND UNLOADING FACILITY (1060)",
+"m": "A"
+},
+{
+"c": "IfcSlab",
+"t": "",
+"k": "QRL",
+"cat": "Eq",
+"sub": "SPAN (1320)",
+"m": "A"
+},
+{
+"c": "IfcSlab",
+"t": "",
+"k": "QRL",
+"cat": "Floc",
+"sub": "SUBWAY (1110)",
+"m": "A"
+},
+{
+"c": "IfcSlab",
+"t": "",
+"k": "QRL",
+"cat": "Floc",
+"sub": "TUNNEL (1000)",
+"m": "A"
+},
+{
+"c": "IfcSlab",
+"t": "PAVING",
+"k": "QRL",
+"cat": "Eq",
+"sub": "BUS INTERCHANGE (3120)",
+"m": "A"
+},
+{
+"c": "IfcSlab",
+"t": "PAVING",
+"k": "QRL",
+"cat": "Eq",
+"sub": "CARPARK (3030)",
+"m": "A"
+},
+{
+"c": "IfcSlab",
+"t": "",
+"k": "QRL",
+"cat": "Floc",
+"sub": "EQUIPMENT BUILDING (3810)",
+"m": "A"
+},
+{
+"c": "IfcSlab",
+"t": "",
+"k": "QRL",
+"cat": "Eq",
+"sub": "SUBWAY (3780)",
+"m": "A"
+},
+{
+"c": "IfcStair",
+"t": "",
+"k": "QRL",
+"cat": "Eq",
+"sub": "STAIRS/RAMPS (3510)",
+"m": "P"
+},
+{
+"c": "IfcStair",
+"t": "",
+"k": "QRL",
+"cat": "Eq",
+"sub": "FOOTBRIDGE (3630)",
+"m": "A"
+},
+{
+"c": "IfcStairFlight",
+"t": "",
+"k": "QRL",
+"cat": "Eq",
+"sub": "STAIRS/RAMPS (3510)",
+"m": "A"
+},
+{
+"c": "IfcTrackElement",
+"t": "DERAILER",
+"k": "QRL",
+"cat": "Floc",
+"sub": "CATCH POINT (1260)",
+"m": "P"
+},
+{
+"c": "IfcTrackElement",
+"t": "SLEEPER",
+"k": "QRL",
+"cat": "Eq",
+"sub": "SLEEPERS (1471)",
+"m": "P"
+},
+{
+"c": "IfcTrackElement",
+"t": "VEHICLESTOP",
+"k": "QRL",
+"cat": "Floc",
+"sub": "STOP BLOCK (1100)",
+"m": "P"
+},
+{
+"c": "IfcTrackElement",
+"t": "FROG",
+"k": "QRL",
+"cat": "Floc",
+"sub": "DIAMOND (1160)",
+"m": "A"
+},
+{
+"c": "IfcTrackElement",
+"t": "BLOCKINGDEVICE",
+"k": "QRL",
+"cat": "Floc",
+"sub": "STOP BLOCK (1100)",
+"m": "A"
+},
+{
+"c": "IfcTrackElement",
+"t": "HALF_SET_OF_BLADES",
+"k": "QRL",
+"cat": "Floc",
+"sub": "TURNOUT (1210)",
+"m": "A"
+},
+{
+"c": "IfcTrackElement",
+"t": "FROG",
+"k": "QRL",
+"cat": "Floc",
+"sub": "TURNOUT (1210)",
+"m": "A"
+},
+{
+"c": "IfcWall",
+"t": "SOLIDWALL",
+"k": "QRL",
+"cat": "Floc",
+"sub": "NOISE BARRIER (1070)",
+"m": "P"
+},
+{
+"c": "IfcWall",
+"t": "RETAININGWALL",
+"k": "QRL",
+"cat": "Floc",
+"sub": "RETAINING WALL (1090)",
+"m": "P"
+},
+{
+"c": "IfcWall",
+"t": "",
+"k": "QRL",
+"cat": "Eq",
+"sub": "BUILDING (3001)",
+"m": "P"
+},
+{
+"c": "IfcWall",
+"t": "",
+"k": "QRL",
+"cat": "Eq",
+"sub": "ABUTMENT (1310)",
+"m": "A"
+},
+{
+"c": "IfcWall",
+"t": "",
+"k": "QRL",
+"cat": "Floc",
+"sub": "SUBWAY (1110)",
+"m": "A"
+},
+{
+"c": "IfcWall",
+"t": "",
+"k": "QRL",
+"cat": "Floc",
+"sub": "TUNNEL (1000)",
+"m": "A"
+},
+{
+"c": "IfcWall",
+"t": "",
+"k": "QRL",
+"cat": "Floc",
+"sub": "EQUIPMENT BUILDING (3810)",
+"m": "A"
+},
+{
+"c": "IfcWall",
+"t": "RETAININGWALL",
+"k": "QRL",
+"cat": "Eq",
+"sub": "PLATFORM (3360)",
+"m": "A"
+},
+{
+"c": "IfcWall",
+"t": "",
+"k": "QRL",
+"cat": "Eq",
+"sub": "SUBWAY (3780)",
+"m": "A"
+},
+{
+"c": "IfcWindow",
+"t": "",
+"k": "QRL",
+"cat": "Eq",
+"sub": "BUILDING (3001)",
+"m": "A"
+},
+{
+"c": "IfcBuildingElementPart",
+"t": "SAFETYCAGE",
+"k": "QRL",
+"cat": "Eq",
+"sub": "FALL PROTECTION (3210)",
+"m": "A"
+},
+{
+"c": "IfcDiscreteAccessory",
+"t": "RAIL_LUBRICATION",
+"k": "QRL",
+"cat": "Floc",
+"sub": "LUBRICATOR (1190)",
+"m": "P"
+},
+{
+"c": "IfcDiscreteAccessory",
+"t": "INSULATOR",
+"k": "QRL",
+"cat": "Eq",
+"sub": "SECTION INSULATOR (2330)",
+"m": "P"
+},
+{
+"c": "IfcDiscreteAccessory",
+"t": "POINT_MACHINE_LOCKING_DEVICE",
+"k": "QRL",
+"cat": "Eq",
+"sub": "POINTS EQUIPMENT (7155)",
+"m": "P"
+},
+{
+"c": "IfcDiscreteAccessory",
+"t": "POINT_MACHINE_LOCKING_DEVICE",
+"k": "QRL",
+"cat": "Eq",
+"sub": "POINTS LOCKING (7157)",
+"m": "P"
+},
+{
+"c": "IfcDiscreteAccessory",
+"t": "SOUNDABSORPTION",
+"k": "QRL",
+"cat": "Floc",
+"sub": "NOISE BARRIER (1070)",
+"m": "A"
+},
+{
+"c": "IfcDiscreteAccessory",
+"t": "INSULATOR",
+"k": "QRL",
+"cat": "Eq",
+"sub": "NEUTRAL SECTION (2360)",
+"m": "A"
+},
+{
+"c": "IfcDiscreteAccessory",
+"t": "ANCHORPLATE",
+"k": "QRL",
+"cat": "Eq",
+"sub": "FALL PROTECTION (3210)",
+"m": "A"
+},
+{
+"c": "IfcDiscreteAccessory",
+"t": "POINTMACHINEMOUNTINGDEVICE",
+"k": "QRL",
+"cat": "Eq",
+"sub": "ELECTRIC POINTS (7151)",
+"m": "A"
+},
+{
+"c": "IfcDiscreteAccessory",
+"t": "POINTMACHINEMOUNTINGDEVICE",
+"k": "QRL",
+"cat": "Eq",
+"sub": "POINTS EQUIPMENT (7155)",
+"m": "A"
+},
+{
+"c": "IfcDiscreteAccessory",
+"t": "LOCK",
+"k": "QRL",
+"cat": "Eq",
+"sub": "POINTS LOCKING (7157)",
+"m": "A"
+},
+{
+"c": "IfcDiscreteAccessory",
+"t": "",
+"k": "QRL",
+"cat": "Eq",
+"sub": "TRACK EQUIPMENT (7270)",
+"m": "A"
+},
+{
+"c": "IfcMechanicalFastener",
+"t": "RAILJOINT",
+"k": "QRL",
+"cat": "Eq",
+"sub": "GLUED INSUL. JOINT (1500)",
+"m": "P"
+},
+{
+"c": "IfcSign",
+"t": "MARKER",
+"k": "QRL",
+"cat": "Eq",
+"sub": "BOARD (7213)",
+"m": "P"
+},
+{
+"c": "IfcSign",
+"t": "",
+"k": "QRL",
+"cat": "Eq",
+"sub": "SAFETY EQUIPMENT (6090)",
+"m": "A"
+},
+{
+"c": "IfcSign",
+"t": "",
+"k": "QRL",
+"cat": "Eq",
+"sub": "TRACTION SAFETY EQ (2420)",
+"m": "A"
+},
+{
+"c": "IfcElementAssembly",
+"t": "ABUTMENT",
+"k": "QRL",
+"cat": "Eq",
+"sub": "ABUTMENT (1310)",
+"m": "P"
+},
+{
+"c": "IfcElementAssembly",
+"t": "DECK",
+"k": "QRL",
+"cat": "Floc",
+"sub": "BRIDGE (1150)",
+"m": "P"
+},
+{
+"c": "IfcElementAssembly",
+"t": "TURNOUTPANEL",
+"k": "QRL",
+"cat": "Floc",
+"sub": "DIAMOND (1160)",
+"m": "P"
+},
+{
+"c": "IfcElementAssembly",
+"t": "DECK",
+"k": "QRL",
+"cat": "Floc",
+"sub": "DRAW BRIDGE (1030)",
+"m": "P"
+},
+{
+"c": "IfcElementAssembly",
+"t": "SUPPORTINGASSEMBLY",
+"k": "QRL",
+"cat": "Floc",
+"sub": "GANTRY (1040)",
+"m": "P"
+},
+{
+"c": "IfcElementAssembly",
+"t": "SUPPORTINGASSEMBLY",
+"k": "QRL",
+"cat": "Floc",
+"sub": "HEIGHT STRUCTURE (1050)",
+"m": "P"
+},
+{
+"c": "IfcElementAssembly",
+"t": "",
+"k": "QRL",
+"cat": "Floc",
+"sub": "LOADING AND UNLOADING FACILITY (1060)",
+"m": "P"
+},
+{
+"c": "IfcElementAssembly",
+"t": "PIER",
+"k": "QRL",
+"cat": "Eq",
+"sub": "PIER (1300)",
+"m": "P"
+},
+{
+"c": "IfcElementAssembly",
+"t": "DECK",
+"k": "QRL",
+"cat": "Eq",
+"sub": "SPAN (1320)",
+"m": "P"
+},
+{
+"c": "IfcElementAssembly",
+"t": "",
+"k": "QRL",
+"cat": "Floc",
+"sub": "SUBWAY (1110)",
+"m": "P"
+},
+{
+"c": "IfcElementAssembly",
+"t": "SUPPORTINGASSEMBLY",
+"k": "QRL",
+"cat": "Floc",
+"sub": "TANK STAND (1130)",
+"m": "P"
+},
+{
+"c": "IfcElementAssembly",
+"t": "SUPPORTINGASSEMBLY",
+"k": "QRL",
+"cat": "Eq",
+"sub": "TEMPORARY SUPPORTS SUPPORTS (1305)",
+"m": "P"
+},
+{
+"c": "IfcElementAssembly",
+"t": "TRACKPANEL",
+"k": "QRL",
+"cat": "Floc",
+"sub": "TRACK (1220)",
+"m": "P"
+},
+{
+"c": "IfcElementAssembly",
+"t": "TURNOUTPANEL",
+"k": "QRL",
+"cat": "Floc",
+"sub": "TURNOUT (1210)",
+"m": "P"
+},
+{
+"c": "IfcElementAssembly",
+"t": "RAIL_MECHANICAL_EQUIPMENT_ASSEMBLY",
+"k": "QRL",
+"cat": "Floc",
+"sub": "TURNTABLE (1170)",
+"m": "P"
+},
+{
+"c": "IfcElementAssembly",
+"t": "TRACTION_SWITCHING_ASSEMBLY",
+"k": "QRL",
+"cat": "Eq",
+"sub": "NEUTRAL SECTION (2360)",
+"m": "P"
+},
+{
+"c": "IfcElementAssembly",
+"t": "",
+"k": "QRL",
+"cat": "Floc",
+"sub": "SUBSTATION (2030)",
+"m": "P"
+},
+{
+"c": "IfcElementAssembly",
+"t": "DECK",
+"k": "QRL",
+"cat": "Eq",
+"sub": "FOOTBRIDGE (3630)",
+"m": "P"
+},
+{
+"c": "IfcElementAssembly",
+"t": "SHELTER",
+"k": "QRL",
+"cat": "Eq",
+"sub": "SHELTER (3570)",
+"m": "P"
+},
+{
+"c": "IfcElementAssembly",
+"t": "",
+"k": "QRL",
+"cat": "Eq",
+"sub": "SUBWAY (3780)",
+"m": "P"
+},
+{
+"c": "IfcElementAssembly",
+"t": "SIGNALASSEMBLY",
+"k": "QRL",
+"cat": "Floc",
+"sub": "SIGNALS (7216)",
+"m": "P"
+},
+{
+"c": "IfcElementAssembly",
+"t": "MAST",
+"k": "QRL",
+"cat": "Eq",
+"sub": "COMMUNICATION STRUCTURE (9006)",
+"m": "P"
+},
+{
+"c": "IfcElementAssembly",
+"t": "",
+"k": "QRL",
+"cat": "Floc",
+"sub": "CULVERT (1010)",
+"m": "A"
+},
+{
+"c": "IfcElementAssembly",
+"t": "GRID",
+"k": "QRL",
+"cat": "Floc",
+"sub": "GRID (1120)",
+"m": "A"
+},
+{
+"c": "IfcElementAssembly",
+"t": "",
+"k": "QRL",
+"cat": "Floc",
+"sub": "LEVEL CROSSING (1180)",
+"m": "A"
+},
+{
+"c": "IfcElementAssembly",
+"t": "MAST",
+"k": "QRL",
+"cat": "Eq",
+"sub": "OVERHEAD (2240)",
+"m": "A"
+},
+{
+"c": "IfcElementAssembly",
+"t": "SHELTER",
+"k": "QRL",
+"cat": "Eq",
+"sub": "BIKE STORAGE STORAGE (3600)",
+"m": "A"
+},
+{
+"c": "IfcElementAssembly",
+"t": "SHELTER",
+"k": "QRL",
+"cat": "Eq",
+"sub": "BUS INTERCHANGE (3120)",
+"m": "A"
+},
+{
+"c": "IfcElementAssembly",
+"t": "",
+"k": "QRL",
+"cat": "Eq",
+"sub": "HOUSING (7090)",
+"m": "A"
+},
+{
+"c": "IfcElementAssembly",
+"t": "TRACKPANEL",
+"k": "QRL",
+"cat": "Eq",
+"sub": "TRAMWAY (7180)",
+"m": "A"
+},
+{
+"c": "IfcTransportElement",
+"t": "ESCALATOR",
+"k": "QRL",
+"cat": "Eq",
+"sub": "ESCALATOR (3430)",
+"m": "P"
+},
+{
+"c": "IfcTransportElement",
+"t": "ELEVATOR",
+"k": "QRL",
+"cat": "Eq",
+"sub": "LIFT (3425)",
+"m": "P"
+},
+{
+"c": "IfcTransportElement",
+"t": "",
+"k": "QRL",
+"cat": "Eq",
+"sub": "LIFT/ESCALATOR (3420)",
+"m": "P"
+},
+{
+"c": "IfcTransportElement",
+"t": "MOVINGWALKWAY",
+"k": "QRL",
+"cat": "Eq",
+"sub": "TRAVELATOR (3435)",
+"m": "P"
+},
+{
+"c": "IfcVehicle",
+"t": "ROLLINGSTOCK",
+"k": "QRL",
+"cat": "Floc",
+"sub": "BALLAST REGULATOR (8600)",
+"m": "P"
+},
+{
+"c": "IfcVehicle",
+"t": "ROLLINGSTOCK",
+"k": "QRL",
+"cat": "Floc",
+"sub": "BALLAST UNDERCUTTER (8702)",
+"m": "P"
+},
+{
+"c": "IfcVehicle",
+"t": "VEHICLEWHEELED",
+"k": "QRL",
+"cat": "Eq",
+"sub": "CARAVANS (8101)",
+"m": "P"
+},
+{
+"c": "IfcVehicle",
+"t": "VEHICLEWHEELED",
+"k": "QRL",
+"cat": "Eq",
+"sub": "COMPRESSOR > 50 CFM (8401)",
+"m": "P"
+},
+{
+"c": "IfcVehicle",
+"t": "ROLLINGSTOCK",
+"k": "QRL",
+"cat": "Floc",
+"sub": "DYNAMIC TRACK STABILISER (8703)",
+"m": "P"
+},
+{
+"c": "IfcVehicle",
+"t": "VEHICLEWHEELED",
+"k": "QRL",
+"cat": "Eq",
+"sub": "ELEVAT PLATFORM & CHERRY (8403)",
+"m": "P"
+},
+{
+"c": "IfcVehicle",
+"t": "VEHICLEWHEELED",
+"k": "QRL",
+"cat": "Eq",
+"sub": "END LOADERS (8404)",
+"m": "P"
+},
+{
+"c": "IfcVehicle",
+"t": "VEHICLETRACKED",
+"k": "QRL",
+"cat": "Eq",
+"sub": "EXCAVATORS (8405)",
+"m": "P"
+},
+{
+"c": "IfcVehicle",
+"t": "ROLLINGSTOCK",
+"k": "QRL",
+"cat": "Floc",
+"sub": "FLASH-BUTT WELDER (8704)",
+"m": "P"
+},
+{
+"c": "IfcVehicle",
+"t": "VEHICLEWHEELED",
+"k": "QRL",
+"cat": "Eq",
+"sub": "FORKLIFTS (8406)",
+"m": "P"
+},
+{
+"c": "IfcVehicle",
+"t": "VEHICLEWHEELED",
+"k": "QRL",
+"cat": "Eq",
+"sub": "GRADERS (8407)",
+"m": "P"
+},
+{
+"c": "IfcVehicle",
+"t": "ROLLINGSTOCK",
+"k": "QRL",
+"cat": "Floc",
+"sub": "MISCELLANEOUS TRACK MACHINE (8713)",
+"m": "P"
+},
+{
+"c": "IfcVehicle",
+"t": "VEHICLEWHEELED",
+"k": "QRL",
+"cat": "Eq",
+"sub": "MOBILE CRANES (8408)",
+"m": "P"
+},
+{
+"c": "IfcVehicle",
+"t": "ROLLINGSTOCK",
+"k": "QRL",
+"cat": "Floc",
+"sub": "MULTI-SPINDLE BORER (8714)",
+"m": "P"
+},
+{
+"c": "IfcVehicle",
+"t": "ROLLINGSTOCK",
+"k": "QRL",
+"cat": "Floc",
+"sub": "NETWORK WAGONS (8501)",
+"m": "P"
+},
+{
+"c": "IfcVehicle",
+"t": "ROLLINGSTOCK",
+"k": "QRL",
+"cat": "Eq",
+"sub": "RAIL HANDLING CRANES (8409)",
+"m": "P"
+},
+{
+"c": "IfcVehicle",
+"t": "ROLLINGSTOCK",
+"k": "QRL",
+"cat": "Floc",
+"sub": "ROTARY SCARIFIER (8708)",
+"m": "P"
+},
+{
+"c": "IfcVehicle",
+"t": "VEHICLEWHEELED",
+"k": "QRL",
+"cat": "Floc",
+"sub": "SCISSOR LIFT (8712)",
+"m": "P"
+},
+{
+"c": "IfcVehicle",
+"t": "ROLLINGSTOCK",
+"k": "QRL",
+"cat": "Eq",
+"sub": "SECTION CARS (8202)",
+"m": "P"
+},
+{
+"c": "IfcVehicle",
+"t": "ROLLINGSTOCK",
+"k": "QRL",
+"cat": "Floc",
+"sub": "SHUTTLE CAR (8705)",
+"m": "P"
+},
+{
+"c": "IfcVehicle",
+"t": "VEHICLEWHEELED",
+"k": "QRL",
+"cat": "Eq",
+"sub": "SKID-STEER LOADER (8410)",
+"m": "P"
+},
+{
+"c": "IfcVehicle",
+"t": "ROLLINGSTOCK",
+"k": "QRL",
+"cat": "Floc",
+"sub": "SLEEPER CRANE (8707)",
+"m": "P"
+},
+{
+"c": "IfcVehicle",
+"t": "ROLLINGSTOCK",
+"k": "QRL",
+"cat": "Floc",
+"sub": "SLEEPER RENEWER (8706)",
+"m": "P"
+},
+{
+"c": "IfcVehicle",
+"t": "ROLLINGSTOCK",
+"k": "QRL",
+"cat": "Floc",
+"sub": "SPIKE DRIVER (8709)",
+"m": "P"
+},
+{
+"c": "IfcVehicle",
+"t": "ROLLINGSTOCK",
+"k": "QRL",
+"cat": "Floc",
+"sub": "SPIKE PULLER (8710)",
+"m": "P"
+},
+{
+"c": "IfcVehicle",
+"t": "ROLLINGSTOCK",
+"k": "QRL",
+"cat": "Floc",
+"sub": "SPOT TAMPER (8711)",
+"m": "P"
+},
+{
+"c": "IfcVehicle",
+"t": "ROLLINGSTOCK",
+"k": "QRL",
+"cat": "Floc",
+"sub": "TAMPING MACHINES (8300)",
+"m": "P"
+},
+{
+"c": "IfcVehicle",
+"t": "ROLLINGSTOCK",
+"k": "QRL",
+"cat": "Floc",
+"sub": "TRACK RECORDING MACHINE (8701)",
+"m": "P"
+},
+{
+"c": "IfcVehicle",
+"t": "VEHICLEWHEELED",
+"k": "QRL",
+"cat": "Eq",
+"sub": "TRACTORS (8412)",
+"m": "P"
+},
+{
+"c": "IfcVehicle",
+"t": "VEHICLEWHEELED",
+"k": "QRL",
+"cat": "Eq",
+"sub": "TRAILERS (8104)",
+"m": "P"
+},
+{
+"c": "IfcVehicle",
+"t": "VEHICLETRACKED",
+"k": "QRL",
+"cat": "Eq",
+"sub": "TRENCH DIGGER (8411)",
+"m": "P"
+},
+{
+"c": "IfcVehicle",
+"t": "ROLLINGSTOCK",
+"k": "QRL",
+"cat": "Eq",
+"sub": "TROLLEY (8205)",
+"m": "P"
+},
+{
+"c": "IfcVehicle",
+"t": "VEHICLEWHEELED",
+"k": "QRL",
+"cat": "Eq",
+"sub": "VEHICLE (HEAVY) (8103)",
+"m": "P"
+},
+{
+"c": "IfcVehicle",
+"t": "VEHICLEWHEELED",
+"k": "QRL",
+"cat": "Eq",
+"sub": "VEHICLE (LIGHT) (8102)",
+"m": "P"
+},
+{
+"c": "IfcFurniture",
+"t": "",
+"k": "QRL",
+"cat": "Eq",
+"sub": "BIKE STORAGE STORAGE (3600)",
+"m": "P"
+},
+{
+"c": "IfcFurniture",
+"t": "TECHNICALCABINET",
+"k": "QRL",
+"cat": "Eq",
+"sub": "HOUSING (7090)",
+"m": "P"
+},
+{
+"c": "IfcFurniture",
+"t": "TECHNICALCABINET",
+"k": "QRL",
+"cat": "Floc",
+"sub": "HOUSING (7095)",
+"m": "P"
+},
+{
+"c": "IfcFurniture",
+"t": "",
+"k": "QRL",
+"cat": "Eq",
+"sub": "AMENITIES (3540)",
+"m": "A"
+},
+{
+"c": "IfcActuator",
+"t": "ELECTRICACTUATOR",
+"k": "QRL",
+"cat": "Eq",
+"sub": "ELECTRIC POINTS (7151)",
+"m": "P"
+},
+{
+"c": "IfcActuator",
+"t": "HYDRAULICACTUATOR",
+"k": "QRL",
+"cat": "Eq",
+"sub": "HYDRAULIC POINTS (7152)",
+"m": "P"
+},
+{
+"c": "IfcActuator",
+"t": "HANDOPERATEDACTUATOR",
+"k": "QRL",
+"cat": "Eq",
+"sub": "LEVER FRAME (7156)",
+"m": "P"
+},
+{
+"c": "IfcActuator",
+"t": "HANDOPERATEDACTUATOR",
+"k": "QRL",
+"cat": "Eq",
+"sub": "MECHANICAL POINTS (7154)",
+"m": "P"
+},
+{
+"c": "IfcActuator",
+"t": "PNEUMATICACTUATOR",
+"k": "QRL",
+"cat": "Eq",
+"sub": "PNEUMATIC POINTS (7153)",
+"m": "P"
+},
+{
+"c": "IfcAirTerminal",
+"t": "",
+"k": "QRL",
+"cat": "Eq",
+"sub": "HVAC (3270)",
+"m": "A"
+},
+{
+"c": "IfcAlarm",
+"t": "",
+"k": "QRL",
+"cat": "Eq",
+"sub": "SIGNALLING SAFETY EQ (7450)",
+"m": "P"
+},
+{
+"c": "IfcAlarm",
+"t": "",
+"k": "QRL",
+"cat": "Eq",
+"sub": "FIRE SYSTEMS (3240)",
+"m": "P"
+},
+{
+"c": "IfcAlarm",
+"t": "",
+"k": "QRL",
+"cat": "Eq",
+"sub": "SAFETY EQUIPMENT (6090)",
+"m": "A"
+},
+{
+"c": "IfcAlarm",
+"t": "",
+"k": "QRL",
+"cat": "Eq",
+"sub": "SECURITY SYSTEMS (3390)",
+"m": "A"
+},
+{
+"c": "IfcAlarm",
+"t": "BELL",
+"k": "QRL",
+"cat": "Eq",
+"sub": "LX PROTECTION (7061)",
+"m": "A"
+},
+{
+"c": "IfcAudioVisualAppliance",
+"t": "CAMERA",
+"k": "QRL",
+"cat": "Eq",
+"sub": "SECURITY SYSTEMS (3390)",
+"m": "P"
+},
+{
+"c": "IfcAudioVisualAppliance",
+"t": "DISPLAY",
+"k": "QRL",
+"cat": "Eq",
+"sub": "CUSTOMER INFORMATION SYSTEM (9201)",
+"m": "P"
+},
+{
+"c": "IfcAudioVisualAppliance",
+"t": "TELEPHONE",
+"k": "QRL",
+"cat": "Eq",
+"sub": "EMERGENCY PHONE (9203)",
+"m": "P"
+},
+{
+"c": "IfcAudioVisualAppliance",
+"t": "SPEAKER",
+"k": "QRL",
+"cat": "Eq",
+"sub": "PUBLIC ADDRESS (9202)",
+"m": "P"
+},
+{
+"c": "IfcAudioVisualAppliance",
+"t": "",
+"k": "QRL",
+"cat": "Eq",
+"sub": "STATION_SERVICES (9200)",
+"m": "P"
+},
+{
+"c": "IfcAudioVisualAppliance",
+"t": "TELEPHONE",
+"k": "QRL",
+"cat": "Eq",
+"sub": "VOICE (9251)",
+"m": "P"
+},
+{
+"c": "IfcAudioVisualAppliance",
+"t": "AMPLIFIER",
+"k": "QRL",
+"cat": "Eq",
+"sub": "PUBLIC ADDRESS (9202)",
+"m": "A"
+},
+{
+"c": "IfcCableCarrierSegment",
+"t": "",
+"k": "QRL",
+"cat": "Eq",
+"sub": "CABLE ROUTE (6005)",
+"m": "P"
+},
+{
+"c": "IfcCableCarrierSegment",
+"t": "CABLETRUNKINGSEGMENT",
+"k": "QRL",
+"cat": "Eq",
+"sub": "CABLE ROUTE (6005)",
+"m": "A"
+},
+{
+"c": "IfcCableCarrierSegment",
+"t": "CONDUITSEGMENT",
+"k": "QRL",
+"cat": "Eq",
+"sub": "CABLE ROUTE (6005)",
+"m": "A"
+},
+{
+"c": "IfcCableCarrierSegment",
+"t": "CATENARYWIRE",
+"k": "QRL",
+"cat": "Eq",
+"sub": "OVERHEAD (2240)",
+"m": "A"
+},
+{
+"c": "IfcCableFitting",
+"t": "CONNECTOR",
+"k": "QRL",
+"cat": "Eq",
+"sub": "BONDING (2270)",
+"m": "A"
+},
+{
+"c": "IfcCableSegment",
+"t": "CABLESEGMENT",
+"k": "QRL",
+"cat": "Eq",
+"sub": "COPPER POWER (6003)",
+"m": "P"
+},
+{
+"c": "IfcCableSegment",
+"t": "CABLESEGMENT",
+"k": "QRL",
+"cat": "Eq",
+"sub": "COPPER SIGNAL (6004)",
+"m": "P"
+},
+{
+"c": "IfcCableSegment",
+"t": "WIREPAIRSEGMENT",
+"k": "QRL",
+"cat": "Eq",
+"sub": "COPPER TELECOMM (6002)",
+"m": "P"
+},
+{
+"c": "IfcCableSegment",
+"t": "CABLESEGMENT",
+"k": "QRL",
+"cat": "Eq",
+"sub": "HV CABLE (2120)",
+"m": "P"
+},
+{
+"c": "IfcCableSegment",
+"t": "OPTICALCABLESEGMENT",
+"k": "QRL",
+"cat": "Eq",
+"sub": "OPTICAL FIBRE (6001)",
+"m": "P"
+},
+{
+"c": "IfcCableSegment",
+"t": "CABLESEGMENT",
+"k": "QRL",
+"cat": "Eq",
+"sub": "SIGNALLING CABLE (7390)",
+"m": "P"
+},
+{
+"c": "IfcCableSegment",
+"t": "",
+"k": "QRL",
+"cat": "Eq",
+"sub": "TELECOMMS CABLES (9100)",
+"m": "P"
+},
+{
+"c": "IfcCableSegment",
+"t": "CONDUCTORSEGMENT",
+"k": "QRL",
+"cat": "Eq",
+"sub": "BONDING (2270)",
+"m": "P"
+},
+{
+"c": "IfcCableSegment",
+"t": "CONTACTWIRESEGMENT",
+"k": "QRL",
+"cat": "Eq",
+"sub": "OVERHEAD (2240)",
+"m": "P"
+},
+{
+"c": "IfcCableSegment",
+"t": "FIBERSEGMENT",
+"k": "QRL",
+"cat": "Eq",
+"sub": "OPTICAL FIBRE (6001)",
+"m": "A"
+},
+{
+"c": "IfcCableSegment",
+"t": "STITCHWIRE",
+"k": "QRL",
+"cat": "Eq",
+"sub": "OVERHEAD (2240)",
+"m": "A"
+},
+{
+"c": "IfcCableSegment",
+"t": "",
+"k": "QRL",
+"cat": "Eq",
+"sub": "ELECTRICAL SYSTEMS (3150)",
+"m": "A"
+},
+{
+"c": "IfcCommunicationsAppliance",
+"t": "TRANSPONDER",
+"k": "QRL",
+"cat": "Eq",
+"sub": "ATP (7301)",
+"m": "P"
+},
+{
+"c": "IfcCommunicationsAppliance",
+"t": "TRANSPONDER",
+"k": "QRL",
+"cat": "Eq",
+"sub": "AWS (7302)",
+"m": "P"
+},
+{
+"c": "IfcCommunicationsAppliance",
+"t": "COMPUTER",
+"k": "QRL",
+"cat": "Eq",
+"sub": "DTC (7332)",
+"m": "P"
+},
+{
+"c": "IfcCommunicationsAppliance",
+"t": "COMPUTER",
+"k": "QRL",
+"cat": "Eq",
+"sub": "INTERLOCKING (7120)",
+"m": "P"
+},
+{
+"c": "IfcCommunicationsAppliance",
+"t": "TELECOMMAND",
+"k": "QRL",
+"cat": "Eq",
+"sub": "TELEMETRY (7360)",
+"m": "P"
+},
+{
+"c": "IfcCommunicationsAppliance",
+"t": "TRANSPONDER",
+"k": "QRL",
+"cat": "Eq",
+"sub": "TRACK EQUIPMENT (7270)",
+"m": "P"
+},
+{
+"c": "IfcCommunicationsAppliance",
+"t": "COMPUTER",
+"k": "QRL",
+"cat": "Eq",
+"sub": "UTC (7331)",
+"m": "P"
+},
+{
+"c": "IfcCommunicationsAppliance",
+"t": "ROUTER",
+"k": "QRL",
+"cat": "Eq",
+"sub": "DATA_EQUIPMENT (9150)",
+"m": "P"
+},
+{
+"c": "IfcCommunicationsAppliance",
+"t": "TRANSPORTEQUIPMENT",
+"k": "QRL",
+"cat": "Eq",
+"sub": "DMR (9004)",
+"m": "P"
+},
+{
+"c": "IfcCommunicationsAppliance",
+"t": "TRANSPORTEQUIPMENT",
+"k": "QRL",
+"cat": "Eq",
+"sub": "DWDM (9002)",
+"m": "P"
+},
+{
+"c": "IfcCommunicationsAppliance",
+"t": "TRANSPORTEQUIPMENT",
+"k": "QRL",
+"cat": "Eq",
+"sub": "FDM (9007)",
+"m": "P"
+},
+{
+"c": "IfcCommunicationsAppliance",
+"t": "GATEWAY",
+"k": "QRL",
+"cat": "Eq",
+"sub": "INTERFACE (9005)",
+"m": "P"
+},
+{
+"c": "IfcCommunicationsAppliance",
+"t": "TELEPHONYEXCHANGE",
+"k": "QRL",
+"cat": "Eq",
+"sub": "PABX (9252)",
+"m": "P"
+},
+{
+"c": "IfcCommunicationsAppliance",
+"t": "TRANSPORTEQUIPMENT",
+"k": "QRL",
+"cat": "Eq",
+"sub": "PDH (9003)",
+"m": "P"
+},
+{
+"c": "IfcCommunicationsAppliance",
+"t": "ANTENNA",
+"k": "QRL",
+"cat": "Eq",
+"sub": "RADIO FIXED (9051)",
+"m": "P"
+},
+{
+"c": "IfcCommunicationsAppliance",
+"t": "TRANSPORTEQUIPMENT",
+"k": "QRL",
+"cat": "Eq",
+"sub": "TRANSMISSION_SYSTEM (9001)",
+"m": "P"
+},
+{
+"c": "IfcCommunicationsAppliance",
+"t": "TELEPHONYEXCHANGE",
+"k": "QRL",
+"cat": "Eq",
+"sub": "VOICE_COMMS (9250)",
+"m": "P"
+},
+{
+"c": "IfcCommunicationsAppliance",
+"t": "LINESIDEELECTRONICUNIT",
+"k": "QRL",
+"cat": "Eq",
+"sub": "ATP (7301)",
+"m": "A"
+},
+{
+"c": "IfcCommunicationsAppliance",
+"t": "IPNETWORKEQUIPMENT",
+"k": "QRL",
+"cat": "Eq",
+"sub": "DATA_EQUIPMENT (9150)",
+"m": "A"
+},
+{
+"c": "IfcCommunicationsAppliance",
+"t": "ANTENNA",
+"k": "QRL",
+"cat": "Eq",
+"sub": "RADIO_SYSTEMS (9050)",
+"m": "A"
+},
+{
+"c": "IfcCommunicationsAppliance",
+"t": "",
+"k": "QRL",
+"cat": "Eq",
+"sub": "RMS (9301)",
+"m": "A"
+},
+{
+"c": "IfcCommunicationsAppliance",
+"t": "",
+"k": "QRL",
+"cat": "Floc",
+"sub": "RMS (9301)",
+"m": "A"
+},
+{
+"c": "IfcCommunicationsAppliance",
+"t": "",
+"k": "QRL",
+"cat": "Eq",
+"sub": "RMS (9301)",
+"m": "A"
+},
+{
+"c": "IfcCommunicationsAppliance",
+"t": "",
+"k": "QRL",
+"cat": "Floc",
+"sub": "RMS (9301)",
+"m": "A"
+},
+{
+"c": "IfcCommunicationsAppliance",
+"t": "COMPUTER",
+"k": "QRL",
+"cat": "Eq",
+"sub": "SCADA_SYSTEMS (9350)",
+"m": "A"
+},
+{
+"c": "IfcCompressor",
+"t": "",
+"k": "QRL",
+"cat": "Eq",
+"sub": "PNEUMATIC SYSTEMS (7030)",
+"m": "P"
+},
+{
+"c": "IfcCompressor",
+"t": "",
+"k": "QRL",
+"cat": "Eq",
+"sub": "COMPRESSOR < 50 CFM (8013)",
+"m": "A"
+},
+{
+"c": "IfcController",
+"t": "PROGRAMMABLE",
+"k": "QRL",
+"cat": "Eq",
+"sub": "7334 - Vital (7334)",
+"m": "P"
+},
+{
+"c": "IfcController",
+"t": "PROGRAMMABLE",
+"k": "QRL",
+"cat": "Eq",
+"sub": "7335 - Signal (7335)",
+"m": "P"
+},
+{
+"c": "IfcController",
+"t": "PROGRAMMABLE",
+"k": "QRL",
+"cat": "Eq",
+"sub": "INTERLOCKING (7120)",
+"m": "A"
+},
+{
+"c": "IfcDistributionBoard",
+"t": "DISTRIBUTIONBOARD",
+"k": "QRL",
+"cat": "Eq",
+"sub": "POWER SUPPLY (7001)",
+"m": "P"
+},
+{
+"c": "IfcDistributionBoard",
+"t": "",
+"k": "QRL",
+"cat": "Eq",
+"sub": "POWER SYSTEMS (7002)",
+"m": "P"
+},
+{
+"c": "IfcDistributionBoard",
+"t": "SWITCHBOARD",
+"k": "QRL",
+"cat": "Eq",
+"sub": "SWITCHBOARDS (3180)",
+"m": "P"
+},
+{
+"c": "IfcDistributionBoard",
+"t": "SWITCHBOARD",
+"k": "QRL",
+"cat": "Eq",
+"sub": "SWITCHGEAR (2060)",
+"m": "A"
+},
+{
+"c": "IfcDistributionBoard",
+"t": "",
+"k": "QRL",
+"cat": "Eq",
+"sub": "ELECTRICAL SYSTEMS (3150)",
+"m": "A"
+},
+{
+"c": "IfcDistributionChamberElement",
+"t": "INSPECTIONPIT",
+"k": "QRL",
+"cat": "Floc",
+"sub": "PIT ASSET (1080)",
+"m": "P"
+},
+{
+"c": "IfcDistributionChamberElement",
+"t": "INSPECTIONPIT",
+"k": "QRL",
+"cat": "Eq",
+"sub": "CABLE ROUTE (6005)",
+"m": "A"
+},
+{
+"c": "IfcDistributionChamberElement",
+"t": "",
+"k": "QRL",
+"cat": "Floc",
+"sub": "PIT ASSET (1080)",
+"m": "A"
+},
+{
+"c": "IfcDuctSegment",
+"t": "",
+"k": "QRL",
+"cat": "Eq",
+"sub": "HVAC (3270)",
+"m": "A"
+},
+{
+"c": "IfcElectricFlowStorageDevice",
+"t": "BATTERY",
+"k": "QRL",
+"cat": "Eq",
+"sub": "BATTERIES (7004)",
+"m": "P"
+},
+{
+"c": "IfcElectricFlowStorageDevice",
+"t": "HARMONICFILTER",
+"k": "QRL",
+"cat": "Eq",
+"sub": "HARMONIC FILTER (2210)",
+"m": "P"
+},
+{
+"c": "IfcElectricFlowStorageDevice",
+"t": "UPS",
+"k": "QRL",
+"cat": "Eq",
+"sub": "STANDBY SUPPLY (7003)",
+"m": "A"
+},
+{
+"c": "IfcElectricGenerator",
+"t": "ENGINEGENERATOR",
+"k": "QRL",
+"cat": "Eq",
+"sub": "STANDBY SUPPLY (7003)",
+"m": "P"
+},
+{
+"c": "IfcElectricGenerator",
+"t": "",
+"k": "QRL",
+"cat": "Eq",
+"sub": "GENERATORS (8007)",
+"m": "P"
+},
+{
+"c": "IfcElectricGenerator",
+"t": "",
+"k": "QRL",
+"cat": "Eq",
+"sub": "POWER SUPPLY (7001)",
+"m": "A"
+},
+{
+"c": "IfcElectricTimeControl",
+"t": "RELAY",
+"k": "QRL",
+"cat": "Eq",
+"sub": "SIGNALLING RELAY (7480)",
+"m": "P"
+},
+{
+"c": "IfcFan",
+"t": "",
+"k": "QRL",
+"cat": "Eq",
+"sub": "FANS (3300)",
+"m": "P"
+},
+{
+"c": "IfcFireSuppressionTerminal",
+"t": "",
+"k": "QRL",
+"cat": "Eq",
+"sub": "FIRE SYSTEMS (3240)",
+"m": "P"
+},
+{
+"c": "IfcFlowInstrument",
+"t": "",
+"k": "QRL",
+"cat": "Eq",
+"sub": "HV MONITORING (2150)",
+"m": "P"
+},
+{
+"c": "IfcFlowInstrument",
+"t": "",
+"k": "QRL",
+"cat": "Eq",
+"sub": "TEST EQUIPMENT (6060)",
+"m": "A"
+},
+{
+"c": "IfcMobileTelecommunicationsAppliance",
+"t": "BASETRANSCEIVERSTATION",
+"k": "QRL",
+"cat": "Eq",
+"sub": "DIGITAL RADIO FIXED (9081)",
+"m": "P"
+},
+{
+"c": "IfcMobileTelecommunicationsAppliance",
+"t": "",
+"k": "QRL",
+"cat": "Eq",
+"sub": "DIGITAL RADIO MOBILE (9082)",
+"m": "P"
+},
+{
+"c": "IfcMobileTelecommunicationsAppliance",
+"t": "",
+"k": "QRL",
+"cat": "Eq",
+"sub": "RADIO MOBILE (9052)",
+"m": "P"
+},
+{
+"c": "IfcMobileTelecommunicationsAppliance",
+"t": "",
+"k": "QRL",
+"cat": "Eq",
+"sub": "RADIO_SYSTEMS (9050)",
+"m": "P"
+},
+{
+"c": "IfcMobileTelecommunicationsAppliance",
+"t": "BASETRANSCEIVERSTATION",
+"k": "QRL",
+"cat": "Eq",
+"sub": "RADIO FIXED (9051)",
+"m": "A"
+},
+{
+"c": "IfcOutlet",
+"t": "POWEROUTLET",
+"k": "QRL",
+"cat": "Eq",
+"sub": "ELECTRICAL SYSTEMS (3150)",
+"m": "P"
+},
+{
+"c": "IfcPipeSegment",
+"t": "CULVERT",
+"k": "QRL",
+"cat": "Floc",
+"sub": "CULVERT (1010)",
+"m": "P"
+},
+{
+"c": "IfcPipeSegment",
+"t": "GUTTER",
+"k": "QRL",
+"cat": "Floc",
+"sub": "DRAIN (1270)",
+"m": "P"
+},
+{
+"c": "IfcPipeSegment",
+"t": "",
+"k": "QRL",
+"cat": "Eq",
+"sub": "HYDRAULIC SERVICES (3330)",
+"m": "P"
+},
+{
+"c": "IfcPipeSegment",
+"t": "",
+"k": "QRL",
+"cat": "Floc",
+"sub": "DRAIN (1270)",
+"m": "A"
+},
+{
+"c": "IfcPipeSegment",
+"t": "",
+"k": "QRL",
+"cat": "Eq",
+"sub": "PNEUMATIC SYSTEMS (7030)",
+"m": "A"
+},
+{
+"c": "IfcProtectiveDevice",
+"t": "",
+"k": "QRL",
+"cat": "Eq",
+"sub": "HV PROTECTION (2180)",
+"m": "P"
+},
+{
+"c": "IfcProtectiveDevice",
+"t": "EARTHINGSWITCH",
+"k": "QRL",
+"cat": "Eq",
+"sub": "TRACTION SAFETY EQ (2420)",
+"m": "P"
+},
+{
+"c": "IfcProtectiveDevice",
+"t": "CIRCUITBREAKER",
+"k": "QRL",
+"cat": "Eq",
+"sub": "SWITCHGEAR (2060)",
+"m": "A"
+},
+{
+"c": "IfcProtectiveDeviceTrippingUnit",
+"t": "",
+"k": "QRL",
+"cat": "Eq",
+"sub": "HV PROTECTION (2180)",
+"m": "A"
+},
+{
+"c": "IfcPump",
+"t": "",
+"k": "QRL",
+"cat": "Eq",
+"sub": "WATER PUMP (8019)",
+"m": "P"
+},
+{
+"c": "IfcPump",
+"t": "",
+"k": "QRL",
+"cat": "Eq",
+"sub": "HYDRAULIC SERVICES (3330)",
+"m": "A"
+},
+{
+"c": "IfcSanitaryTerminal",
+"t": "",
+"k": "QRL",
+"cat": "Eq",
+"sub": "AMENITIES (3540)",
+"m": "P"
+},
+{
+"c": "IfcSanitaryTerminal",
+"t": "",
+"k": "QRL",
+"cat": "Eq",
+"sub": "HYDRAULIC SERVICES (3330)",
+"m": "A"
+},
+{
+"c": "IfcSensor",
+"t": "WHEELSENSOR",
+"k": "QRL",
+"cat": "Eq",
+"sub": "AXLE COUNTER (7242)",
+"m": "P"
+},
+{
+"c": "IfcSensor",
+"t": "TRAINSENSOR",
+"k": "QRL",
+"cat": "Eq",
+"sub": "TRACK CIRCUIT (7241)",
+"m": "P"
+},
+{
+"c": "IfcSensor",
+"t": "TRAINSENSOR",
+"k": "QRL",
+"cat": "Eq",
+"sub": "TUNED TRACK CIRCUIT (7243)",
+"m": "P"
+},
+{
+"c": "IfcSensor",
+"t": "",
+"k": "QRL",
+"cat": "Eq",
+"sub": "ASSET_PROTECTION (9300)",
+"m": "P"
+},
+{
+"c": "IfcSensor",
+"t": "FOREIGNOBJECTDETECTIONSENSOR",
+"k": "QRL",
+"cat": "Eq",
+"sub": "DED (9302)",
+"m": "P"
+},
+{
+"c": "IfcSensor",
+"t": "",
+"k": "QRL",
+"cat": "Eq",
+"sub": "PMS (9307)",
+"m": "P"
+},
+{
+"c": "IfcSensor",
+"t": "",
+"k": "QRL",
+"cat": "Eq",
+"sub": "RMS (9301)",
+"m": "P"
+},
+{
+"c": "IfcSensor",
+"t": "",
+"k": "QRL",
+"cat": "Floc",
+"sub": "RMS (9301)",
+"m": "P"
+},
+{
+"c": "IfcSensor",
+"t": "",
+"k": "QRL",
+"cat": "Eq",
+"sub": "RMS (9301)",
+"m": "P"
+},
+{
+"c": "IfcSensor",
+"t": "",
+"k": "QRL",
+"cat": "Floc",
+"sub": "RMS (9301)",
+"m": "P"
+},
+{
+"c": "IfcSensor",
+"t": "",
+"k": "QRL",
+"cat": "Eq",
+"sub": "SMAS (9306)",
+"m": "P"
+},
+{
+"c": "IfcSensor",
+"t": "WHEELSENSOR",
+"k": "QRL",
+"cat": "Eq",
+"sub": "WEIGHING SYSTEMS (9304)",
+"m": "P"
+},
+{
+"c": "IfcSensor",
+"t": "",
+"k": "QRL",
+"cat": "Eq",
+"sub": "HV MONITORING (2150)",
+"m": "A"
+},
+{
+"c": "IfcSensor",
+"t": "SMOKESENSOR",
+"k": "QRL",
+"cat": "Eq",
+"sub": "FIRE SYSTEMS (3240)",
+"m": "A"
+},
+{
+"c": "IfcSensor",
+"t": "MOVEMENTSENSOR",
+"k": "QRL",
+"cat": "Eq",
+"sub": "SECURITY SYSTEMS (3390)",
+"m": "A"
+},
+{
+"c": "IfcSensor",
+"t": "",
+"k": "QRL",
+"cat": "Eq",
+"sub": "AWS (7302)",
+"m": "A"
+},
+{
+"c": "IfcSignal",
+"t": "VISUAL",
+"k": "QRL",
+"cat": "Eq",
+"sub": "ELECTRIC SIGNAL (7211)",
+"m": "P"
+},
+{
+"c": "IfcSignal",
+"t": "MIXED",
+"k": "QRL",
+"cat": "Eq",
+"sub": "LX PROTECTION (7061)",
+"m": "P"
+},
+{
+"c": "IfcSignal",
+"t": "VISUAL",
+"k": "QRL",
+"cat": "Eq",
+"sub": "MECHANICAL SIGNAL (7212)",
+"m": "P"
+},
+{
+"c": "IfcSignal",
+"t": "VISUAL",
+"k": "QRL",
+"cat": "Eq",
+"sub": "SIGNAL INDICATOR (7214)",
+"m": "P"
+},
+{
+"c": "IfcSignal",
+"t": "MIXED",
+"k": "QRL",
+"cat": "Eq",
+"sub": "PX PROTECTION (7062)",
+"m": "A"
+},
+{
+"c": "IfcSwitchingDevice",
+"t": "SWITCHDISCONNECTOR",
+"k": "QRL",
+"cat": "Eq",
+"sub": "ISOLATOR (2300)",
+"m": "P"
+},
+{
+"c": "IfcSwitchingDevice",
+"t": "SWITCHDISCONNECTOR",
+"k": "QRL",
+"cat": "Eq",
+"sub": "SWITCHGEAR (2060)",
+"m": "P"
+},
+{
+"c": "IfcSwitchingDevice",
+"t": "RELAY",
+"k": "QRL",
+"cat": "Eq",
+"sub": "SIGNALLING RELAY (7480)",
+"m": "A"
+},
+{
+"c": "IfcTank",
+"t": "STORAGE",
+"k": "QRL",
+"cat": "Floc",
+"sub": "TANK STAND (1130)",
+"m": "A"
+},
+{
+"c": "IfcTank",
+"t": "",
+"k": "QRL",
+"cat": "Eq",
+"sub": "HYDRAULIC SERVICES (3330)",
+"m": "A"
+},
+{
+"c": "IfcTransformer",
+"t": "RECTIFIER",
+"k": "QRL",
+"cat": "Eq",
+"sub": "DC POWER (2090)",
+"m": "P"
+},
+{
+"c": "IfcTransformer",
+"t": "VOLTAGE",
+"k": "QRL",
+"cat": "Eq",
+"sub": "AUTOTRANSFORMER (2003)",
+"m": "P"
+},
+{
+"c": "IfcTransformer",
+"t": "VOLTAGE",
+"k": "QRL",
+"cat": "Eq",
+"sub": "AUXILLIARY SUPPLY TRANSFORMER (2002)",
+"m": "P"
+},
+{
+"c": "IfcTransformer",
+"t": "CURRENT",
+"k": "QRL",
+"cat": "Eq",
+"sub": "BOOSTER TRANSFORMER (2004)",
+"m": "P"
+},
+{
+"c": "IfcTransformer",
+"t": "VOLTAGE",
+"k": "QRL",
+"cat": "Eq",
+"sub": "ISOLATION TRANSFORMER (2005)",
+"m": "P"
+},
+{
+"c": "IfcTransformer",
+"t": "VOLTAGE",
+"k": "QRL",
+"cat": "Eq",
+"sub": "POWER TRANSFORMER (2006)",
+"m": "P"
+},
+{
+"c": "IfcTransformer",
+"t": "FREQUENCY",
+"k": "QRL",
+"cat": "Eq",
+"sub": "SFC CONVERTER (2080)",
+"m": "P"
+},
+{
+"c": "IfcTransformer",
+"t": "FREQUENCY",
+"k": "QRL",
+"cat": "Eq",
+"sub": "SFC CONVERTOR TRANSFORMER (2008)",
+"m": "P"
+},
+{
+"c": "IfcTransformer",
+"t": "",
+"k": "QRL",
+"cat": "Eq",
+"sub": "TRANSFORMER (2001)",
+"m": "P"
+},
+{
+"c": "IfcTransformer",
+"t": "VOLTAGE",
+"k": "QRL",
+"cat": "Eq",
+"sub": "VOLTAGE TRANSFORMER (2007)",
+"m": "P"
+},
+{
+"c": "IfcUnitaryControlElement",
+"t": "CONTROLPANEL",
+"k": "QRL",
+"cat": "Eq",
+"sub": "SFC CONTROL (2083)",
+"m": "P"
+},
+{
+"c": "IfcUnitaryControlElement",
+"t": "CONTROLPANEL",
+"k": "QRL",
+"cat": "Eq",
+"sub": "LOCAL CONTROL PANEL (7333)",
+"m": "P"
+},
+{
+"c": "IfcUnitaryControlElement",
+"t": "MIMICPANEL",
+"k": "QRL",
+"cat": "Eq",
+"sub": "SCADA_SYSTEMS (9350)",
+"m": "P"
+},
+{
+"c": "IfcUnitaryControlElement",
+"t": "WEATHERSTATION",
+"k": "QRL",
+"cat": "Floc",
+"sub": "WEATHER MONITORING STATION (9305)",
+"m": "P"
+},
+{
+"c": "IfcUnitaryControlElement",
+"t": "ALARMPANEL",
+"k": "QRL",
+"cat": "Eq",
+"sub": "FIRE SYSTEMS (3240)",
+"m": "A"
+},
+{
+"c": "IfcUnitaryControlElement",
+"t": "CONTROLPANEL",
+"k": "QRL",
+"cat": "Eq",
+"sub": "DTC (7332)",
+"m": "A"
+},
+{
+"c": "IfcUnitaryControlElement",
+"t": "CONTROLPANEL",
+"k": "QRL",
+"cat": "Eq",
+"sub": "UTC (7331)",
+"m": "A"
+},
+{
+"c": "IfcUnitaryEquipment",
+"t": "",
+"k": "QRL",
+"cat": "Eq",
+"sub": "SFC COOLING (2086)",
+"m": "P"
+},
+{
+"c": "IfcUnitaryEquipment",
+"t": "",
+"k": "QRL",
+"cat": "Eq",
+"sub": "HVAC (3270)",
+"m": "P"
+},
+{
+"c": "IfcValve",
+"t": "",
+"k": "QRL",
+"cat": "Eq",
+"sub": "HYDRAULIC SERVICES (3330)",
+"m": "A"
+},
+{
+"c": "IfcEarthworksCut",
+"t": "TRENCH",
+"k": "QRL",
+"cat": "Floc",
+"sub": "DRAIN (1270)",
+"m": "A"
+}
+],
+"generic": {
+"TMR": [
+"IfcBuildingElementProxy",
+"IfcBuiltElement"
+],
+"QRL": [
+"IfcBuildingElementProxy",
+"IfcBuiltElement"
+]
+}
+}

@@ -18,8 +18,11 @@ The published tool is built in three steps, each layered on the one before:
 3. `python3 scripts/build_release.py` — adds V2.36:
    - `rules/dscrlp-ruleset.json` — the **built-in DSCRLP rule set**, with its display name and revision in `rules/ruleset.meta.json`. Users no longer import or export a JSON file.
    - `releases/v2.36/ui.css`, `ui.js`, `boot.js` — the clean layout (stage switcher in the header, icon rail, Help tab). These only rearrange and restyle existing elements; the validation engine, exports and MVC are unchanged.
+   - `rules/ifc-class-map.json` — **IFC 4.3 class → TMR / QR category map** used by the Mapping tab (filtered category lists, automatic mapping when one class match is clear). Generated from the reviewed workbook `rules/ifc-class-map.xlsx`.
 
 `.github/workflows/pages.yml` runs steps 2 and 3 on every push to `main`.
+
+**Updating the IFC class map:** edit `rules/ifc-class-map.xlsx` (sheets *IFC to TMR* and *IFC to QR*; mark rows *Reviewed = No* to drop them, add rows for missing links), then run `python3 scripts/class_map_from_excel.py` (needs `openpyxl`) and push `rules/ifc-class-map.json` and the workbook. The script stops if a sub-category does not exist in the rule set.
 
 **Updating the rules:** in the tool, open Help and turn on *Maintainer mode*, make the change under Rules → Maintainer tools, use *Save JSON*, replace `rules/dscrlp-ruleset.json` with that file, update the revision text in `rules/ruleset.meta.json`, and push. Each user's browser picks up the new revision on next load and keeps their mapping work where the categories still exist.
 

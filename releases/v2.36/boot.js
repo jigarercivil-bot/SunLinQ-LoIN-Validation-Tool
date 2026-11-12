@@ -56,3 +56,55 @@
   }
   set('irc.schema', JSON.stringify(next));
 })();
+
+/* IFC class -> TMR / QR category candidates (rules/ifc-class-map.json, built from the reviewed Excel).
+ * window.slqClassCandidates(row) returns the categories / sub-categories that fit a Mapping row's
+ * IFC class and predefined type for its owner, or null when the map has nothing to say. */
+(function () {
+  var el = document.getElementById('slq-class-map');
+  if (!el) return;
+  var map;
+  try { map = JSON.parse(el.textContent); } catch (e) { return; }
+  window.__SLQ_CLASSMAP__ = map;
+  var idx = {};
+  (map.rows || []).forEach(function (r) { var k = r.k + '|' + r.c; (idx[k] = idx[k] || []).push(r); });
+  function predefinedType(row) {
+    try {
+      var st = window.__irc && window.__irc.state;
+      var e = st && st.model && row.ids && st.model.elements.get(row.ids[0]);
+      var v = e && e.props.get('Attr.PredefinedType');
+      if (v && typeof v === 'object' && 'value' in v) v = v.value;
+      v = String(v || '').toUpperCase();
+      return /^(USERDEFINED|NOTDEFINED)$/.test(v) ? '' : v;
+    } catch (x) { return ''; }
+  }
+  window.slqClassCandidates = function (row) {
+    if (!row || !row.cls) return null;
+    var owner = String(row.owner || '').toUpperCase();
+    if (owner !== 'TMR' && owner !== 'QRL') return null;
+    if (((map.generic || {})[owner] || []).indexOf(row.cls) >= 0) return { generic: true, label: row.cls };
+    var all = idx[owner + '|' + row.cls] || [];
+    if (!all.length) return null;
+    var pdt = predefinedType(row);
+    var exact = all.filter(function (r) { return pdt && r.t === pdt; });
+    // An exact predefined-type match decides the list. Class-only entries for the same sub-category can
+    // raise it to primary; class-only entries for other sub-categories are kept as "possible" only.
+    var byKey = new Map();
+    var put = function (r, m) { var k = r.cat + '||' + r.sub; if (!byKey.has(k) || m === 'P') byKey.set(k, m); };
+    if (exact.length) {
+      exact.forEach(function (r) { put(r, r.m); });
+      all.filter(function (r) { return !r.t; }).forEach(function (r) { put(r, byKey.has(r.cat + '||' + r.sub) ? r.m : 'A'); });
+    } else {
+      all.forEach(function (r) { put(r, r.m); });
+    }
+    var keys = Array.from(byKey.keys());
+    return {
+      generic: false,
+      label: row.cls + (pdt ? ' (' + pdt + ')' : ''),
+      byKey: byKey,
+      primaryCount: keys.filter(function (k) { return byKey.get(k) === 'P'; }).length,
+      categories: Array.from(new Set(keys.map(function (k) { return k.split('||')[0]; }))).sort(),
+      subsFor: function (cat) { return keys.filter(function (k) { return k.split('||')[0] === cat; }).map(function (k) { return k.split('||')[1]; }).sort(); }
+    };
+  };
+})();
