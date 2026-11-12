@@ -371,6 +371,43 @@
   var helpTab = el('section', { 'class': 'tab slq-help', id: 'tab-help' });
   var left = $('.left');
   if (left) left.appendChild(helpTab);
+  /* Help charts: plain HTML/CSS so they follow the light / dark theme. */
+  var arrow = function (label) { return '<div class="slq-arrow" aria-hidden="true">' + (label ? '<span>' + label + '</span>' : '') + '</div>'; };
+  var step = function (n, title, text, extra) {
+    return '<div class="slq-step"><i>' + n + '</i><div><b>' + title + '</b><span>' + text + '</span>' + (extra || '') + '</div></div>';
+  };
+  var chips = function (list) { return '<div class="slq-chips">' + list.map(function (c) { return '<em class="' + (c[1] || '') + '">' + c[0] + '</em>'; }).join('') + '</div>'; };
+  var PROCESS_CHART =
+    '<div class="slq-flow" role="img" aria-label="Process: choose stage, open IFC, read owner, map objects, apply rules, review results, export and sign">' +
+    step(1, 'Choose the stage', 'Stage switcher in the top bar decides which LoIN columns are required.', chips([['PDS'], ['FDS'], ['PTU / IFC'], ['ASC']])) + arrow() +
+    step(2, 'Open the IFC', 'Read on this computer: classes, types, property sets.') + arrow() +
+    step(3, 'Read the owner', '“Project - Returned Works Owner” on every object.', chips([['TMR'], ['QR'], ['SCC'], ['N.A.', 'na']])) + arrow() +
+    step(4, 'Map object groups', 'IFC class + type name → owner category › sub-category (see below).') + arrow() +
+    step(5, 'Apply the rules', 'Every object: DSCRLP project attributes. Mapped objects: their owner’s property sets as well.', chips([['Project · all', 'ok'], ['TMR / QR · mapped']])) + arrow() +
+    step(6, 'Review results', 'Pass, errors and warnings per object, rule and property set.') + arrow() +
+    step(7, 'Export & sign', 'Excel validation report, data schedule, MVC with electronic sign-off.') +
+    '</div>';
+  var outcome = function (cls, text) { return '<div class="slq-out ' + cls + '">' + text + '</div>'; };
+  var branch = function (tag, out) { return '<div class="slq-br"><span class="slq-tag">' + tag + '</span>' + out + '</div>'; };
+  var MAPPING_CHART =
+    '<div class="slq-flow" role="img" aria-label="Mapping decision flow for each object group">' +
+    '<div class="slq-start">Object group<span>same owner + IFC class + type name</span></div>' + arrow() +
+    '<div class="slq-q"><b>Returned Works Owner?</b><div class="slq-brs">' +
+      branch('N.A.', outcome('na', 'No mapping needed · project rules only')) +
+      branch('missing', outcome('warn', 'Owner missing · fix in the model')) +
+    '</div></div>' + arrow('TMR / QR') +
+    '<div class="slq-q"><b>IFC class in the class map?</b><div class="slq-brs">' +
+      branch('proxy / not listed', outcome('info', 'Match by name only · auto if the name is clear, else review')) +
+    '</div></div>' + arrow('yes') +
+    '<div class="slq-q"><b>Main matches for class + predefined type</b><div class="slq-brs">' +
+      branch('one', outcome('', 'Does the name point to another asset?') +
+        '<div class="slq-brs sub">' + branch('no', outcome('ok', 'Mapped · IFC class')) + branch('yes', outcome('warn', 'Needs review · reason shown')) + '</div>') +
+      branch('several', outcome('', 'Does the name pick one clearly?') +
+        '<div class="slq-brs sub">' + branch('yes', outcome('ok', 'Mapped automatically')) + branch('no', outcome('warn', 'Needs review')) + '</div>') +
+    '</div></div>' + arrow('review') +
+    '<div class="slq-step"><i>✓</i><div><b>Review in the Mapping tab</b><span>Lists show only the categories that fit the class (tick “Show all categories” to override). Apply to identical objects, optionally save as a rule for future models.</span></div></div>' +
+    '</div>';
+
   function renderHelp() {
     var s = state();
     var sc = s && s.schema, b = sc && sc.builtin;
@@ -382,6 +419,8 @@
       '<li><i>3</i><div><b>Map anything unknown</b><span>Mapping lists object groups that still need an owner category and sub-category.</span></div></li>' +
       '<li><i>4</i><div><b>Review and export</b><span>Results shows what fails and why. Export gives the Excel report and the MVC.</span></div></li>' +
       '</ol>' +
+      '<h3>How the check works</h3>' + PROCESS_CHART +
+      '<h3>How mapping works</h3>' + MAPPING_CHART +
       '<h3>What the terms mean</h3><dl>' +
       '<dt>Mapping</dt><dd>Links each IFC object group to its owner category and sub-category.</dd>' +
       '<dt>Schema</dt><dd>Lists the attributes each owner requires and the values they accept.</dd>' +
