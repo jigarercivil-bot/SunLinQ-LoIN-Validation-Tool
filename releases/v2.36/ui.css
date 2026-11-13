@@ -321,3 +321,10 @@ body.slq3:not(.slq-admin) .slq-maint-only { display: none !important; }
 :root[data-theme="dark"] .slq-arrow { border-left-color: #3a4a5c; }
 :root[data-theme="dark"] .slq-arrow::after { border-top-color: #3a4a5c; }
 :root[data-theme="dark"] .slq-start { background: #1d3a5c; }
+
+/* Viewer toolbar: a tool that is switched on (Section box, Isolate selection) is shown solid green. */
+.slq3 .toolbar .btn.on, .slq3 .toolbar .btn.slq-active {
+  background: linear-gradient(180deg, #22c55e, #16a34a); color: #fff; border-color: #15803d;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.25), 0 1px 2px rgba(21,128,61,.35); font-weight: 650;
+}
+.slq3 .toolbar .btn.on:hover, .slq3 .toolbar .btn.slq-active:hover { background: linear-gradient(180deg, #16a34a, #15803d); color: #fff; }

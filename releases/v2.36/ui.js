@@ -450,9 +450,22 @@
       var s = state();
       body.classList.toggle('slq-nomodel', !(s && s.model));
       var mi = $('#modelInfo'); if (mi && mi.title !== mi.textContent) mi.title = mi.textContent;
-      renderStages(); renderChip(); renderRuleCard(); renderSections(); renderVerdict(); renderSteps();
+      renderStages(); renderChip(); renderRuleCard(); renderSections(); renderVerdict(); renderSteps(); renderTools();
     } catch (e) { /* never break the app */ }
   }
+  // Viewer toolbar on/off state: Section box (engine sets .on) and Isolate selection (on while part of the model is hidden).
+  function renderTools() {
+    var V = window.__irc && window.__irc.viewer; if (!V) return;
+    var sec = $('#btnSection'); if (sec) sec.classList.toggle('on', !!(V.section && V.section.on));
+    var iso = $('#btnIsolateSel'); if (iso) {
+      var on = !!V.visible;
+      iso.classList.toggle('slq-active', on);
+      iso.title = on ? 'Part of the model is hidden · use Show all to bring it back' : 'Show only the selected objects';
+    }
+  }
+  var tb = document.querySelector('.center .toolbar');
+  if (tb) tb.addEventListener('click', function () { setTimeout(renderTools, 0); setTimeout(renderTools, 150); });
+  document.addEventListener('click', function () { setTimeout(renderTools, 50); }, true);
   var sel = $('#stageSel');
   if (sel) {
     sel.addEventListener('change', function () { setTimeout(tick, 0); });
