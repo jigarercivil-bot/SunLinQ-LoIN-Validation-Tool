@@ -323,9 +323,65 @@
     };
   }
 
+  /* ---- assemblies and highlight ----
+     1. A container object with no geometry of its own (IfcElementAssembly such as a Revit beam system,
+        or any object whose parts are linked with IfcRelAggregates) is shown through its parts: selecting,
+        isolating and zooming to it uses the geometry of its parts.
+     2. window.slqHighlight(ids) selects a group of objects and greys out the rest of the model so the group
+        stands out whatever the colour mode. Any other selection (click in 3D, lists) returns to normal colours. */
+  var GHOST_RGB = [0.80, 0.82, 0.85];
+  var kids = null, kidsFor = null;
+  function childrenMap() {
+    var P = window.__slqParentOf;
+    if (!P) return null;
+    if (kidsFor !== P) {
+      kids = new Map(); kidsFor = P;
+      P.forEach(function (parent, child) { var a = kids.get(parent); if (!a) kids.set(parent, a = []); a.push(child); });
+    }
+    return kids;
+  }
+  function expand(ids) {
+    if (!ids) return ids;
+    var C = childrenMap(), list = Array.from(ids);
+    if (!C || !C.size) return list;
+    var out = new Set(list), stack = list.slice(), n = 0;
+    while (stack.length && n++ < 200000) {
+      var c = C.get(stack.pop());
+      if (c) c.forEach(function (k) { if (!out.has(k)) { out.add(k); stack.push(k); } });
+    }
+    return Array.from(out);
+  }
+  window.slqExpandIds = expand;
+
+  function patch2(V) {
+    if (!V || V.__slqPatched2) return;
+    V.__slqPatched2 = true;
+    var o = { select: V.select, setVisible: V.setVisible, boxOf: V.boxOf, colorize: V.colorize };
+    V.select = function (ids) {
+      if (!this._slqGhostKeep) this.slqGhost = false;
+      return o.select.call(this, expand(ids));
+    };
+    V.setVisible = function (ids) { return o.setVisible.call(this, ids ? expand(ids) : ids); };
+    V.boxOf = function (ids) { return o.boxOf.call(this, ids ? expand(ids) : ids); };
+    V.colorize = function (fn) {
+      var base = fn && fn.__slqGhost ? fn.__slqBase : fn;
+      if (this.slqGhost && this.selected && this.selected.size) {
+        var g = function () { return GHOST_RGB; };
+        g.__slqGhost = true; g.__slqBase = base;
+        return o.colorize.call(this, g);
+      }
+      return o.colorize.call(this, base);
+    };
+    window.slqHighlight = function (ids) {
+      V._slqGhostKeep = true;
+      V.slqGhost = !!(ids && ids.length);
+      try { V.select(ids || []); } finally { V._slqGhostKeep = false; }
+    };
+  }
+
   function waitForViewer() {
     var V = window.__irc && window.__irc.viewer;
-    if (V) patch(V); else setTimeout(waitForViewer, 50);
+    if (V) { patch(V); patch2(V); } else setTimeout(waitForViewer, 50);
   }
   waitForViewer();
 })();

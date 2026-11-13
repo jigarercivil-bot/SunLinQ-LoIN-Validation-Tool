@@ -157,10 +157,13 @@ map_edits = [
      "let cc=window.slqClassCandidates?window.slqClassCandidates(row):null,ccHas=!!(cc&&!cc.generic&&cc.byKey&&cc.byKey.size),useCC=ccHas&&!S.showAllCats,curCat=row.category||rule?.category||tx?.category||'',curSub=row.subCategory||rule?.subCategory||tx?.subCategory||'',withCur=(a,v)=>v&&!a.includes(v)?[v,...a]:a,subList=c=>useCC?cc.subsFor(c):subcats(row.owner,c);let cats=withCur(useCC?cc.categories:categories(row.owner),curCat);cat.innerHTML=options(cats,curCat,'Select category…');sub.innerHTML=options(curCat?withCur(subList(curCat),curSub):[],curSub,'Select sub-category…');cat.onchange=()=>{sub.innerHTML=options(subList(cat.value),'','Select sub-category…')};\n    let sa=$('#mapvShowAllCats');if(!sa){const lab=document.createElement('label');lab.className='check';lab.style.margin='4px 0';lab.innerHTML='<input type=\"checkbox\" id=\"mapvShowAllCats\"> Show all categories (ignore IFC class)';sub.parentElement.after(lab);sa=lab.querySelector('input')}sa.checked=!!S.showAllCats;sa.parentElement.style.display=ccHas?'':'none';sa.onchange=()=>{S.showAllCats=sa.checked;renderEditor(row)};"),
     ("    cat.disabled=!!row.notApplicable;sub.disabled=!!row.notApplicable;",
      "    if(useCC&&!row.mapped&&!row.notApplicable)note.textContent=note.textContent.replace(/\\.?$/,'.')+' Options limited to '+cc.byKey.size+' that fit '+cc.label+'.';\n    if(tx&&!row.mapped){const cf=(tx.reasons||[]).find(x=>/^name (suggests|matches)/.test(x));if(cf)note.textContent+=' ⚠ The '+cf+'.'}\n    cat.disabled=!!row.notApplicable;sub.disabled=!!row.notApplicable;"),
+    # Closing the open row clears the highlight and greyed-out model.
+    ("      S.selected=null;\n      render(null,false);",
+     "      S.selected=null;try{window.nL&&window.nL(null)}catch(e){}\n      render(null,false);"),
     # Clicking a mapping row highlights ALL of its objects (not just the first) and fits the view to them;
     # the properties panel still shows the first object.
     ("if(row?.ids?.length&&window.nL){try{window.nL(row.ids[0]);if(window.Ln?.zoomTo)window.Ln.zoomTo([row.ids[0]])}catch(e){}}",
-     "if(row?.ids?.length&&window.nL){try{window.nL(row.ids[0]);if(row.ids.length>1&&window.Ln?.select)window.Ln.select(row.ids);if(window.Ln?.zoomTo)window.Ln.zoomTo(row.ids);if(row.ids.length>1)window.$s?.(row.ids.length+' objects highlighted · properties show the first')}catch(e){}}"),
+     "if(row?.ids?.length&&window.nL){try{window.nL(row.ids[0]);if(window.slqHighlight)window.slqHighlight(row.ids);else if(window.Ln?.select)window.Ln.select(row.ids);if(window.Ln?.zoomTo)window.Ln.zoomTo(row.ids);const shown=window.Ln?.selected?.size||0;if(shown>row.ids.length)window.$s?.(row.ids.length===1?'Assembly with no geometry of its own · showing its '+(shown-1)+' parts':row.ids.length+' objects highlighted, including assembly parts');else if(row.ids.length>1)window.$s?.(row.ids.length+' objects highlighted · properties show the first')}catch(e){}}"),
 ]
 for old, new in map_edits:
     if html.count(old) != 1:
@@ -221,6 +224,13 @@ old2 = 'all=(schema.mapping?.rows||[]).filter(r=>!(r.uiMapping&&r.mapKey===item.
 if html.count(old2) != 2:
     raise SystemExit("Schema-window mapping anchor count changed")
 html = html.replace(old2, 'all=(schema.mapping?.rows||[]).filter(r=>!(r.uiMapping&&(r.mapKey===item.key||(item.legacyKeys||[]).includes(r.mapKey))));')
+
+# 6d. "Isolate selection" isolates the whole highlighted group (e.g. a mapping row), not only the object
+#     shown in Properties. Assemblies are isolated through their parts (releases/v2.36/strings.js).
+iso_old = 'Bt("#btnIsolateSel").onclick=()=>{if(tt.selected==null)return $s("Select an element first");Ln.setVisible([tt.selected]),Ln.zoomTo([tt.selected])};'
+if html.count(iso_old) != 1:
+    raise SystemExit("Isolate selection anchor not found exactly once")
+html = html.replace(iso_old, 'Bt("#btnIsolateSel").onclick=()=>{if(tt.selected==null&&!(Ln.selected&&Ln.selected.size))return $s("Select an element first");let s=Ln.selected&&Ln.selected.size>1?[...Ln.selected]:[tt.selected];Ln.setVisible(s),Ln.zoomTo(s)};')
 
 # 7. 3D strings: while the IFC is still open (after properties are read, before CloseModel), draw the curve
 #    geometry of elements that produced no mesh (releases/v2.36/strings.js). Skipped in data-only mode.
