@@ -232,6 +232,15 @@ if html.count(iso_old) != 1:
     raise SystemExit("Isolate selection anchor not found exactly once")
 html = html.replace(iso_old, 'Bt("#btnIsolateSel").onclick=()=>{if(tt.selected==null&&!(Ln.selected&&Ln.selected.size))return $s("Select an element first");let s=Ln.selected&&Ln.selected.size>1?[...Ln.selected]:[tt.selected];Ln.setVisible(s),Ln.zoomTo(s)};')
 
+# 6e. Objects with no 3D representation are not checked (not visible in the model -> no LoIN requirement).
+#     Every "is this class excluded" test in the engine also skips them (releases/v2.36/boot.js slqNoGeo).
+import re as _re
+_excl = _re.compile(r'\b([A-Za-z_$][\w$]*)&&\1\(([A-Za-z_$][\w$]*)\.cls\)')
+_found = _excl.findall(html)
+if len(_found) != 9:
+    raise SystemExit(f"Exclusion tests found {len(_found)}x (expected 9)")
+html = _excl.sub(lambda m: f"({m.group(0)}||window.slqNoGeo&&window.slqNoGeo({m.group(2)}))", html)
+
 # 7. 3D strings: while the IFC is still open (after properties are read, before CloseModel), draw the curve
 #    geometry of elements that produced no mesh (releases/v2.36/strings.js). Skipped in data-only mode.
 recentre_old = 'let V=new h2().setFromObject(this.group);if(!V.isEmpty()){let J=V.getCenter(new Ht);for(let Z of this.parts)Z.mesh.geometry.translate(-J.x,-J.y,-J.z)}'

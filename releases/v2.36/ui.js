@@ -430,6 +430,7 @@
       '<dt>Progressive stages</dt><dd>Anything required at an earlier stage is still required later.</dd>' +
       '<dt>T.B.C placeholder</dt><dd>Accepted only at stages where the LoIN allows a placeholder.</dd>' +
       '<dt>Owner from parent</dt><dd>Some exports split one object into parts (e.g. a Revit pile cap with a nested shared pile family). A part with no Returned Works Owner uses its parent object\'s owner for owner rules and mapping (shown as "from parent"). Its own Returned Works Owner check still fails, so fix it at source.</dd>' +
+      '<dt>Objects with no 3D geometry</dt><dd>Objects that cannot be seen in the model (e.g. a Revit beam system exported as an empty IfcElementAssembly) have no LoIN requirement: they are not checked, mapped or reported. Their parts are checked as normal.</dd>' +
       '<dt>3D strings</dt><dd>Objects whose geometry is a line (12d / Civil 3D strings, setout and survey strings) are drawn as lines, coloured by result and selectable like any other object.</dd>' +
       '<dt>Data-only mode</dt><dd>Skips the 3D view so very large models still open. Checks and exports work as normal.</dd>' +
       '</dl>' +

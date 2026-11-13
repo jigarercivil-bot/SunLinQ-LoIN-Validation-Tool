@@ -139,3 +139,22 @@
     return null;
   };
 })();
+
+/* Objects with no 3D representation (empty containers such as a Revit beam system exported as
+   IfcElementAssembly, groups, objects with only data) cannot be seen in the model, so they get no LoIN
+   requirements: they are left out of validation, Mapping, counts and reports, like excluded IFC classes.
+   They still appear in the model tree, and parts can still take their owner from them. */
+(function () {
+  'use strict';
+  var forMap = null, any = false;
+  window.slqNoGeo = function (el) {
+    if (!el || el.geo !== undefined) return false;
+    var M = window.__irc && window.__irc.state && window.__irc.state.model, E = M && M.elements;
+    if (!E) return false;
+    if (forMap !== E) {                       // safety: only when this model records geometry at all
+      forMap = E; any = false;
+      for (var v of E.values()) { if (v.geo !== undefined) { any = true; break; } }
+    }
+    return any;
+  };
+})();
