@@ -49,7 +49,8 @@ class_map_json = json.dumps(class_map, ensure_ascii=False, separators=(",", ":")
 css = (rel / "ui.css").read_text(encoding="utf-8")
 boot = (rel / "boot.js").read_text(encoding="utf-8")
 ui = (rel / "ui.js").read_text(encoding="utf-8")
-for name, text in (("ui.css", css), ("boot.js", boot), ("ui.js", ui)):
+strings_js = (rel / "strings.js").read_text(encoding="utf-8")
+for name, text in (("ui.css", css), ("boot.js", boot), ("ui.js", ui), ("strings.js", strings_js)):
     if "</script" in text.lower() or "</style" in text.lower():
         raise SystemExit(f"{name} must not contain closing script/style tags")
 
@@ -162,11 +163,22 @@ for old, new in map_edits:
         raise SystemExit(f"Mapping edit anchor found {html.count(old)}x (expected 1): {old[:70]}")
     html = html.replace(old, new)
 
-# 7. Layout layer at the very end of the page, after the engine has bound its handlers
+# 7. 3D strings: while the IFC is still open (after properties are read, before CloseModel), draw the curve
+#    geometry of elements that produced no mesh (releases/v2.36/strings.js). Skipped in data-only mode.
+recentre_old = 'let V=new h2().setFromObject(this.group);if(!V.isEmpty()){let J=V.getCenter(new Ht);for(let Z of this.parts)Z.mesh.geometry.translate(-J.x,-J.y,-J.z)}'
+if html.count(recentre_old) != 1:
+    raise SystemExit("Viewer re-centring anchor not found exactly once")
+html = html.replace(recentre_old, 'this.slqOffset=null;let V=new h2().setFromObject(this.group);if(!V.isEmpty()){let J=V.getCenter(new Ht);this.slqOffset=[J.x,J.y,J.z];for(let Z of this.parts)Z.mesh.geometry.translate(-J.x,-J.y,-J.z)}')
+old_hook = ',T="";try{T=o.GetModelSchema(d)}catch{}'
+if html.count(old_hook) != 1:
+    raise SystemExit("Load hook anchor not found exactly once")
+html = html.replace(old_hook, ',T="";try{t||!window.slqLoadCurves||window.slqLoadCurves(o,d,v,h)}catch(__e){console.warn("SunLinQ strings:",__e)}try{T=o.GetModelSchema(d)}catch{}')
+
+# 8. Layout layer at the very end of the page, after the engine has bound its handlers
 body_end = html.rfind("</body>")
 if body_end < 0:
     raise SystemExit("No </body> found")
-html = html[:body_end] + f'<script id="slq-v236-ui">\n{ui}\n</script>\n' + html[body_end:]
+html = html[:body_end] + f'<script id="slq-v236-strings">\n{strings_js}\n</script>\n<script id="slq-v236-ui">\n{ui}\n</script>\n' + html[body_end:]
 
 for marker in ("slq-builtin-rules", "slq-v236-boot", "slq-v236-ui", "slq-v236-css", "if(active&&active.builtin)return active;"):
     if marker not in html:

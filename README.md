@@ -18,6 +18,7 @@ The published tool is built in three steps, each layered on the one before:
 3. `python3 scripts/build_release.py` — adds V2.36:
    - `rules/dscrlp-ruleset.json` — the **built-in DSCRLP rule set**, with its display name and revision in `rules/ruleset.meta.json`. Users no longer import or export a JSON file.
    - `releases/v2.36/ui.css`, `ui.js`, `boot.js` — the clean layout (stage switcher in the header, icon rail, Help tab). These only rearrange and restyle existing elements; the validation engine, exports and MVC are unchanged.
+   - `releases/v2.36/strings.js` — draws **3D strings** (IfcPolyline, IfcIndexedPolyCurve, IfcCompositeCurve, curve sets) for objects that have no solid geometry, aligned with the meshes and included in colouring, picking, isolate and section box.
    - `rules/ifc-class-map.json` — **IFC 4.3 class → TMR / QR category map** used by the Mapping tab (filtered category lists, automatic mapping when one class match is clear). Generated from the reviewed workbook `rules/ifc-class-map.xlsx`.
 
 `.github/workflows/pages.yml` runs steps 2 and 3 on every push to `main`.

@@ -429,6 +429,7 @@
       '<dt>N.A. owner</dt><dd>Returned Works Owner is NA / N.A. / N/A. TMR and QR owner rules are skipped; the DSCRLP project attributes are still required.</dd>' +
       '<dt>Progressive stages</dt><dd>Anything required at an earlier stage is still required later.</dd>' +
       '<dt>T.B.C placeholder</dt><dd>Accepted only at stages where the LoIN allows a placeholder.</dd>' +
+      '<dt>3D strings</dt><dd>Objects whose geometry is a line (12d / Civil 3D strings, setout and survey strings) are drawn as lines, coloured by result and selectable like any other object.</dd>' +
       '<dt>Data-only mode</dt><dd>Skips the 3D view so very large models still open. Checks and exports work as normal.</dd>' +
       '</dl>' +
       '<h3>About</h3><div class="slq-about">' +
