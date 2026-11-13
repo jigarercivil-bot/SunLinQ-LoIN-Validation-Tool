@@ -187,6 +187,41 @@ for old, new in owner_edits:
         raise SystemExit(f"Owner-from-parent anchor found {html.count(old)}x (expected 1): {old[:70]}")
     html = html.replace(old, new)
 
+# 6c. Mapping groups Revit-style "Family:Type" type names by FAMILY (all sizes of one family -> one row),
+#     still split by owner and IFC class. A family mapping is saved as type pattern "Family:*", so validation
+#     applies it to every type of the family. Earlier per-type mappings carry over when all types of the family
+#     agree, and are replaced when the family row is mapped. Type names without ":" (12d, Civil 3D...) are unchanged.
+family_edits = [
+    ('if(!basisValue){basis="class";basisValue=""}',
+     'if(!basisValue){basis="class";basisValue=""}\n    let fullType=basis==="type"?basisValue:"",fm=fullType.match(/^([^:]+?)\\s*:\\s*(\\S.*)$/);if(fm){basis="family";basisValue=fm[1].trim()}'),
+    ('type:basis==="type"?basisValue:"",name:basis==="name"?basisValue:"",basis,basisValue,count:0,ids:[]};groups.set(key,g)}',
+     'type:basis==="type"||basis==="family"?basisValue:"",name:basis==="name"?basisValue:"",basis,basisValue,count:0,ids:[]};groups.set(key,g)}'),
+    ('g.count++;if(g.ids.length<10000)g.ids.push(el.id);',
+     'if(basis==="family"){g.types||(g.types=[]);g.types.includes(fullType)||g.types.push(fullType)}g.count++;if(g.ids.length<10000)g.ids.push(el.id);'),
+    ('let map=isNA?null:(uiByKey.get(g.key)||null)',
+     'let legacyKeys=(g.types||[]).map(t=>[g.owner,g.cls,"type",t].map(v=>encodeURIComponent(String(v||""))).join("|")+(/\\|parent$/.test(g.key)?"|parent":"")),legacyMap=(()=>{let ms=legacyKeys.map(k=>uiByKey.get(k));if(!ms.length||ms.some(m=>!m||!m.components?.length))return null;let c=JSON.stringify([...ms[0].components].sort());return ms.every(m=>JSON.stringify([...m.components].sort())===c)?ms[0]:null})();\n    let map=isNA?null:(uiByKey.get(g.key)||legacyMap||null)'),
+    ('return{...g,map,category,subCategory,req,notApplicable:isNA',
+     'return{...g,legacyKeys,map,category,subCategory,req,notApplicable:isNA'),
+    ("type:row.basis==='type'?row.basisValue:''",
+     "type:row.basis==='type'?row.basisValue:row.basis==='family'?row.basisValue+':*':''"),
+    ('type:item.basis==="type"?item.basisValue:""',
+     'type:item.basis==="type"?item.basisValue:item.basis==="family"?item.basisValue+":*":""'),
+    ("const all=(schema.mapping?.rows||[]).filter(r=>!(r.uiMapping&&r.mapKey===row.key));",
+     "const all=(schema.mapping?.rows||[]).filter(r=>!(r.uiMapping&&(r.mapKey===row.key||(row.legacyKeys||[]).includes(r.mapKey))));"),
+    ("if(rule.basis&&rule.basis!==row.basis)return false;let v=norm(row.basisValue),p=norm(rule.pattern);return !!p && (rule.mode==='contains'?v.includes(p):v===p)}",
+     "if(rule.basis&&rule.basis!==row.basis&&!(rule.basis==='type'&&row.basis==='family'))return false;let v=norm(row.basisValue),p=norm(rule.pattern),m=x=>rule.mode==='contains'?x.includes(p):x===p;return !!p && (m(v)||(row.types||[]).some(t=>m(norm(t))))}"),
+    ("<span class=\"mapv-ifc\">${esc(r.cls)} · ${esc(r.basisValue||'class only')}</span>",
+     "<span class=\"mapv-ifc\" title=\"${esc((r.types||[]).join('\\n'))}\">${esc(r.cls)} · ${esc(r.basisValue||'class only')}${r.types&&r.types.length>1?' · '+r.types.length+' types':''}</span>"),
+]
+for old, new in family_edits:
+    if html.count(old) != 1:
+        raise SystemExit(f"Family-grouping anchor found {html.count(old)}x (expected 1): {old[:70]}")
+    html = html.replace(old, new)
+old2 = 'all=(schema.mapping?.rows||[]).filter(r=>!(r.uiMapping&&r.mapKey===item.key));'
+if html.count(old2) != 2:
+    raise SystemExit("Schema-window mapping anchor count changed")
+html = html.replace(old2, 'all=(schema.mapping?.rows||[]).filter(r=>!(r.uiMapping&&(r.mapKey===item.key||(item.legacyKeys||[]).includes(r.mapKey))));')
+
 # 7. 3D strings: while the IFC is still open (after properties are read, before CloseModel), draw the curve
 #    geometry of elements that produced no mesh (releases/v2.36/strings.js). Skipped in data-only mode.
 recentre_old = 'let V=new h2().setFromObject(this.group);if(!V.isEmpty()){let J=V.getCenter(new Ht);for(let Z of this.parts)Z.mesh.geometry.translate(-J.x,-J.y,-J.z)}'
