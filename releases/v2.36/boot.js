@@ -108,3 +108,34 @@
     };
   };
 })();
+
+/* Owner from parent object. Some authoring tools export one designed object as several IFC elements
+   (e.g. a Revit family with a nested shared family: pile cap + pile). The parts are linked to their parent
+   with IfcRelAggregates. When a part has no Returned Works Owner, the owner of the nearest parent that has
+   one is used to pick the owner rules. The part's own "Project - Returned Works Owner" check still fails,
+   so the missing value stays visible in the results. */
+(function () {
+  'use strict';
+  window.slqParentElement = function (el) {
+    var P = window.__slqParentOf, M = window.__irc && window.__irc.state && window.__irc.state.model;
+    if (!P || !M || !el) return null;
+    var id = el.id, n = 0;
+    while (n++ < 12) {
+      id = P.get(id);
+      if (id == null) return null;
+      var pe = M.elements.get(id);
+      if (pe) return pe;
+    }
+    return null;
+  };
+  window.slqParentOwnerHit = function (el, get) {
+    var pe = el, n = 0;
+    while (n++ < 8) {
+      pe = window.slqParentElement(pe);
+      if (!pe) return null;
+      var h = get(pe.props);
+      if (h && h.value != null && String(h.value).trim() !== '') return { key: h.key, value: h.value, inheritedFrom: pe.id };
+    }
+    return null;
+  };
+})();

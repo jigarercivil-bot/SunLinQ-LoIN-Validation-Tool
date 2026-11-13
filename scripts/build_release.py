@@ -167,6 +167,26 @@ for old, new in map_edits:
         raise SystemExit(f"Mapping edit anchor found {html.count(old)}x (expected 1): {old[:70]}")
     html = html.replace(old, new)
 
+# 6b. Owner from parent object (see releases/v2.36/boot.js): expose the IfcRelAggregates child -> parent map,
+#     and when an element has no Returned Works Owner use its nearest parent's owner for owner rules and mapping.
+#     The element's own "Project - Returned Works Owner" rule is unchanged, so it still reports the gap.
+owner_edits = [
+    ("let J=new Map;for(let Ze of d(i.IFCRELAGGREGATES)){let st=u(Ze);if(!st)continue;let wt=eL(st.RelatingObject);for(let gt of oS(st.RelatedObjects))J.set(gt,wt)}",
+     "let J=new Map;for(let Ze of d(i.IFCRELAGGREGATES)){let st=u(Ze);if(!st)continue;let wt=eL(st.RelatingObject);for(let gt of oS(st.RelatedObjects))J.set(gt,wt)}window.__slqParentOf=J;"),
+    ("let de=h(Ee.props);",
+     "let de=h(Ee.props);if((!de||lS(de.value))&&window.slqParentOwnerHit)de=window.slqParentOwnerHit(Ee,h)||de;"),
+    ('  if(!raw)return{owner:"",raw:"",source:""};',
+     '  if(!raw&&window.slqParentElement){let pe=window.slqParentElement(el),dp=slqMapOwnerOf.__d||0;if(pe&&dp<8){let po;slqMapOwnerOf.__d=dp+1;try{po=slqMapOwnerOf(pe,settings)}finally{slqMapOwnerOf.__d=dp}if(po&&po.owner)return{...po,source:"Parent "+(pe.props.get("Attr.Name")||("#"+pe.id))+" · "+po.source,inherited:true,parentId:pe.id}}}\n  if(!raw)return{owner:"",raw:"",source:""};'),
+    ('let key=[own.owner,el.cls,basis,basisValue].map(v=>encodeURIComponent(String(v||""))).join("|"),g=groups.get(key);',
+     'let key=[own.owner,el.cls,basis,basisValue].map(v=>encodeURIComponent(String(v||""))).join("|")+(own.inherited?"|parent":""),g=groups.get(key);'),
+    ("(row.ownerSource?' · IFC':'')", "(row.ownerSource?(/^Parent /.test(row.ownerSource)?' · from parent':' · IFC'):'')"),
+    ("(r.ownerSource?' · IFC':'')", "(r.ownerSource?(/^Parent /.test(r.ownerSource)?' · from parent':' · IFC'):'')"),
+]
+for old, new in owner_edits:
+    if html.count(old) != 1:
+        raise SystemExit(f"Owner-from-parent anchor found {html.count(old)}x (expected 1): {old[:70]}")
+    html = html.replace(old, new)
+
 # 7. 3D strings: while the IFC is still open (after properties are read, before CloseModel), draw the curve
 #    geometry of elements that produced no mesh (releases/v2.36/strings.js). Skipped in data-only mode.
 recentre_old = 'let V=new h2().setFromObject(this.group);if(!V.isEmpty()){let J=V.getCenter(new Ht);for(let Z of this.parts)Z.mesh.geometry.translate(-J.x,-J.y,-J.z)}'
