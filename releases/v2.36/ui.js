@@ -463,6 +463,25 @@
       iso.title = on ? 'Part of the model is hidden · use Show all to bring it back' : 'Show only the selected objects';
     }
   }
+  // Picking an object in 3D while Mapping is open shows that object's mapping group.
+  (function hookPick() {
+    var V = window.__irc && window.__irc.viewer;
+    if (!V || !V.onPick) { setTimeout(hookPick, 200); return; }
+    if (V.__slqPickHooked) return; V.__slqPickHooked = true;
+    var prev = V.onPick;
+    V.onPick = function (id) {
+      var r = prev.apply(this, arguments);
+      try {
+        var tab = $('#tab-mapping');
+        if (id != null && tab && tab.classList.contains('on') && window.slqMapRevealObject) {
+          var row = window.slqMapRevealObject(id);
+          if (window.$s) window.$s(row ? 'Mapping group: ' + (row.basisValue || row.cls) + ' · ' + row.count + ' object' + (row.count === 1 ? '' : 's')
+                                       : 'This object is not in Mapping (excluded class or no 3D geometry)');
+        }
+      } catch (e) { /* never break picking */ }
+      return r;
+    };
+  })();
   var tb = document.querySelector('.center .toolbar');
   if (tb) tb.addEventListener('click', function () { setTimeout(renderTools, 0); setTimeout(renderTools, 150); });
   document.addEventListener('click', function () { setTimeout(renderTools, 50); }, true);

@@ -174,6 +174,9 @@ map_edits = [
     # Closing the open row clears the highlight and greyed-out model.
     ("      S.selected=null;\n      render(null,false);",
      "      S.selected=null;try{window.nL&&window.nL(null)}catch(e){}\n      render(null,false);"),
+    # Picking an object in 3D while the Mapping tab is open opens that object's mapping group (window.slqMapRevealObject).
+    ("  function reviewMapping(key){",
+     "  window.slqMapRevealObject=function(id){const rows=getRows(),row=rows.find(r=>(r.ids||[]).includes(id));if(!row)return null;const card=()=>$('#mapvList')?.querySelector(`[data-mapv-key=\\\"${CSS.escape(row.key)}\\\"]`);if(S.selected!==row.key||!card()){if(S.q||S.status){render(rows,false)}if(!card()&&(S.q||S.status)){S.q='';S.status='';const q=$('#mapvSearch'),st=$('#mapvStatus');if(q)q.value='';if(st)st.value=''}S.selected=row.key;render(rows,false);renderEditor(row)}requestAnimationFrame(()=>{const c=card();if(c){c.scrollIntoView({behavior:'smooth',block:'center'});c.classList.add('mapv-review-focus');setTimeout(()=>c.classList.remove('mapv-review-focus'),1400)}});return row};\n  function reviewMapping(key){"),
     # Clicking a mapping row highlights ALL of its objects (not just the first) and fits the view to them;
     # the properties panel still shows the first object.
     ("if(row?.ids?.length&&window.nL){try{window.nL(row.ids[0]);if(window.Ln?.zoomTo)window.Ln.zoomTo([row.ids[0]])}catch(e){}}",
