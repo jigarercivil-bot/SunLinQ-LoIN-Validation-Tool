@@ -49,6 +49,20 @@ class_map_json = json.dumps(class_map, ensure_ascii=False, separators=(",", ":")
 css = (rel / "ui.css").read_text(encoding="utf-8")
 boot = (rel / "boot.js").read_text(encoding="utf-8")
 ui = (rel / "ui.js").read_text(encoding="utf-8")
+# Build stamp (commit time in Sydney time + short commit), shown in the header so users can see which version is loaded.
+import subprocess
+from datetime import datetime
+from zoneinfo import ZoneInfo
+try:
+    _sha, _when = subprocess.run(["git", "log", "-1", "--format=%h %cI"], cwd=root, capture_output=True, text=True, check=True).stdout.split()
+    _t = datetime.fromisoformat(_when).astimezone(ZoneInfo("Australia/Sydney"))
+    build_stamp = f"{_t.day} {_t:%b %H:%M} · {_sha}"
+except Exception:
+    build_stamp = "local build"
+_vold = "var VERSION = '2.36';"
+if ui.count(_vold) != 1:
+    raise SystemExit("ui.js VERSION line not found")
+ui = ui.replace(_vold, _vold + " var BUILD = " + json.dumps(build_stamp) + ";")
 strings_js = (rel / "strings.js").read_text(encoding="utf-8")
 for name, text in (("ui.css", css), ("boot.js", boot), ("ui.js", ui), ("strings.js", strings_js)):
     if "</script" in text.lower() or "</style" in text.lower():

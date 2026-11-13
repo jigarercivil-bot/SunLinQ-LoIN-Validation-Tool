@@ -58,7 +58,7 @@
   /* ---------- Header ---------- */
   var top = $('header.top');
   var sub = $('.brand-sub', top);
-  if (sub) sub.textContent = 'LoIN Validation · v' + VERSION;
+  if (sub) { var bs = (typeof BUILD !== 'undefined' && BUILD) ? BUILD : ''; sub.textContent = 'LoIN Validation · v' + VERSION + (bs ? ' · ' + bs.split(' · ')[0] : ''); sub.title = bs ? 'Build ' + bs + ' · press Ctrl+F5 if this is older than the latest update' : ''; }
   var chip = el('div', { 'class': 'slq-chip', id: 'slqRulesChip' });
   var stages = el('div', { 'class': 'slq-stages', role: 'group', 'aria-label': 'Check at stage', id: 'slqStages' });
   var exportBtn = $('#btnExport');
@@ -435,7 +435,7 @@
       '<dt>Data-only mode</dt><dd>Skips the 3D view so very large models still open. Checks and exports work as normal.</dd>' +
       '</dl>' +
       '<h3>About</h3><div class="slq-about">' +
-      '<span>Tool version</span><b>' + VERSION + '</b>' +
+      '<span>Tool version</span><b>' + VERSION + (typeof BUILD !== 'undefined' && BUILD ? ' · build ' + esc(BUILD) : '') + '</b>' +
       '<span>Rule set</span><b>' + (b ? esc(b.name) : 'Custom rules') + '</b>' +
       '<span>Revision</span><b>' + (b ? esc(b.rev) : '—') + '</b>' +
       '<span>Rules</span><b>' + (sc ? (sc.rules || []).length : 0) + '</b>' +
