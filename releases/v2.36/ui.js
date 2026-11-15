@@ -382,7 +382,7 @@
     step(1, 'Choose the stage', 'Stage switcher in the top bar decides which LoIN columns are required.', chips([['PDS'], ['FDS'], ['PTU / IFC'], ['ASC']])) + arrow() +
     step(2, 'Open the IFC', 'Read on this computer: classes, types, property sets.') + arrow() +
     step(3, 'Read the owner', '“Project - Returned Works Owner” on every object.', chips([['TMR'], ['QR'], ['SCC'], ['N.A.', 'na']])) + arrow() +
-    step(4, 'Map object groups', 'IFC class + type name → owner category › sub-category (see below).') + arrow() +
+    step(4, 'Map object groups', 'Owner + IFC class + kind → owner category › sub-category, or select objects and right-click (see below).') + arrow() +
     step(5, 'Apply the rules', 'Every object: DSCRLP project attributes. Mapped objects: their owner’s property sets as well.', chips([['Project · all', 'ok'], ['TMR / QR · mapped']])) + arrow() +
     step(6, 'Review results', 'Pass, errors and warnings per object, rule and property set.') + arrow() +
     step(7, 'Export & sign', 'Excel validation report, data schedule, MVC with electronic sign-off.') +
@@ -391,7 +391,7 @@
   var branch = function (tag, out) { return '<div class="slq-br"><span class="slq-tag">' + tag + '</span>' + out + '</div>'; };
   var MAPPING_CHART =
     '<div class="slq-flow" role="img" aria-label="Mapping decision flow for each object group">' +
-    '<div class="slq-start">Object group<span>same owner + IFC class + type name</span></div>' + arrow() +
+    '<div class="slq-start">Object group<span>same owner + IFC class + kind (see How objects are grouped)</span></div>' + arrow() +
     '<div class="slq-q"><b>Returned Works Owner?</b><div class="slq-brs">' +
       branch('N.A.', outcome('na', 'No mapping needed · project rules only')) +
       branch('missing', outcome('warn', 'Owner missing · fix in the model')) +
@@ -416,11 +416,32 @@
       '<h3>Quick start</h3><ol>' +
       '<li><i>1</i><div><b>Pick the stage</b><span>Use the stage switcher in the top bar (PDS, FDS, PTU / IFC, ASC …).</span></div></li>' +
       '<li><i>2</i><div><b>Open the IFC</b><span>Drop the file anywhere or use Open IFC. The checks run on this computer.</span></div></li>' +
-      '<li><i>3</i><div><b>Map anything unknown</b><span>Mapping lists object groups that still need an owner category and sub-category.</span></div></li>' +
+      '<li><i>3</i><div><b>Map anything unknown</b><span>Mapping lists object groups that still need an owner category and sub-category. For exceptions, select objects in the model and right-click → Allocate category.</span></div></li>' +
       '<li><i>4</i><div><b>Review and export</b><span>Results shows what fails and why. Export gives the Excel report and the MVC.</span></div></li>' +
       '</ol>' +
       '<h3>How the check works</h3>' + PROCESS_CHART +
       '<h3>How mapping works</h3>' + MAPPING_CHART +
+      '<h3>How objects are grouped</h3>' +
+      '<p class="muted sm">A mapping group is owner + IFC class + kind. The tool detects the program that wrote the IFC and looks for the kind in this order; hover the class text on a Mapping row to see what it used (e.g. \u201c12d \u00b7 grouped by pit type\u201d).</p><dl>' +
+      '<dt>Revit</dt><dd>Family (from \u201cFamily:Type\u201d, so all sizes of a family are one row) \u2192 type name \u2192 name.</dd>' +
+      '<dt>12d</dt><dd>Pit type, pipe type + size, Vertex-Segment Type, model name \u2192 link name. 3D strings use their name without the trailing number or chainage (\u201cdesign 40.000\u201d \u2192 \u201cdesign\u201d).</dd>' +
+      '<dt>Civil 3D</dt><dd>Corridor Shape Information \u203a CodeName.</dd>' +
+      '<dt>Other programs</dt><dd>Type name \u2192 ObjectType \u2192 name.</dd>' +
+      '<dt>Never a kind</dt><dd>Geometry words some programs write as a type or name (Segment, 3D Tri-mesh, Super, Tin, 3D Solid\u2026), pure numbers and IDs (e.g. a Revit element ID), blank values and \u201cNot Set\u201d.</dd>' +
+      '<dt>When nothing has a value</dt><dd>1) a property is picked automatically: one most of those objects have, with few different values, that is not a number, ID, chainage or size (e.g. Bolt Type); 2) objects with identical geometry (same triangles, area and volume) form one group, e.g. tunnel rings \u2014 needs the 3D view; 3) otherwise one row per IFC class.</dd>' +
+      '<dt>Parts</dt><dd>A part that takes its owner from its parent object is grouped with the other objects of the same kind.</dd>' +
+      '<dt>Validation</dt><dd>A saved Mapping row is applied to objects by the same group key, so Mapping and Results always agree.</dd></dl>' +
+      '<h3>Selecting objects and allocating a category</h3><dl>' +
+      '<dt>Select</dt><dd>Structure tree: click selects one object or branch; Ctrl-click adds or removes; Shift-click selects a range. Right-click a branch, a class or a storey to select everything under it. 3D: click selects, Ctrl-click adds or removes. Selected nodes are highlighted in the tree and counted in the bar under the 3D view.</dd>' +
+      '<dt>See-through</dt><dd>Any selection keeps the selected objects in the current colour mode\u2019s colours and shows the rest of the model see-through. See-through objects can still be clicked. Click empty space or Clear selection to return to normal.</dd>' +
+      '<dt>Allocate</dt><dd>Right-click \u2192 Allocate category\u2026 The owner is always the Returned Works Owner in the IFC: only that owner\u2019s categories are offered, and objects with no TMR / QR / SCC owner are skipped and listed. Lists are limited to what fits the IFC class when the selection is one class.</dd>' +
+      '<dt>Priority</dt><dd>An allocation applies to those objects only and comes before their group mapping. They show in Mapping as \u201cAllocated by selection\u201d (Mapped \u00b7 by selection); the rest of the group keeps its mapping. Clear allocation (right-click, or reset on the Mapping row) returns them to the group.</dd>' +
+      '<dt>GlobalId</dt><dd>Allocations are saved by GlobalId in the rule set. If a model is re-exported with new GlobalIds, allocate those objects again.</dd></dl>' +
+      '<h3>3D colours</h3><dl>' +
+      '<dt>Validation</dt><dd>Pass, error, warning, not checked.</dd>' +
+      '<dt>By class</dt><dd>One colour per IFC class.</dd>' +
+      '<dt>By mapping group</dt><dd>One colour per Mapping row, largest groups first, with a legend; the same colour is shown as a dot on each Mapping row.</dd>' +
+      '<dt>Mapped vs unmapped</dt><dd>Green mapped, blue mapped by selection, purple N.A. (project rules only), amber unmapped with an owner, red owner missing, grey not in Mapping. The headline \u201cMapped (n) vs Unmapped (n)\u201d counts N.A. owners as mapped.</dd></dl>' +
       '<h3>What the terms mean</h3><dl>' +
       '<dt>Mapping</dt><dd>Links each IFC object group to its owner category and sub-category.</dd>' +
       '<dt>Schema</dt><dd>Lists the attributes each owner requires and the values they accept.</dd>' +
@@ -432,7 +453,9 @@
       '<dt>Owner from parent</dt><dd>Some exports split one object into parts (e.g. a Revit pile cap with a nested shared pile family). A part with no Returned Works Owner uses its parent object\'s owner for owner rules and mapping (shown as "from parent"). Its own Returned Works Owner check still fails, so fix it at source.</dd>' +
       '<dt>Objects with no 3D geometry</dt><dd>Objects that cannot be seen in the model (e.g. a Revit beam system exported as an empty IfcElementAssembly) have no LoIN requirement: they are not checked, mapped or reported. Their parts are checked as normal.</dd>' +
       '<dt>3D strings</dt><dd>Objects whose geometry is a line (12d / Civil 3D strings, setout and survey strings) are drawn as lines, coloured by result and selectable like any other object.</dd>' +
-      '<dt>Data-only mode</dt><dd>Skips the 3D view so very large models still open. Checks and exports work as normal.</dd>' +
+      '<dt>Data-only mode</dt><dd>Skips the 3D view so very large models still open. Checks and exports work as normal; grouping by identical shape and the 3D colours need the 3D view.</dd>' +
+      '<dt>Nested property groups</dt><dd>Attributes inside property groups inside property groups (as 12d exports them, e.g. 12d Model \u203a TMR \u203a Asset Management \u203a BIM Component Code) are read at every level, named \u201cPset.Group/Sub group/Property\u201d.</dd>' +
+      '<dt>Not Set</dt><dd>A value that only says \u201cNot Set\u201d (12d\u2019s default for an unfilled attribute) counts as missing, like a blank value.</dd>' +
       '</dl>' +
       '<h3>About</h3><div class="slq-about">' +
       '<span>Tool version</span><b>' + VERSION + (typeof BUILD !== 'undefined' && BUILD ? ' · build ' + esc(BUILD) : '') + '</b>' +
