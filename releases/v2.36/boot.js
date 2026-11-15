@@ -173,9 +173,12 @@
   function build() {
     var st = window.__irc && window.__irc.state;
     if (!st || !st.model || !st.schema || !window.slqBuildMappingRows) return null;
-    var rows = window.slqBuildMappingRows(st.schema);
-    var sig = st.model.elements.size + '|' + rows.length + '|' + rows.map(function (r) { return r.key + ':' + r.count; }).join(',').length;
+    // Groups depend only on the loaded model and the owner settings, so they are worked out once per model
+    // (not once per Mapping row: that made every redraw of the Mapping list rebuild all groups again).
+    var set = st.schema.settings || {};
+    var sig = st.model.elements.size + '|' + JSON.stringify([set.ownerProp || '', set.ownerMap || null, set.anyPset || false]);
     if (cache && cache.model === st.model.elements && cache.sig === sig) return cache;
+    var rows = window.slqBuildMappingRows(st.schema);
     var order = rows.slice().sort(function (a, b) { return b.count - a.count || (a.key < b.key ? -1 : 1); });
     var byKey = new Map(), byId = new Map(), list = [];
     order.forEach(function (r, i) {
