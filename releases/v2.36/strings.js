@@ -327,8 +327,8 @@
      1. A container object with no geometry of its own (IfcElementAssembly such as a Revit beam system,
         or any object whose parts are linked with IfcRelAggregates) is shown through its parts: selecting,
         isolating and zooming to it uses the geometry of its parts.
-     2. window.slqHighlight(ids) selects a group of objects and greys out the rest of the model so the group
-        stands out whatever the colour mode. Any other selection (click in 3D, lists) returns to normal colours. */
+     2. window.slqHighlight(ids) selects a group of objects, keeps them in the current colour mode's colours and
+        shows the rest of the model see-through. Any other selection (click in 3D, lists) returns to normal. */
   var GHOST_RGB = [0.80, 0.82, 0.85];
   var kids = null, kidsFor = null;
   function childrenMap() {
@@ -353,6 +353,48 @@
   }
   window.slqExpandIds = expand;
 
+  /* Ghost highlight: the highlighted group keeps the colours of the current colour mode (e.g. its mapping-group
+     colour) and the rest of the visible model is drawn see-through. Each merged mesh is split in two index
+     lists: highlighted triangles stay in the mesh, the others go to a transparent copy that shares the same
+     vertex buffers (no geometry is duplicated). */
+  var SEL_RGB = [0.08, 0.78, 0.70];
+  function splitParts(V, o) {
+    clearGhost(V, o, true);
+    var sel = V.selected, vis = V.visible, ghosts = [];
+    (V.parts || []).forEach(function (p) {
+      if (!p || !p.mesh || !p.fullIndex || !p.ids) return;
+      var geo = p.mesh.geometry, IA = geo.index ? geo.index.constructor : null;
+      if (!IA) return;
+      var F = p.fullIndex, ids = p.ids, a = new F.constructor(F.length), b = new F.constructor(F.length), na = 0, nb = 0;
+      for (var k = 0; k + 2 < F.length; k += 3) {
+        var id = ids[F[k]];
+        if (vis && !vis.has(id)) continue;
+        if (sel.has(id)) { a[na++] = F[k]; a[na++] = F[k + 1]; a[na++] = F[k + 2]; }
+        else { b[nb++] = F[k]; b[nb++] = F[k + 1]; b[nb++] = F[k + 2]; }
+      }
+      geo.setIndex(new IA(a.slice(0, na), 1));
+      if (!nb || !p.mesh.parent) return;
+      var g = new geo.constructor();
+      for (var nm in geo.attributes) g.setAttribute(nm, geo.attributes[nm]);
+      g.setIndex(new IA(b.slice(0, nb), 1));
+      g.boundingBox = geo.boundingBox; g.boundingSphere = geo.boundingSphere;
+      var m = p.mesh.material.clone();
+      m.vertexColors = false;
+      if (m.color) m.color.setRGB(0.62, 0.67, 0.74);
+      m.transparent = true; m.opacity = 0.12; m.depthWrite = false; m.needsUpdate = true;
+      var gm = p.mesh.clone(); gm.geometry = g; gm.material = m; gm.renderOrder = 2; gm.raycast = function () {};
+      p.mesh.parent.add(gm);
+      ghosts.push(gm);
+    });
+    V._slqGhosts = ghosts; V._slqSplit = true; V.dirty = true;
+  }
+  function clearGhost(V, o, keepIndex) {
+    if (V._slqGhosts) V._slqGhosts.forEach(function (m) { if (m.parent) m.parent.remove(m); if (m.material && m.material.dispose) m.material.dispose(); });
+    V._slqGhosts = null;
+    if (V._slqSplit && !keepIndex) { V._slqSplit = false; o.setVisible.call(V, V.visible ? Array.from(V.visible) : null); }
+    V.dirty = true;
+  }
+
   function patch2(V) {
     if (!V || V.__slqPatched2) return;
     V.__slqPatched2 = true;
@@ -361,15 +403,24 @@
       if (!this._slqGhostKeep) this.slqGhost = false;
       return o.select.call(this, expand(ids));
     };
-    V.setVisible = function (ids) { return o.setVisible.call(this, ids ? expand(ids) : ids); };
+    V.setVisible = function (ids) {
+      var r = o.setVisible.call(this, ids ? expand(ids) : ids);
+      if (this._slqSplit) { this._slqSplit = false; if (this.slqGhost && this.selected && this.selected.size) splitParts(this, o); else clearGhost(this, o, true); }
+      return r;
+    };
     V.boxOf = function (ids) { return o.boxOf.call(this, ids ? expand(ids) : ids); };
     V.colorize = function (fn) {
       var base = fn && fn.__slqGhost ? fn.__slqBase : fn;
       if (this.slqGhost && this.selected && this.selected.size) {
-        var g = function () { return GHOST_RGB; };
+        var sel = this.selected;
+        var g = function (id) { var c = base ? base(id) : null; return c || SEL_RGB; };
         g.__slqGhost = true; g.__slqBase = base;
-        return o.colorize.call(this, g);
+        this.selected = new Set();               // keep the colour-mode colours on the highlighted group
+        try { o.colorize.call(this, g); } finally { this.selected = sel; }
+        splitParts(this, o);
+        return;
       }
+      if (this._slqSplit || this._slqGhosts) clearGhost(this, o, false);
       return o.colorize.call(this, base);
     };
     window.slqHighlight = function (ids) {
