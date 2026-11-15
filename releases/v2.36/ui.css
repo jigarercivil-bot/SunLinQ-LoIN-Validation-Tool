@@ -334,3 +334,19 @@ body.slq3:not(.slq-admin) .slq-maint-only { display: none !important; }
 .slq-maplegend { display:flex; flex-wrap:wrap; align-items:center; gap:4px 14px; max-height:84px; overflow:auto; }
 .slq-maplegend > span { white-space:nowrap; display:inline-flex; align-items:center; gap:5px; }
 .slq-maplegend > b { margin-right:4px; }
+
+/* Allocation by selection: selection bar, right-click menu, dialog */
+.slq-selbar { position:fixed; left:50%; bottom:22px; transform:translateX(-50%); z-index:60; display:flex; align-items:center; gap:8px; padding:8px 10px 8px 14px; background:var(--panel, #fff); border:1px solid var(--line, #d0d7de); border-radius:10px; box-shadow:0 6px 24px rgba(0,0,0,.14); font-size:12.5px; }
+.slq-selbar[hidden] { display:none; }
+.slq-ctx { position:fixed; z-index:80; min-width:200px; padding:4px; background:var(--panel, #fff); border:1px solid var(--line, #d0d7de); border-radius:8px; box-shadow:0 8px 28px rgba(0,0,0,.18); font-size:13px; }
+.slq-ctx-h { padding:6px 10px 4px; font-size:11.5px; color:var(--muted, #6b7280); max-width:280px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.slq-ctx button { display:block; width:100%; text-align:left; padding:7px 10px; border:0; background:none; border-radius:6px; cursor:pointer; color:inherit; font:inherit; }
+.slq-ctx button:hover { background:var(--hover, rgba(15,110,86,.08)); }
+.slq-dlg-wrap { position:fixed; inset:0; z-index:90; background:rgba(15,23,42,.35); display:flex; align-items:center; justify-content:center; }
+.slq-dlg { width:min(440px, 92vw); background:var(--panel, #fff); border-radius:12px; padding:18px 20px; box-shadow:0 18px 48px rgba(0,0,0,.25); display:flex; flex-direction:column; gap:10px; font-size:13px; }
+.slq-dlg h3 { margin:0; font-size:16px; }
+.slq-dlg label:not(.check) { display:flex; flex-direction:column; gap:4px; font-size:12px; color:var(--muted, #6b7280); }
+.slq-dlg-warn { background:rgba(186,117,23,.1); color:#854F0B; border-radius:8px; padding:8px 10px; font-size:12px; }
+.slq-dlg-btns { display:flex; justify-content:flex-end; gap:8px; margin-top:4px; }
+.slq-err { color:#A32D2D !important; }
+#tree .tn.slq-tsel { background:rgba(15,110,86,.12); }

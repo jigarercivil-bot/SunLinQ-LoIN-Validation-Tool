@@ -176,7 +176,7 @@
     // Groups depend only on the loaded model and the owner settings, so they are worked out once per model
     // (not once per Mapping row: that made every redraw of the Mapping list rebuild all groups again).
     var set = st.schema.settings || {};
-    var sig = st.model.elements.size + '|' + JSON.stringify([set.ownerProp || '', set.ownerMap || null, set.anyPset || false]);
+    var sig = st.model.elements.size + '|' + (window.__slqSelRev || 0) + '|' + JSON.stringify([set.ownerProp || '', set.ownerMap || null, set.anyPset || false]);
     if (cache && cache.model === st.model.elements && cache.sig === sig) return cache;
     var rows = window.slqBuildMappingRows(st.schema);
     var order = rows.slice().sort(function (a, b) { return b.count - a.count || (a.key < b.key ? -1 : 1); });

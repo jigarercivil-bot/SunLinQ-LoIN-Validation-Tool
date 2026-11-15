@@ -64,7 +64,8 @@ if ui.count(_vold) != 1:
     raise SystemExit("ui.js VERSION line not found")
 ui = ui.replace(_vold, _vold + " var BUILD = " + json.dumps(build_stamp) + ";")
 strings_js = (rel / "strings.js").read_text(encoding="utf-8")
-for name, text in (("ui.css", css), ("boot.js", boot), ("ui.js", ui), ("strings.js", strings_js)):
+allocate_js = (rel / "allocate.js").read_text(encoding="utf-8")
+for name, text in (("ui.css", css), ("boot.js", boot), ("ui.js", ui), ("strings.js", strings_js), ("allocate.js", allocate_js)):
     if "</script" in text.lower() or "</style" in text.lower():
         raise SystemExit(f"{name} must not contain closing script/style tags")
 
@@ -324,7 +325,10 @@ if i1 - i0 > 2000:
     raise SystemExit("Mapping group block is not in the expected shape")
 html = html[:i0] + (
     '    let own=slqMapOwnerOf(el,settings),kd=slqKindOf(el),basis=kd.basis,basisValue=kd.value||"",fullType=kd.fullType||"",prof=slqGroupProfile();\n'
-    '    let key=slqGroupKey(own.owner,el.cls,kd),g=groups.get(key);\n'
+    '    let sr=slqSelIdx.size?slqSelIdx.get(slqPV(el,"Attr.GlobalId")):null;if(sr&&sr.uiOwner!==own.owner)sr=null;\n'
+    '    let key=sr?["sel",own.owner,sr.uiCategory,sr.uiSubCategory].map(v=>encodeURIComponent(String(v||""))).join("|"):slqGroupKey(own.owner,el.cls,kd),g=groups.get(key);\n'
+    '    if(!g&&sr){g={key,owner:own.owner,ownerRaw:own.raw,ownerSource:own.source||"",cls:el.cls,type:"",name:"",basis:"selection",basisValue:"",label:"Allocated by selection",basisLabel:"Allocated by selection in the model (by GlobalId)",selMap:sr,inherited:0,count:0,ids:[]};groups.set(key,g)}\n'
+    '    if(sr){g.count++;g.ids.push(el.id);continue}\n'
     '    if(!g){let bl=basis==="family"?"family":basis==="type"?"type name":basis==="name"?"name":basis==="string"?"string name (number removed)":basis==="shape"?"identical shape (no type, name or property to group by)":basis==="prop"?slqPropShort(kd.prop)+(kd.found?" (picked automatically)":""):"IFC class only (no grouping property found)";'
     'g={key,owner:own.owner,ownerRaw:own.raw,ownerSource:own.source||"",cls:el.cls,type:basis==="type"||basis==="family"?basisValue:"",name:basis==="name"?basisValue:"",basis,basisValue,prop:kd.prop||"",'
     'label:basis==="prop"?slqPropShort(kd.prop)+": "+basisValue:basis==="shape"?"Same shape: "+basisValue:basisValue,basisLabel:SLQ_PROFILE_LABEL[prof.profile]+" · grouped by "+bl,inherited:0,count:0,ids:[]};groups.set(key,g)}\n'
@@ -333,9 +337,9 @@ html = html[:i0] + (
 ) + html[i1:]
 # Validation: Mapping-tab rows are matched by group key.
 k_old1 = 'r=new Map,u=[];for(let v of i){if(!v.components?.length)continue;let T={comps:v.components'
-k_new1 = 'r=new Map,u=[],slqK=new Map,slqSet=O1(e);for(let v of i){if(!v.components?.length)continue;if(v.uiMapping&&v.mapKey){slqK.set(v.mapKey,(slqK.get(v.mapKey)||[]).concat(v.components));continue}let T={comps:v.components'
+k_new1 = 'r=new Map,u=[],slqK=new Map,slqG=new Map,slqSet=O1(e);for(let v of i){if(!v.components?.length)continue;if(v.slqSel){for(let g of v.gids||[])slqG.set(g,v.components);continue}if(v.uiMapping&&v.mapKey){slqK.set(v.mapKey,(slqK.get(v.mapKey)||[]).concat(v.components));continue}let T={comps:v.components'
 k_old2 = 'return v=>{let T=[...r.get(String(v.cls).toLowerCase())||[],...u];if(!T.length)return null;let O=null,U,_;'
-k_new2 = 'return v=>{let O=null;if(slqK.size){for(let k of slqGroupKeysOf(v,slqSet)){let c=slqK.get(k);if(c){O=new Set(c);break}}}let T=[...r.get(String(v.cls).toLowerCase())||[],...u];if(!T.length)return O?[...O]:null;let U,_;'
+k_new2 = 'return v=>{let O=null;if(slqG.size){let sg=slqG.get(slqPV(v,"Attr.GlobalId"));if(sg)O=new Set(sg)}if(!O&&slqK.size){for(let k of slqGroupKeysOf(v,slqSet)){let c=slqK.get(k);if(c){O=new Set(c);break}}}let T=[...r.get(String(v.cls).toLowerCase())||[],...u];if(!T.length)return O?[...O]:null;let U,_;'
 for o_, n_ in ((k_old1, k_new1), (k_old2, k_new2)):
     if html.count(o_) != 1:
         raise SystemExit("Validation mapping matcher anchor not found exactly once: " + o_[:60])
@@ -350,6 +354,21 @@ sug_old = "esc(`${x.r.cls} · ${x.r.basisValue||'class only'}`)"
 if html.count(sug_old) != 1:
     raise SystemExit("Suggestion label anchor not found exactly once")
 html = html.replace(sug_old, "esc(`${x.r.cls} · ${x.r.label||x.r.basisValue||'class only'}`)")
+
+sel_edits = [
+    ('let settings=O1(schema),typeGet=I2("Attr.TypeName"),objGet=I2("Attr.ObjectType"),nameGet=I2("Attr.Name"),groups=new Map,exclude=tt.excl;',
+     'let settings=O1(schema),typeGet=I2("Attr.TypeName"),objGet=I2("Attr.ObjectType"),nameGet=I2("Attr.Name"),groups=new Map,exclude=tt.excl,slqSelIdx=slqSelIndex(schema);'),
+    ('let map=isNA?null:(uiByKey.get(g.key)||legacyMap||null)', 'let map=isNA?null:(g.selMap||uiByKey.get(g.key)||legacyMap||null)'),
+    ("if(row.map?.slqV223Manual||row.map?.slqV222Manual)return{key:'mapped',label:'Mapped · manual',cls:'manual'};",
+     "if(row.map?.slqSel)return{key:'mapped',label:'Mapped · by selection',cls:'manual'};if(row.map?.slqV223Manual||row.map?.slqV222Manual)return{key:'mapped',label:'Mapped · manual',cls:'manual'};"),
+    ('function slqClearUiMapping(item){', 'function slqClearUiMapping(item){if(item&&item.basis==="selection"){window.slqSelClear(item.ids);return}'),
+    ("function upsertMapping(row,category,subCategory,meta={}){", "function upsertMapping(row,category,subCategory,meta={}){if(row&&row.basis==='selection')return !!window.slqSelAllocate(row.ids,row.owner,category,subCategory).ok;"),
+    ('Bt("#tree").addEventListener("click",e=>{', 'window.slqTreeIds=P_;Bt("#tree").addEventListener("click",e=>{'),
+]
+for o_, n_ in sel_edits:
+    if html.count(o_) != 1:
+        raise SystemExit("Selection allocation anchor found %dx (expected 1): %s" % (html.count(o_), o_[:70]))
+    html = html.replace(o_, n_)
 
 # 6j. An unmapped row whose asset the tool cannot recognise (class-only or unknown guess, 72% or less) is titled
 #     with its kind (family, pit type, CodeName...) instead of "Unknown asset" or the bare IFC class name.
@@ -373,7 +392,7 @@ html = html.replace(old_hook, ',T="";try{t||!window.slqLoadCurves||window.slqLoa
 body_end = html.rfind("</body>")
 if body_end < 0:
     raise SystemExit("No </body> found")
-html = html[:body_end] + f'<script id="slq-v236-strings">\n{strings_js}\n</script>\n<script id="slq-v236-ui">\n{ui}\n</script>\n' + html[body_end:]
+html = html[:body_end] + f'<script id="slq-v236-strings">\n{strings_js}\n</script>\n<script id="slq-v236-ui">\n{ui}\n</script>\n' + f'<script id="slq-v236-allocate">\n{allocate_js}\n</script>\n' + html[body_end:]
 
 for marker in ("slq-builtin-rules", "slq-v236-boot", "slq-v236-ui", "slq-v236-css", "if(active&&active.builtin)return active;"):
     if marker not in html:

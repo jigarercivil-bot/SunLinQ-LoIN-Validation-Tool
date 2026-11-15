@@ -134,3 +134,79 @@ function slqGroupKeysOf(el, settings) {
   return out;
 }
 window.slqGroupProfileName = function () { try { return tt.model ? SLQ_PROFILE_LABEL[slqGroupProfile().profile] : ""; } catch (e) { return ""; } };
+
+/* Allocation by selection. Objects selected in the model (tree, classes, storeys, 3D) can be given an owner
+   category and sub-category directly. The owner always comes from the object's Returned Works Owner in the IFC
+   (or its parent): objects with no owner, N.A., or another owner are skipped. Saved in the rule set as Mapping
+   rows {slqSel, gids[]}, matched to objects by GlobalId during validation, and they take priority over the
+   object's group mapping. The newest allocation of an object wins. */
+var slqSelCache = { rows: null, n: -1, map: null };
+function slqSelIndex(schema) {
+  let rows = (schema && schema.mapping && schema.mapping.rows) || [];
+  if (slqSelCache.rows === rows && slqSelCache.n === rows.length) return slqSelCache.map;
+  let m = new Map();
+  for (let r of rows) if (r.slqSel && r.components && r.components.length) for (let g of r.gids || []) m.set(g, r);
+  slqSelCache = { rows: rows, n: rows.length, map: m };
+  return m;
+}
+function slqSelRefresh(schema) {
+  tt.compStats = null;
+  try { if (typeof Kn !== "undefined" && Kn) { Kn.cache = null; Kn.cacheFor = null; } } catch (e) {}
+  slqSelCache = { rows: null, n: -1, map: null };
+  window.__slqSelRev = (window.__slqSelRev || 0) + 1;
+  xo(!1);
+}
+window.slqSelectionInfo = function (ids) {
+  let schema = tt.schema, settings = O1(schema), sel = slqSelIndex(schema), owners = {}, classes = {}, allocated = 0, n = 0;
+  for (let id of ids || []) {
+    let el = tt.model && tt.model.elements.get(id);
+    if (!el) continue;
+    n++;
+    let o = slqMapOwnerOf(el, settings).owner || "";
+    owners[o] = (owners[o] || 0) + 1;
+    classes[el.cls] = (classes[el.cls] || 0) + 1;
+    if (sel.has(slqPV(el, "Attr.GlobalId"))) allocated++;
+  }
+  return { count: n, owners: owners, classes: classes, allocated: allocated };
+};
+window.slqSelAllocate = function (ids, owner, category, subCategory) {
+  let schema = tt.schema, settings = O1(schema), comps = slqMapComponents(schema, owner, category, subCategory);
+  if (!comps.length) return { ok: false, reason: "No " + owner + " components for " + category + " › " + subCategory };
+  let gids = [], skipped = 0;
+  for (let id of ids || []) {
+    let el = tt.model.elements.get(id);
+    if (!el) continue;
+    let g = slqPV(el, "Attr.GlobalId");
+    if (g && slqMapOwnerOf(el, settings).owner === owner) gids.push(g); else skipped++;
+  }
+  if (!gids.length) return { ok: false, reason: "None of the selected objects has " + owner + " as Returned Works Owner in the IFC", skipped: skipped };
+  let drop = new Set(gids), rows = [];
+  for (let r of (schema.mapping && schema.mapping.rows) || []) {
+    if (r.slqSel) { let left = (r.gids || []).filter(g => !drop.has(g)); if (!left.length) continue; r = Object.assign({}, r, { gids: left }); }
+    rows.push(r);
+  }
+  rows.push({ uiMapping: true, slqSel: true, mapKey: "sel:" + Date.now().toString(36), uiOwner: owner, uiCategory: category, uiSubCategory: subCategory,
+              cls: "", type: "", name: "", prop: "", value: "", gids: gids, components: comps.map(c => c.id), row: rows.length + 2, createdAt: new Date().toISOString() });
+  schema.mapping = Object.assign({}, schema.mapping || {}, { mode: "only", rows: rows });
+  slqSelRefresh(schema);
+  return { ok: true, allocated: gids.length, skipped: skipped };
+};
+window.slqSelClear = function (ids) {
+  let schema = tt.schema, drop = new Set(), n = 0;
+  for (let id of ids || []) { let el = tt.model.elements.get(id); let g = el && slqPV(el, "Attr.GlobalId"); if (g) drop.add(g); }
+  let rows = [];
+  for (let r of (schema.mapping && schema.mapping.rows) || []) {
+    if (r.slqSel) { let left = (r.gids || []).filter(g => !drop.has(g)); n += (r.gids || []).length - left.length; if (!left.length) continue; if (left.length !== (r.gids || []).length) r = Object.assign({}, r, { gids: left }); }
+    rows.push(r);
+  }
+  if (!n) return 0;
+  schema.mapping = Object.assign({}, schema.mapping || {}, { rows: rows });
+  slqSelRefresh(schema);
+  return n;
+};
+window.slqSelOrphans = function () {
+  let schema = tt.schema, sel = slqSelIndex(schema), found = new Set();
+  if (!tt.model || !sel.size) return 0;
+  for (let el of tt.model.elements.values()) { let g = slqPV(el, "Attr.GlobalId"); if (g && sel.has(g)) found.add(g); }
+  return sel.size - found.size;
+};
