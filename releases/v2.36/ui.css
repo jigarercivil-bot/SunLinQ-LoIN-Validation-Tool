@@ -349,4 +349,6 @@ body.slq3:not(.slq-admin) .slq-maint-only { display: none !important; }
 .slq-dlg-warn { background:rgba(186,117,23,.1); color:#854F0B; border-radius:8px; padding:8px 10px; font-size:12px; }
 .slq-dlg-btns { display:flex; justify-content:flex-end; gap:8px; margin-top:4px; }
 .slq-err { color:#A32D2D !important; }
-#tree .tn.slq-tsel { background:rgba(15,110,86,.12); }
+/* Multi-selected tree nodes: one style for all of them (the first one included), darker than the single selection */
+#tree .tn.slq-tsel, #tree .tn.slq-tsel.sel { background:color-mix(in srgb, var(--accent, #0F6E56) 30%, transparent); box-shadow:inset 3px 0 0 var(--accent, #0F6E56); }
+#tree.slq-multi .tn.sel:not(.slq-tsel) { background:none; box-shadow:none; }

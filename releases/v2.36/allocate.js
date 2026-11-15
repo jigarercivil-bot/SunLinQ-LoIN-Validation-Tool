@@ -195,6 +195,7 @@
   }
   function markTree() {
     var tree = $('#tree'); if (!tree) return;
+    tree.classList.toggle('slq-multi', sel.size > 0 || treeKeys.size > 0);
     tree.querySelectorAll('.tn[data-k]').forEach(function (n) {
       var k = n.dataset.k, on = treeKeys.has(k) || (k.indexOf('e:') === 0 && sel.has(+k.slice(2)));
       n.classList.toggle('slq-tsel', on);
