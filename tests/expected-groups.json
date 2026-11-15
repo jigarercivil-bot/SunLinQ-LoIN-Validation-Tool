@@ -1,0 +1,13 @@
+{
+  "note": "Expected Mapping groups per sample IFC (files are not stored in the repo). Check with Colour: by mapping group after a grouping change.",
+  "samples": [
+    {"file": "NEL-CNT-UGL-2901-GRP-MD3-9004.ifc", "source": "Revit", "objects": 8029, "groups": 30, "basis": {"family": 30}},
+    {"file": "NEL-CNT-UGL-2901-GRP-MD3-9007.ifc", "source": "Revit", "objects": 6805, "groups": 66, "basis": {"family": 66}},
+    {"file": "DSCRLP-02GR-SLQ-GLO-00CIAL-M3D-AL0002.ifc", "source": "12d", "objects": 22757, "groups": 96, "basis": {"name": 19, "string name (number removed)": 77}},
+    {"file": "DSCRLP-02GR-SLQ-GLO-00RACW-M3D-EW0002.ifc", "source": "12d", "objects": 19538, "groups": 185, "basis": {"name": 42, "string name (number removed)": 143}},
+    {"file": "DSCRLP-02GR-SLQ-GLO-00CIPV-M3D-000001.ifc", "source": "12d", "objects": 1, "groups": 1, "basis": {"name": 1}},
+    {"file": "DSCRLP-02GR-SLQ-GLO-00SYPF-M3D-000001.ifc", "source": "12d", "objects": 576, "groups": 1, "basis": {"Vertex-Segment Type": 1}},
+    {"file": "DSCRLP-02GR-SLQ-GLO-00RADR-M3D-000001.ifc", "source": "12d", "objects": 116, "groups": 15, "basis": {"pit type": 7, "pipe type": 3, "model name": 3, "name": 2}},
+    {"file": "DSCRLP-02GR-SLQ-TUN-02TURT-M3D-006502.ifc", "source": "Civil 3D", "objects": 723, "groups": 10, "basis": {"CodeName": 9, "Bolt Type (picked automatically)": 1}}
+  ]
+}

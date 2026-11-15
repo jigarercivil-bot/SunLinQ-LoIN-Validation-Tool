@@ -183,7 +183,7 @@
     var byKey = new Map(), byId = new Map(), list = [];
     order.forEach(function (r, i) {
       var c = rgb((i * 0.381966) % 1, 0.62, i % 3 === 1 ? 0.42 : i % 3 === 2 ? 0.66 : 0.54);
-      var item = { key: r.key, label: r.basisValue || r.cls, cls: r.cls, count: r.count, color: c };
+      var item = { key: r.key, label: r.label || r.basisValue || r.cls, cls: r.cls, count: r.count, color: c };
       byKey.set(r.key, item); list.push(item);
       (r.ids || []).forEach(function (id) { byId.set(id, c); });
     });

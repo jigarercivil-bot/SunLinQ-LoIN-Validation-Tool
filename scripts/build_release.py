@@ -303,6 +303,61 @@ if html.count(dot_old) != 1:
     raise SystemExit("Mapping row IFC label anchor not found exactly once")
 html = html.replace(dot_old, "${window.slqMapGroupDot?window.slqMapGroupDot(r.key):''}" + dot_old)
 
+# 6i. Mapping groups by source program (releases/v2.36/grouping.js, inserted into the engine scope):
+#     owner + IFC class + "kind", where the kind is found per program (Revit / 12d / Civil 3D / other), geometry
+#     words never count as a kind, and a grouping property is picked automatically when nothing else has a value.
+#     A part that takes its owner from its parent no longer forms a separate group. Saved Mapping rows are matched
+#     to objects by the same group key during validation (older rows keyed by type, or with "|parent", still match).
+grouping_js = (rel / "grouping.js").read_text(encoding="utf-8")
+if "</script" in grouping_js.lower():
+    raise SystemExit("grouping.js must not contain closing script tags")
+fn_old = "function slqBuildMappingRows(schema){"
+if html.count(fn_old) != 1:
+    raise SystemExit("slqBuildMappingRows anchor not found exactly once")
+html = html.replace(fn_old, grouping_js + "\n" + fn_old)
+blk_start = '    let own=slqMapOwnerOf(el,settings),tv=typeGet(el.props),ov=objGet(el.props),nv=nameGet(el.props);'
+blk_end = 'g.count++;g.ids.push(el.id);'
+if html.count(blk_start) != 1:
+    raise SystemExit("Mapping group block start not found exactly once")
+i0 = html.index(blk_start); i1 = html.index(blk_end, i0) + len(blk_end)
+if i1 - i0 > 2000:
+    raise SystemExit("Mapping group block is not in the expected shape")
+html = html[:i0] + (
+    '    let own=slqMapOwnerOf(el,settings),kd=slqKindOf(el),basis=kd.basis,basisValue=kd.value||"",fullType=kd.fullType||"",prof=slqGroupProfile();\n'
+    '    let key=slqGroupKey(own.owner,el.cls,kd),g=groups.get(key);\n'
+    '    if(!g){let bl=basis==="family"?"family":basis==="type"?"type name":basis==="name"?"name":basis==="string"?"string name (number removed)":basis==="prop"?slqPropShort(kd.prop)+(kd.found?" (picked automatically)":""):"IFC class only (no grouping property found)";'
+    'g={key,owner:own.owner,ownerRaw:own.raw,ownerSource:own.source||"",cls:el.cls,type:basis==="type"||basis==="family"?basisValue:"",name:basis==="name"?basisValue:"",basis,basisValue,prop:kd.prop||"",'
+    'label:basis==="prop"?slqPropShort(kd.prop)+": "+basisValue:basisValue,basisLabel:SLQ_PROFILE_LABEL[prof.profile]+" · grouped by "+bl,inherited:0,count:0,ids:[]};groups.set(key,g)}\n'
+    '    if(own.inherited)g.inherited++;\n'
+    '    if(basis==="family"){g.types||(g.types=[]);g.types.includes(fullType)||g.types.push(fullType)}g.count++;g.ids.push(el.id);'
+) + html[i1:]
+# Validation: Mapping-tab rows are matched by group key.
+k_old1 = 'r=new Map,u=[];for(let v of i){if(!v.components?.length)continue;let T={comps:v.components'
+k_new1 = 'r=new Map,u=[],slqK=new Map,slqSet=O1(e);for(let v of i){if(!v.components?.length)continue;if(v.uiMapping&&v.mapKey){slqK.set(v.mapKey,(slqK.get(v.mapKey)||[]).concat(v.components));continue}let T={comps:v.components'
+k_old2 = 'return v=>{let T=[...r.get(String(v.cls).toLowerCase())||[],...u];if(!T.length)return null;let O=null,U,_;'
+k_new2 = 'return v=>{let O=null;if(slqK.size){for(let k of slqGroupKeysOf(v,slqSet)){let c=slqK.get(k);if(c){O=new Set(c);break}}}let T=[...r.get(String(v.cls).toLowerCase())||[],...u];if(!T.length)return O?[...O]:null;let U,_;'
+for o_, n_ in ((k_old1, k_new1), (k_old2, k_new2)):
+    if html.count(o_) != 1:
+        raise SystemExit("Validation mapping matcher anchor not found exactly once: " + o_[:60])
+    html = html.replace(o_, n_)
+# Row labels show the kind (e.g. "pit type: TMR FIELD S1") and the grouping basis on hover.
+lab_old = """<span class="mapv-ifc" title="${esc((r.types||[]).join('\\n'))}">${esc(r.cls)} · ${esc(r.basisValue||'class only')}"""
+lab_new = """<span class="mapv-ifc" title="${esc([r.basisLabel||'',...(r.types||[])].filter(Boolean).join('\\n'))}">${esc(r.cls)} · ${esc(r.label||r.basisValue||'class only')}"""
+if html.count(lab_old) != 1:
+    raise SystemExit("Mapping row label anchor not found exactly once")
+html = html.replace(lab_old, lab_new)
+sug_old = "esc(`${x.r.cls} · ${x.r.basisValue||'class only'}`)"
+if html.count(sug_old) != 1:
+    raise SystemExit("Suggestion label anchor not found exactly once")
+html = html.replace(sug_old, "esc(`${x.r.cls} · ${x.r.label||x.r.basisValue||'class only'}`)")
+
+# 6j. An unmapped row whose asset the tool cannot recognise (class-only or unknown guess, 72% or less) is titled
+#     with its kind (family, pit type, CodeName...) instead of "Unknown asset" or the bare IFC class name.
+dn_old = "r.mapped?(r.subCategory||r.category||d.name):d.name;"
+if html.count(dn_old) != 1:
+    raise SystemExit("Mapping row title anchor not found exactly once")
+html = html.replace(dn_old, "r.mapped?(r.subCategory||r.category||d.name):(d.confidence<=72&&r.basisValue?r.basisValue:d.name);")
+
 # 7. 3D strings: while the IFC is still open (after properties are read, before CloseModel), draw the curve
 #    geometry of elements that produced no mesh (releases/v2.36/strings.js). Skipped in data-only mode.
 recentre_old = 'let V=new h2().setFromObject(this.group);if(!V.isEmpty()){let J=V.getCenter(new Ht);for(let Z of this.parts)Z.mesh.geometry.translate(-J.x,-J.y,-J.z)}'
