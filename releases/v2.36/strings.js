@@ -327,8 +327,8 @@
      1. A container object with no geometry of its own (IfcElementAssembly such as a Revit beam system,
         or any object whose parts are linked with IfcRelAggregates) is shown through its parts: selecting,
         isolating and zooming to it uses the geometry of its parts.
-     2. window.slqHighlight(ids) selects a group of objects, keeps them in the current colour mode's colours and
-        shows the rest of the model see-through. Any other selection (click in 3D, lists) returns to normal. */
+     2. Any selection keeps the selected objects in the current colour mode's colours and shows the rest of the
+        model see-through (still pickable). Clearing the selection returns the model to normal. */
   var GHOST_RGB = [0.80, 0.82, 0.85];
   var kids = null, kidsFor = null;
   function childrenMap() {
@@ -382,7 +382,7 @@
       m.vertexColors = false;
       if (m.color) m.color.setRGB(0.62, 0.67, 0.74);
       m.transparent = true; m.opacity = 0.12; m.depthWrite = false; m.needsUpdate = true;
-      var gm = p.mesh.clone(); gm.geometry = g; gm.material = m; gm.renderOrder = 2; gm.raycast = function () {};
+      var gm = p.mesh.clone(); gm.geometry = g; gm.material = m; gm.renderOrder = 2; gm.userData.slqPart = p;
       p.mesh.parent.add(gm);
       ghosts.push(gm);
     });
@@ -399,9 +399,31 @@
     if (!V || V.__slqPatched2) return;
     V.__slqPatched2 = true;
     var o = { select: V.select, setVisible: V.setVisible, boxOf: V.boxOf, colorize: V.colorize };
+    // Every selection (tree object or branch, 3D pick, lists, Mapping row, multi-select) keeps the selected
+    // objects in the colour mode's colours and shows the rest of the model see-through.
     V.select = function (ids) {
-      if (!this._slqGhostKeep) this.slqGhost = false;
-      return o.select.call(this, expand(ids));
+      var list = expand(ids);
+      this.slqGhost = !!(list && list.length);
+      return o.select.call(this, list);
+    };
+    // See-through objects stay pickable: when the model is split, ray-cast the solid and see-through meshes
+    // together and take the nearest hit (3D strings are still picked by the earlier pickAt).
+    var prevPick = V.pickAt;
+    V.pickAt = function (x, y) {
+      var ghosts = this._slqGhosts;
+      if (!ghosts || !ghosts.length) return prevPick.call(this, x, y);
+      var b = this.renderer.domElement.getBoundingClientRect(), self = this;
+      var ndc = { x: (x - b.left) / b.width * 2 - 1, y: -((y - b.top) / b.height) * 2 + 1 };
+      this.raycaster.setFromCamera(ndc, this.camera);
+      var meshes = this.parts.filter(Boolean).map(function (p) { return p.mesh; }).concat(ghosts);
+      var hits = this.raycaster.intersectObjects(meshes, false);
+      for (var i = 0; i < hits.length; i++) {
+        var h = hits[i], part = h.object.userData.slqPart || this.parts.find(function (p) { return p && p.mesh === h.object; });
+        if (!part || !h.face) continue;
+        if (this.section && this.section.on && this._inBox && !this._inBox(h.point)) continue;
+        return part.ids[h.face.a];
+      }
+      return prevPick.call(self, x, y);
     };
     V.setVisible = function (ids) {
       var r = o.setVisible.call(this, ids ? expand(ids) : ids);
