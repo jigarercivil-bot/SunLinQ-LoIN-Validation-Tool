@@ -352,3 +352,5 @@ body.slq3:not(.slq-admin) .slq-maint-only { display: none !important; }
 /* Multi-selected tree nodes: one style for all of them (the first one included), darker than the single selection */
 #tree .tn.slq-tsel, #tree .tn.slq-tsel.sel { background:color-mix(in srgb, var(--accent, #0F6E56) 30%, transparent); box-shadow:inset 3px 0 0 var(--accent, #0F6E56); }
 #tree.slq-multi .tn.sel:not(.slq-tsel) { background:none; box-shadow:none; }
+.slq-mapsum { margin-bottom:4px; }
+.slq-mapsum > b { font-size:13px; }

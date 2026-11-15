@@ -387,7 +387,8 @@ if html.count(st_old) != 1:
     raise SystemExit("Mapping-group colour branch not found exactly once")
 html = html.replace(st_old, ('else if(e==="mapstatus"){let m=window.slqMapStatusColours&&window.slqMapStatusColours();if(!m){Ln.colorize(null),t.innerHTML="";return}'
     'let g=[.82,.83,.85];Ln.colorize(o=>m.byId.get(o)||g);'
-    't.innerHTML=`<div class="slq-maplegend"><b>Mapping status</b>`+m.list.filter(x=>x.count).map(x=>`<span><i class="dot" style="background:${window.slqMapGroupCss(x.color)}"></i>${Ti(x.label)} (${x.count.toLocaleString()})</span>`).join("")+"</div>"}') + st_old)
+    'let cn=k=>(m.list.find(x=>x.key===k)||{}).count||0,mp=cn("mapped")+cn("selection"),um=cn("unmapped")+cn("owner"),na=cn("na"),tot=mp+um+na;'
+    't.innerHTML=`<div class="slq-maplegend slq-mapsum"><b>Mapped (${mp.toLocaleString()}) vs Unmapped (${um.toLocaleString()})</b>${na?`<span>N.A. (${na.toLocaleString()})</span>`:""}<span class="muted">${tot?Math.round((mp+na)/tot*100):0}% resolved</span></div>`+`<div class="slq-maplegend">`+m.list.filter(x=>x.count).map(x=>`<span><i class="dot" style="background:${window.slqMapGroupCss(x.color)}"></i>${Ti(x.label)} (${x.count.toLocaleString()})</span>`).join("")+"</div>"}') + st_old)
 
 # 7. 3D strings: while the IFC is still open (after properties are read, before CloseModel), draw the curve
 #    geometry of elements that produced no mesh (releases/v2.36/strings.js). Skipped in data-only mode.
