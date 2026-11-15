@@ -258,6 +258,51 @@ if len(_found) != 9:
     raise SystemExit(f"Exclusion tests found {len(_found)}x (expected 9)")
 html = _excl.sub(lambda m: f"({m.group(0)}||window.slqNoGeo&&window.slqNoGeo({m.group(2)}))", html)
 
+# 6f. Nested property groups. 12d (and some other tools) export attributes as property groups inside
+#     property groups (IfcComplexProperty), e.g. 12d Model > TMR > Asset Management > BIM Component Code.
+#     The engine read only the first level, so deeper values were lost and reported as missing. Read every
+#     level (up to 8 deep), named "Pset.Group/Sub group/Property". First-level names are unchanged.
+nested_old = 'else if(ut.HasProperties!==void 0){for(let dt of oS(ut.HasProperties)){let nt=u(dt);nt&&Ms(nt.Name)&&wt.push([gt+"."+et+"/"+Ms(nt.Name),Ms(nt.NominalValue)])}continue}'
+nested_new = ('else if(ut.HasProperties!==void 0){const slqWalk=(ids,pre,dep)=>{for(let dt of oS(ids)){let nt=u(dt);if(!nt)continue;let nn=Ms(nt.Name);if(!nn)continue;'
+              'if(nt.HasProperties!==void 0){dep<8&&slqWalk(nt.HasProperties,pre+"/"+nn,dep+1);continue}'
+              'let vv=nt.NominalValue!==void 0?Ms(nt.NominalValue):nt.EnumerationValues!==void 0?Ms(nt.EnumerationValues):nt.ListValues!==void 0?Ms(nt.ListValues):void 0;'
+              'wt.push([pre+"/"+nn,vv])}};slqWalk(ut.HasProperties,gt+"."+et,1);continue}')
+if html.count(nested_old) != 1:
+    raise SystemExit("Complex-property reader anchor not found exactly once")
+html = html.replace(nested_old, nested_new)
+
+# 6g. A value that is blank or only says "Not Set" (12d's default for an unfilled attribute) counts as missing
+#     in every check. The value is still shown as-is in Properties.
+blank_old = 'lS=e=>e==null||typeof e=="string"&&e.trim()===""'
+if html.count(blank_old) != 1:
+    raise SystemExit("Blank-value test anchor not found exactly once")
+html = html.replace(blank_old, 'lS=e=>e==null||typeof e=="string"&&(e.trim()===""||/^not\\s*set$/i.test(e.trim()))')
+
+# 6h. Colour by mapping group (releases/v2.36/boot.js slqMapGroupColours): a new viewer colour mode, a legend
+#     of the largest groups, and the group's colour as a dot on each Mapping row. Mapping rows now keep every
+#     object id (no 10,000 cap), so very large groups are coloured, highlighted and isolated in full.
+cap_old = 'if(g.ids.length<10000)g.ids.push(el.id);'
+if html.count(cap_old) != 1:
+    raise SystemExit("Mapping id cap anchor not found exactly once")
+html = html.replace(cap_old, 'g.ids.push(el.id);')
+opt_old = '<option value="class">Colour: by class</option>'
+if html.count(opt_old) != 1:
+    raise SystemExit("Colour mode option anchor not found exactly once")
+html = html.replace(opt_old, opt_old + '\n        <option value="mapgroup">Colour: by mapping group</option>')
+col_old = 'else if(e==="class"){let i=new Map;Ln.colorize'
+col_new = ('else if(e==="mapgroup"){let m=window.slqMapGroupColours&&window.slqMapGroupColours();if(!m){Ln.colorize(null),t.innerHTML="";return}'
+           'let g=[.82,.83,.85];Ln.colorize(o=>m.byId.get(o)||g);let L=m.list,n=12;'
+           't.innerHTML=`<div class="slq-maplegend"><b>${L.length} mapping group${L.length===1?"":"s"}</b>`+L.slice(0,n).map(x=>`<span title="${Ti(x.cls+" · "+x.label)}"><i class="dot" style="background:${window.slqMapGroupCss(x.color)}"></i>${Ti(String(x.label).length>28?String(x.label).slice(0,27)+"\\u2026":x.label)} (${x.count.toLocaleString()})</span>`).join("")'
+           '+(L.length>n?`<span class="muted">+${L.length-n} more · see Mapping</span>`:"")+"</div>"}'
+           + col_old)
+if html.count(col_old) != 1:
+    raise SystemExit("Colour-by-class anchor not found exactly once")
+html = html.replace(col_old, col_new)
+dot_old = '<span class="mapv-ifc" title="'
+if html.count(dot_old) != 1:
+    raise SystemExit("Mapping row IFC label anchor not found exactly once")
+html = html.replace(dot_old, "${window.slqMapGroupDot?window.slqMapGroupDot(r.key):''}" + dot_old)
+
 # 7. 3D strings: while the IFC is still open (after properties are read, before CloseModel), draw the curve
 #    geometry of elements that produced no mesh (releases/v2.36/strings.js). Skipped in data-only mode.
 recentre_old = 'let V=new h2().setFromObject(this.group);if(!V.isEmpty()){let J=V.getCenter(new Ht);for(let Z of this.parts)Z.mesh.geometry.translate(-J.x,-J.y,-J.z)}'

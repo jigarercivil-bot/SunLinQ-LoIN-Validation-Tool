@@ -21,6 +21,9 @@ The published tool is built in three steps, each layered on the one before:
    - `releases/v2.36/strings.js` — draws **3D strings** (IfcPolyline, IfcIndexedPolyCurve, IfcCompositeCurve, curve sets) for objects that have no solid geometry, aligned with the meshes and included in colouring, picking, isolate and section box.
    - `rules/ifc-class-map.json` — **IFC 4.3 class → TMR / QR category map** used by the Mapping tab (filtered category lists, automatic mapping when one class match is clear). Generated from the reviewed workbook `rules/ifc-class-map.xlsx`.
 
+   - **Nested property groups** (`IfcComplexProperty` inside `IfcComplexProperty`, as 12d exports its attributes) are read at every level, named `Pset.Group/Sub group/Property`. Values that are blank or only say `Not Set` count as missing.
+   - **Colour: by mapping group** in the 3D viewer: each Mapping row gets its own colour (largest groups first), with a legend and the same colour as a dot on the Mapping row. Mapping rows keep every object id (no 10,000 cap).
+
 `.github/workflows/pages.yml` runs steps 2 and 3 on every push to `main`.
 
 **Updating the IFC class map:** edit `rules/ifc-class-map.xlsx` (sheets *IFC to TMR* and *IFC to QR*; mark rows *Reviewed = No* to drop them, add rows for missing links), then run `python3 scripts/class_map_from_excel.py` (needs `openpyxl`) and push `rules/ifc-class-map.json` and the workbook. The script stops if a sub-category does not exist in the rule set.

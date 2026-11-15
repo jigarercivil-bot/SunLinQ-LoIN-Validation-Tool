@@ -158,3 +158,39 @@
     return any;
   };
 })();
+
+/* Colour by mapping group. Every mapping group (one row in the Mapping tab) gets its own colour, so the
+   3D view shows how the model has been grouped. Colours are given in order of group size with the golden
+   angle, so neighbouring groups in the list never share a hue. Objects not in Mapping (excluded classes,
+   no 3D geometry) are drawn light grey. The same colour is shown as a dot on each Mapping row. */
+(function () {
+  'use strict';
+  var cache = null;
+  function rgb(h, s, l) {
+    var a = s * Math.min(l, 1 - l), f = function (n) { var k = (n + h * 12) % 12; return l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1)); };
+    return [f(0), f(8), f(4)];
+  }
+  function build() {
+    var st = window.__irc && window.__irc.state;
+    if (!st || !st.model || !st.schema || !window.slqBuildMappingRows) return null;
+    var rows = window.slqBuildMappingRows(st.schema);
+    var sig = st.model.elements.size + '|' + rows.length + '|' + rows.map(function (r) { return r.key + ':' + r.count; }).join(',').length;
+    if (cache && cache.model === st.model.elements && cache.sig === sig) return cache;
+    var order = rows.slice().sort(function (a, b) { return b.count - a.count || (a.key < b.key ? -1 : 1); });
+    var byKey = new Map(), byId = new Map(), list = [];
+    order.forEach(function (r, i) {
+      var c = rgb((i * 0.381966) % 1, 0.62, i % 3 === 1 ? 0.42 : i % 3 === 2 ? 0.66 : 0.54);
+      var item = { key: r.key, label: r.basisValue || r.cls, cls: r.cls, count: r.count, color: c };
+      byKey.set(r.key, item); list.push(item);
+      (r.ids || []).forEach(function (id) { byId.set(id, c); });
+    });
+    cache = { model: st.model.elements, sig: sig, byKey: byKey, byId: byId, list: list };
+    return cache;
+  }
+  window.slqMapGroupColours = build;
+  window.slqMapGroupCss = function (c) { return 'rgb(' + c.map(function (v) { return Math.round(v * 255); }).join(',') + ')'; };
+  window.slqMapGroupDot = function (key) {
+    var m = build(), it = m && m.byKey.get(key);
+    return it ? '<i class="dot slq-mapdot" title="Colour of this group in 3D (Colour: by mapping group)" style="background:' + window.slqMapGroupCss(it.color) + '"></i>' : '';
+  };
+})();
