@@ -377,6 +377,18 @@ if html.count(dn_old) != 1:
     raise SystemExit("Mapping row title anchor not found exactly once")
 html = html.replace(dn_old, "r.mapped?(r.subCategory||r.category||d.name):(d.confidence<=72&&r.basisValue?r.basisValue:d.name);")
 
+# 6l. Colour by mapping status: mapped / by selection / N.A. / unmapped / owner missing (boot.js slqMapStatusColours).
+st_opt_old = '<option value="mapgroup">Colour: by mapping group</option>'
+if html.count(st_opt_old) != 1:
+    raise SystemExit("Mapping-group colour option not found exactly once")
+html = html.replace(st_opt_old, st_opt_old + '\n        <option value="mapstatus">Colour: mapped vs unmapped</option>')
+st_old = 'else if(e==="mapgroup"){'
+if html.count(st_old) != 1:
+    raise SystemExit("Mapping-group colour branch not found exactly once")
+html = html.replace(st_old, ('else if(e==="mapstatus"){let m=window.slqMapStatusColours&&window.slqMapStatusColours();if(!m){Ln.colorize(null),t.innerHTML="";return}'
+    'let g=[.82,.83,.85];Ln.colorize(o=>m.byId.get(o)||g);'
+    't.innerHTML=`<div class="slq-maplegend"><b>Mapping status</b>`+m.list.filter(x=>x.count).map(x=>`<span><i class="dot" style="background:${window.slqMapGroupCss(x.color)}"></i>${Ti(x.label)} (${x.count.toLocaleString()})</span>`).join("")+"</div>"}') + st_old)
+
 # 7. 3D strings: while the IFC is still open (after properties are read, before CloseModel), draw the curve
 #    geometry of elements that produced no mesh (releases/v2.36/strings.js). Skipped in data-only mode.
 recentre_old = 'let V=new h2().setFromObject(this.group);if(!V.isEmpty()){let J=V.getCenter(new Ht);for(let Z of this.parts)Z.mesh.geometry.translate(-J.x,-J.y,-J.z)}'

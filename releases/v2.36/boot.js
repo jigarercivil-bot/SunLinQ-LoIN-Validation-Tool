@@ -197,3 +197,28 @@
     return it ? '<i class="dot slq-mapdot" title="Colour of this group in 3D (Colour: by mapping group)" style="background:' + window.slqMapGroupCss(it.color) + '"></i>' : '';
   };
 })();
+
+/* Colour by mapping status (mapped vs unmapped). Read from the Mapping rows each time the view is coloured,
+   so it follows every mapping change (validation recolours the view after each change). */
+(function () {
+  'use strict';
+  var STATUS = [
+    { key: 'mapped', label: 'Mapped', color: [0.20, 0.62, 0.36] },
+    { key: 'selection', label: 'Mapped · by selection', color: [0.10, 0.50, 0.78] },
+    { key: 'na', label: 'N.A. · project only', color: [0.58, 0.55, 0.78] },
+    { key: 'unmapped', label: 'Unmapped (owner set)', color: [0.95, 0.62, 0.12] },
+    { key: 'owner', label: 'Owner missing', color: [0.88, 0.28, 0.28] }
+  ];
+  window.slqMapStatusColours = function () {
+    var st = window.__irc && window.__irc.state;
+    if (!st || !st.model || !st.schema || !window.slqBuildMappingRows) return null;
+    var rows = window.slqBuildMappingRows(st.schema), byId = new Map(), counts = {};
+    var col = {}; STATUS.forEach(function (s) { col[s.key] = s.color; counts[s.key] = 0; });
+    rows.forEach(function (r) {
+      var k = r.notApplicable ? 'na' : r.mapped ? (r.basis === 'selection' ? 'selection' : 'mapped') : (!r.owner || r.owner === 'OTHER') ? 'owner' : 'unmapped';
+      counts[k] += r.count;
+      (r.ids || []).forEach(function (id) { byId.set(id, col[k]); });
+    });
+    return { byId: byId, list: STATUS.map(function (s) { return { key: s.key, label: s.label, color: s.color, count: counts[s.key] }; }) };
+  };
+})();

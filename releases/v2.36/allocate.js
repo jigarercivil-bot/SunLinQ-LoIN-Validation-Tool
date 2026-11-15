@@ -154,7 +154,7 @@
     var q = $('#mapvSearch');
     if (q) q.dispatchEvent(new Event('input'));          // redraw the Mapping list if it is open
     var cm = $('#colorMode');
-    if (cm && cm.value === 'mapgroup') cm.dispatchEvent(new Event('change'));
+    if (cm && (cm.value === 'mapgroup' || cm.value === 'mapstatus')) cm.dispatchEvent(new Event('change'));
     show();
   }
 
