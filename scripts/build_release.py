@@ -325,9 +325,9 @@ if i1 - i0 > 2000:
 html = html[:i0] + (
     '    let own=slqMapOwnerOf(el,settings),kd=slqKindOf(el),basis=kd.basis,basisValue=kd.value||"",fullType=kd.fullType||"",prof=slqGroupProfile();\n'
     '    let key=slqGroupKey(own.owner,el.cls,kd),g=groups.get(key);\n'
-    '    if(!g){let bl=basis==="family"?"family":basis==="type"?"type name":basis==="name"?"name":basis==="string"?"string name (number removed)":basis==="prop"?slqPropShort(kd.prop)+(kd.found?" (picked automatically)":""):"IFC class only (no grouping property found)";'
+    '    if(!g){let bl=basis==="family"?"family":basis==="type"?"type name":basis==="name"?"name":basis==="string"?"string name (number removed)":basis==="shape"?"identical shape (no type, name or property to group by)":basis==="prop"?slqPropShort(kd.prop)+(kd.found?" (picked automatically)":""):"IFC class only (no grouping property found)";'
     'g={key,owner:own.owner,ownerRaw:own.raw,ownerSource:own.source||"",cls:el.cls,type:basis==="type"||basis==="family"?basisValue:"",name:basis==="name"?basisValue:"",basis,basisValue,prop:kd.prop||"",'
-    'label:basis==="prop"?slqPropShort(kd.prop)+": "+basisValue:basisValue,basisLabel:SLQ_PROFILE_LABEL[prof.profile]+" · grouped by "+bl,inherited:0,count:0,ids:[]};groups.set(key,g)}\n'
+    'label:basis==="prop"?slqPropShort(kd.prop)+": "+basisValue:basis==="shape"?"Same shape: "+basisValue:basisValue,basisLabel:SLQ_PROFILE_LABEL[prof.profile]+" · grouped by "+bl,inherited:0,count:0,ids:[]};groups.set(key,g)}\n'
     '    if(own.inherited)g.inherited++;\n'
     '    if(basis==="family"){g.types||(g.types=[]);g.types.includes(fullType)||g.types.push(fullType)}g.count++;g.ids.push(el.id);'
 ) + html[i1:]

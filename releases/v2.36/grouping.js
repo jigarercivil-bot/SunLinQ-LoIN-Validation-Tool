@@ -13,6 +13,7 @@
    Saved Mapping rows are matched to objects by this same group key during validation. */
 var slqGK = { prof: null };
 var SLQ_GEO = /^(segment|3d ?tri-?mesh|tri-?mesh|trimesh|super|tin|mesh|brep|3d ?solid|solid|region|subentity|surface|face|body|polyline|string|line|element|object|proxy|default|notdefined|userdefined|none|n\/a)$/i;
+var SLQ_IDLIKE = v => /^#?\d{3,}$/.test(v) || /^\{?[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\}?$/i.test(v) || (/^[0-9A-Za-z_$]{22}$/.test(v) && /\d/.test(v) && /[A-Z]/.test(v) && /[a-z]/.test(v));
 function slqPV(el, k) {
   let v = el.props.get(k);
   if (v && typeof v === "object" && "value" in v) v = v.value;
@@ -41,7 +42,7 @@ function slqGroupProfile() {
 const SLQ_PROFILE_LABEL = { revit: "Revit", "12d": "12d", civil3d: "Civil 3D", other: "Other" };
 function slqPrimaryKind(el, P) {
   let otRaw = slqPV(el, "Attr.ObjectType"), tn = slqPV(el, "Attr.TypeName"), ot = otRaw, nm = slqPV(el, "Attr.Name");
-  if (SLQ_GEO.test(tn)) tn = ""; if (SLQ_GEO.test(ot)) ot = ""; if (SLQ_GEO.test(nm)) nm = "";
+  if (SLQ_GEO.test(tn) || SLQ_IDLIKE(tn)) tn = ""; if (SLQ_GEO.test(ot) || SLQ_IDLIKE(ot)) ot = ""; if (SLQ_GEO.test(nm) || SLQ_IDLIKE(nm)) nm = "";
   if (P === "12d") {
     for (let k of ["12d Model.Pit/pit type", "12d Model.Vertex-Segment Type"]) { let v = slqPV(el, k); if (v) return { basis: "prop", prop: k, value: v }; }
     let pp = slqPV(el, "12d Model.Pipe/pipe type");
@@ -87,12 +88,41 @@ function slqFinder(prof) {
   prof.finder = best;
   return best;
 }
+/* Last resort: objects with identical geometry (same number of triangles, surface area and volume) are the
+   same kind, e.g. tunnel rings exported with only their element ID as name and type. Read from the 3D model
+   the viewer has built; not available in data-only mode. */
+function slqShapeSig(el) {
+  let V = window.__irc && window.__irc.viewer, rs = V && V.ranges ? V.ranges.get(el.id) : null;
+  if (!V || !V.ranges) return null;
+  if (!rs || !rs.length) return "";
+  let n = 0, A = 0, Vol = 0;
+  for (let r of rs) {
+    let p = r.part, pos = p && p.mesh && p.mesh.geometry.attributes.position, F = p && p.fullIndex;
+    if (!pos || !F) continue;
+    let P = pos.array;
+    for (let k = r.start; k + 2 < r.start + r.count; k += 3) {
+      let i = F[k] * 3, j = F[k + 1] * 3, l = F[k + 2] * 3;
+      let ax = P[i], ay = P[i + 1], az = P[i + 2], bx = P[j], by = P[j + 1], bz = P[j + 2], cx = P[l], cy = P[l + 1], cz = P[l + 2];
+      let ux = bx - ax, uy = by - ay, uz = bz - az, vx = cx - ax, vy = cy - ay, vz = cz - az;
+      let nx = uy * vz - uz * vy, ny = uz * vx - ux * vz, nz = ux * vy - uy * vx;
+      A += Math.sqrt(nx * nx + ny * ny + nz * nz) / 2;
+      Vol += (ax * (by * cz - bz * cy) - ay * (bx * cz - bz * cx) + az * (bx * cy - by * cx)) / 6;
+      n++;
+    }
+  }
+  return n ? { tri: n, area: Math.round(A * 10) / 10, vol: Math.round(Math.abs(Vol) * 100) / 100 } : "";
+}
 function slqKindOf(el) {
   let prof = slqGroupProfile(), hit = prof.kinds.get(el.id);
   if (hit) return hit;
-  let k = slqPrimaryKind(el, prof.profile);
-  if (!k) { let f = slqFinder(prof), v = f ? slqPV(el, f) : ""; k = v ? { basis: "prop", prop: f, value: v, found: true } : { basis: "class", value: "" }; }
-  prof.kinds.set(el.id, k);
+  let k = slqPrimaryKind(el, prof.profile), cache = true;
+  if (!k) { let f = slqFinder(prof), v = f ? slqPV(el, f) : ""; if (v) k = { basis: "prop", prop: f, value: v, found: true }; }
+  if (!k) {
+    let sg = slqShapeSig(el);
+    if (sg === null) cache = false;                     // 3D not built yet: decide again later
+    k = sg ? { basis: "shape", value: "volume " + sg.vol + " · area " + sg.area + " · " + sg.tri + " triangles" } : { basis: "class", value: "" };
+  }
+  if (cache) prof.kinds.set(el.id, k);
   return k;
 }
 function slqGroupKey(owner, cls, kd) {
