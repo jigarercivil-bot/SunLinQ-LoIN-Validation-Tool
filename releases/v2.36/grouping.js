@@ -210,3 +210,38 @@ window.slqSelOrphans = function () {
   for (let el of tt.model.elements.values()) { let g = slqPV(el, "Attr.GlobalId"); if (g && sel.has(g)) found.add(g); }
   return sel.size - found.size;
 };
+
+/* Reset mapping. scope "model": removes the Mapping-tab mappings used by objects of the loaded model and their
+   allocations by selection (mappings that only apply to other models are kept). scope "all": removes every
+   mapping in the rule set, including imported classification rows. N.A. owners come from the IFC and are not
+   affected. Returns a backup that slqRestoreMapping puts back (undo). */
+window.slqResetMapping = function (scope) {
+  let schema = tt.schema, rows = (schema.mapping && schema.mapping.rows) || [], backup = schema.mapping ? JSON.parse(JSON.stringify(schema.mapping)) : null;
+  let removedRows = 0, removedAlloc = 0;
+  if (scope === "all") {
+    rows.forEach(r => { if (r.slqSel) removedAlloc += (r.gids || []).length; else removedRows++; });
+    delete schema.mapping;
+  } else {
+    let used = new Set(), gids = new Set();
+    for (let r of slqBuildMappingRows(schema)) if (r.map && !r.map.slqSel && r.mapped && !r.notApplicable) used.add(r.map);
+    for (let el of tt.model.elements.values()) { let g = slqPV(el, "Attr.GlobalId"); if (g) gids.add(g); }
+    let keep = [];
+    for (let r of rows) {
+      if (used.has(r)) { removedRows++; continue; }
+      if (r.slqSel) {
+        let left = (r.gids || []).filter(g => !gids.has(g));
+        removedAlloc += (r.gids || []).length - left.length;
+        if (!left.length) continue;
+        if (left.length !== (r.gids || []).length) r = Object.assign({}, r, { gids: left });
+      }
+      keep.push(r);
+    }
+    if (keep.length) schema.mapping = Object.assign({}, schema.mapping, { rows: keep }); else delete schema.mapping;
+  }
+  slqSelRefresh(schema);
+  return { removedRows: removedRows, removedAlloc: removedAlloc, backup: backup };
+};
+window.slqRestoreMapping = function (backup) {
+  if (backup) tt.schema.mapping = backup; else delete tt.schema.mapping;
+  slqSelRefresh(tt.schema);
+};

@@ -29,6 +29,8 @@ The published tool is built in three steps, each layered on the one before:
 
    - **Allocate by selection** (`releases/v2.36/allocate.js`): in the structure tree Ctrl-click adds or removes nodes and Shift-click selects a range (selected nodes stay highlighted); Ctrl-click objects in 3D; or right-click a tree branch, class or storey, then right-click → *Allocate category…*. The owner always comes from the object's Returned Works Owner in the IFC; objects without a TMR / QR / SCC owner are skipped and listed. Saved by GlobalId in the rule set, shown in Mapping as *Mapped · by selection*, and takes priority over the group mapping for those objects. *Clear allocation* returns them to their group mapping.
 
+   - **Reset mapping** (Mapping tab): removes the mappings used by the loaded model (or every mapping in the rule set), optionally turns off auto-apply, with Undo until reload. *Export unmapped CSV* is no longer shown.
+
 `.github/workflows/pages.yml` runs steps 2 and 3 on every push to `main`.
 
 **Updating the IFC class map:** edit `rules/ifc-class-map.xlsx` (sheets *IFC to TMR* and *IFC to QR*; mark rows *Reviewed = No* to drop them, add rows for missing links), then run `python3 scripts/class_map_from_excel.py` (needs `openpyxl`) and push `rules/ifc-class-map.json` and the workbook. The script stops if a sub-category does not exist in the rule set.

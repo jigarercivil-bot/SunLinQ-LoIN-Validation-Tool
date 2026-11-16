@@ -354,3 +354,6 @@ body.slq3:not(.slq-admin) .slq-maint-only { display: none !important; }
 #tree.slq-multi .tn.sel:not(.slq-tsel) { background:none; box-shadow:none; }
 .slq-mapsum { margin-bottom:4px; }
 .slq-mapsum > b { font-size:13px; }
+.slq-danger { background:#A32D2D !important; border-color:#A32D2D !important; color:#fff !important; }
+.slq-dlg label.check { font-size:13px; color:inherit; display:flex; gap:6px; align-items:flex-start; }
+#mapvExportUnmapped { display:none !important; }

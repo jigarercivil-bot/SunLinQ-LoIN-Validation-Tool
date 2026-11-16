@@ -256,7 +256,60 @@
       });
     });
   }
-  function boot() { bar(); hookTree(); hookLists(); if (!hook3D()) setTimeout(boot, 300); }
+  /* ---- Reset mapping (Mapping tab) ---- */
+  var undo = null;
+  function hookReset() {
+    var exp = $('#mapvShowAllObjects') || $('#mapvIsolateUnmapped');
+    // "Export unmapped CSV" is hidden by ui.css (16 Nov); the element stays because the Mapping tab code binds to it.
+    if (!exp || $('#slqResetMap')) return;
+    var b = document.createElement('button');
+    b.className = 'btn sm'; b.id = 'slqResetMap'; b.type = 'button'; b.textContent = 'Reset mapping…';
+    b.onclick = openReset;
+    var u = document.createElement('button');
+    u.className = 'btn sm'; u.id = 'slqUndoReset'; u.type = 'button'; u.textContent = 'Undo reset'; u.hidden = !undo;
+    u.onclick = function () {
+      if (!undo) return;
+      window.slqRestoreMapping(undo.backup);
+      var a = $('#mapvAuto'); if (a && a.checked !== undo.auto) { a.checked = undo.auto; a.dispatchEvent(new Event('change')); }
+      undo = null; u.hidden = true; toast('Mapping restored'); afterChange();
+    };
+    exp.parentElement.appendChild(b); exp.parentElement.appendChild(u);
+  }
+  function openReset() {
+    closeDialog();
+    var s = st(); if (!s || !s.model || !window.slqBuildMappingRows) return toast('Open an IFC model first');
+    var rows = window.slqBuildMappingRows(s.schema), groups = 0, objs = 0, alloc = 0;
+    rows.forEach(function (r) { if (r.mapped && !r.notApplicable) { if (r.basis === 'selection') alloc += r.count; else { groups++; objs += r.count; } } });
+    var total = ((s.schema.mapping && s.schema.mapping.rows) || []).length, auto = $('#mapvAuto');
+    dlg = document.createElement('div');
+    dlg.className = 'slq-dlg-wrap';
+    dlg.innerHTML = '<div class="slq-dlg" role="dialog" aria-label="Reset mapping"><h3>Reset mapping</h3>' +
+      '<div>Removes mappings so the objects can be mapped again.</div>' +
+      '<div class="muted sm">This model: ' + groups.toLocaleString() + ' mapped group' + (groups === 1 ? '' : 's') + ' (' + objs.toLocaleString() + ' objects) and ' + alloc.toLocaleString() + ' object' + (alloc === 1 ? '' : 's') + ' allocated by selection. N.A. objects stay N.A. (that comes from the IFC).</div>' +
+      '<label class="check"><input type="radio" name="slqRScope" value="model" checked> This model only (mappings used by its objects)</label>' +
+      '<label class="check"><input type="radio" name="slqRScope" value="all"> Everything in the rule set (' + total.toLocaleString() + ' mapping row' + (total === 1 ? '' : 's') + ', all models)</label>' +
+      '<label class="check"><input type="checkbox" id="slqRAuto"' + (auto && auto.checked ? ' checked' : ' disabled') + '> Turn off auto-apply, so rules and IFC-class matches do not map them again straight away</label>' +
+      '<div class="muted sm">Saved mapping rules are kept. You can undo the reset until the page is reloaded.</div>' +
+      '<div class="slq-dlg-btns"><button class="btn sm" data-a="cancel">Cancel</button><button class="btn sm slq-danger" data-a="ok">Reset mapping</button></div></div>';
+    document.body.appendChild(dlg);
+    dlg.addEventListener('click', function (e) {
+      if (e.target === dlg) return closeDialog();
+      var a = e.target.dataset && e.target.dataset.a;
+      if (a === 'cancel') closeDialog();
+      if (a !== 'ok') return;
+      var scope = ($('input[name="slqRScope"]:checked', dlg) || {}).value || 'model', offAuto = $('#slqRAuto', dlg).checked;
+      var wasAuto = !!(auto && auto.checked);
+      if (offAuto && auto && auto.checked) { auto.checked = false; auto.dispatchEvent(new Event('change')); }
+      var r = window.slqResetMapping(scope);
+      undo = { backup: r.backup, auto: wasAuto };
+      closeDialog();
+      var u = $('#slqUndoReset'); if (u) u.hidden = false;
+      toast('Mapping reset: ' + r.removedRows.toLocaleString() + ' mapping row' + (r.removedRows === 1 ? '' : 's') + ' and ' + r.removedAlloc.toLocaleString() + ' allocation' + (r.removedAlloc === 1 ? '' : 's') + ' removed · Undo reset is in the Mapping tab');
+      afterChange();
+    });
+  }
+
+  function boot() { bar(); hookTree(); hookLists(); hookReset(); if (!hook3D()) setTimeout(boot, 300); }
   boot();
-  setInterval(function () { hookTree(); hookLists(); hook3D(); }, 2000);   // panels are re-rendered on model load
+  setInterval(function () { hookTree(); hookLists(); hook3D(); hookReset(); }, 2000);   // panels are re-rendered on model load
 })();

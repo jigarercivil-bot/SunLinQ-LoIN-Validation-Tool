@@ -436,7 +436,8 @@
       '<dt>See-through</dt><dd>Any selection keeps the selected objects in the current colour mode\u2019s colours and shows the rest of the model see-through. See-through objects can still be clicked. Click empty space or Clear selection to return to normal.</dd>' +
       '<dt>Allocate</dt><dd>Right-click \u2192 Allocate category\u2026 The owner is always the Returned Works Owner in the IFC: only that owner\u2019s categories are offered, and objects with no TMR / QR / SCC owner are skipped and listed. Lists are limited to what fits the IFC class when the selection is one class.</dd>' +
       '<dt>Priority</dt><dd>An allocation applies to those objects only and comes before their group mapping. They show in Mapping as \u201cAllocated by selection\u201d (Mapped \u00b7 by selection); the rest of the group keeps its mapping. Clear allocation (right-click, or reset on the Mapping row) returns them to the group.</dd>' +
-      '<dt>GlobalId</dt><dd>Allocations are saved by GlobalId in the rule set. If a model is re-exported with new GlobalIds, allocate those objects again.</dd></dl>' +
+      '<dt>GlobalId</dt><dd>Allocations are saved by GlobalId in the rule set. If a model is re-exported with new GlobalIds, allocate those objects again.</dd>' +
+      '<dt>Reset mapping</dt><dd>Mapping tab \u2192 Reset mapping\u2026 removes mappings so objects can be mapped again: either the mappings used by this model\u2019s objects (group mappings and allocations; other models\u2019 mappings are kept) or everything in the rule set. It can also turn off auto-apply so rules and IFC-class matches do not map them again straight away. Saved rules are kept, N.A. owners are not affected, and Undo reset puts everything back until the page is reloaded.</dd></dl>' +
       '<h3>3D colours</h3><dl>' +
       '<dt>Validation</dt><dd>Pass, error, warning, not checked.</dd>' +
       '<dt>By class</dt><dd>One colour per IFC class.</dd>' +
