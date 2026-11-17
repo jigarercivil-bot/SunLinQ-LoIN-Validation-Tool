@@ -10,12 +10,14 @@ Private source repository for the SunLinQ Level of Information Need (LoIN) valid
 - `scripts/assemble.py` — deterministic assembler.
 - `.github/workflows/assemble.yml` — automatically commits `index.html` when source parts change.
 
-## Release build (V2.36)
+## Release build (V2.37)
+Current release: **V2.37** (17 Nov 2026). The V2.36 layer files in `releases/v2.36/` carry the V2.37 changes: nested property groups, Not Set as missing, mapping groups by source program (Revit / 12d / Civil 3D / other, identical-shape fallback), allocation by selection with tree multi-select, see-through selection, 3D colours by mapping group and mapped vs unmapped, Reset mapping, updated Help.
+
 The published tool is built in three steps, each layered on the one before:
 
 1. `index.html` — the V2.34 baseline (assembled from `source/v2.34`).
 2. `python3 scripts/apply_release.py` — applies `releases/v2.35.patch.json` (V2.35).
-3. `python3 scripts/build_release.py` — adds V2.36:
+3. `python3 scripts/build_release.py` — adds V2.36 / V2.37:
    - `rules/dscrlp-ruleset.json` — the **built-in DSCRLP rule set**, with its display name and revision in `rules/ruleset.meta.json`. Users no longer import or export a JSON file.
    - `releases/v2.36/ui.css`, `ui.js`, `boot.js` — the clean layout (stage switcher in the header, icon rail, Help tab). These only rearrange and restyle existing elements; the validation engine, exports and MVC are unchanged.
    - `releases/v2.36/strings.js` — draws **3D strings** (IfcPolyline, IfcIndexedPolyCurve, IfcCompositeCurve, curve sets) for objects that have no solid geometry, aligned with the meshes and included in colouring, picking, isolate and section box.

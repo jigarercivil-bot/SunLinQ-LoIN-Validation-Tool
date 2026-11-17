@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build SunLinQ LoIN v2.36 on top of the v2.35 HTML.
+"""Build SunLinQ LoIN v2.37 (v2.36 layer + 16-17 Nov changes) on top of the v2.35 HTML.
 
 Run after scripts/apply_release.py (which produces v2.35 in index.html):
 
@@ -59,7 +59,7 @@ try:
     build_stamp = f"{_t.day} {_t:%b %H:%M} · {_sha}"
 except Exception:
     build_stamp = "local build"
-_vold = "var VERSION = '2.36';"
+_vold = "var VERSION = '2.37';"
 if ui.count(_vold) != 1:
     raise SystemExit("ui.js VERSION line not found")
 ui = ui.replace(_vold, _vold + " var BUILD = " + json.dumps(build_stamp) + ";")
@@ -70,7 +70,7 @@ for name, text in (("ui.css", css), ("boot.js", boot), ("ui.js", ui), ("strings.
         raise SystemExit(f"{name} must not contain closing script/style tags")
 
 # 1. Title
-html, n = re.subn(r"<title>[^<]*</title>", "<title>SunLinQ LoIN Validation Tool V2.36</title>", html, count=1)
+html, n = re.subn(r"<title>[^<]*</title>", "<title>SunLinQ LoIN Validation Tool V2.37</title>", html, count=1)
 if n != 1:
     raise SystemExit("Could not find the page title")
 
@@ -412,4 +412,4 @@ for marker in ("slq-builtin-rules", "slq-v236-boot", "slq-v236-ui", "slq-v236-cs
         raise SystemExit(f"Build check failed: {marker} missing")
 
 dst.write_text(html, encoding="utf-8")
-print(f"Built SunLinQ LoIN v2.36 ({len(rules['rules'])} built-in rules, id {rules_id}) -> {dst}")
+print(f"Built SunLinQ LoIN v2.37 ({len(rules['rules'])} built-in rules, id {rules_id}) -> {dst}")
