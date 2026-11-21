@@ -7,7 +7,8 @@
  * the section box. Validation, exports and the MVC are not touched.
  *
  * Supported curve items: IfcPolyline, IfcIndexedPolyCurve (with or without segments), IfcCompositeCurve(+Segment),
- * IfcGeometricCurveSet / IfcGeometricSet, IfcTrimmedCurve over a polyline, IfcMappedItem. Arcs in indexed
+ * IfcGeometricCurveSet / IfcGeometricSet, IfcTrimmedCurve over a polyline, IfcMappedItem. An object with no geometry of
+ * its own is drawn from its nested parts (IfcRelNests), e.g. a 12d alignment string made of Segment objects. Arcs in indexed
  * poly curves are drawn through their three points (no densification).
  */
 (function () {
@@ -139,27 +140,55 @@
       return off ? [q[0] - off[0], q[1] - off[1], q[2] - off[2]] : q;
     }
     var pos = [], vids = [], warn = {}, count = 0, skipped = 0;
-    model.elements.forEach(function (el) {
-      if (hasMesh.has(el.id)) return;
-      var prod = line(el.id);
+    // Nested parts (IfcRelNests): e.g. a 12d alignment string whose geometry sits in hundreds of nested
+    // "Segment" objects that are not model objects themselves. Their lines are drawn under the parent.
+    var nests = new Map();
+    try {
+      var nids = api.GetLineIDsWithType(mid, api.GetTypeCodeFromName('IFCRELNESTS'));
+      var nn = nids.size ? nids.size() : nids.length;
+      for (var ni = 0; ni < nn; ni++) {
+        var rel = line(nids.get ? nids.get(ni) : nids[ni]);
+        var par = rel && ref(rel.RelatingObject);
+        if (par == null) continue;
+        var kids = nests.get(par); if (!kids) nests.set(par, kids = []);
+        (rel.RelatedObjects || []).forEach(function (h) { var k = ref(h); if (k != null) kids.push(k); });
+      }
+    } catch (e) { /* no nesting */ }
+    function drawProduct(prodId, ownerId) {
+      var prod = line(prodId);
       var pds = prod && line(ref(prod.Representation));
-      if (!pds || !pds.Representations) return;
+      if (!pds || !pds.Representations) return 0;
       var curves = [];
       pds.Representations.forEach(function (h) {
         var rep = line(ref(h));
         (rep && rep.Items || []).forEach(function (ih) { curvesOf(line, ref(ih), 0, curves, warn); });
       });
-      if (!curves.length) return;
+      if (!curves.length) return 0;
       var M = placementMatrix(api, mid, ref(prod.ObjectPlacement), scale, coord);
-      if (!M) { skipped++; return; }
+      if (!M) { skipped++; return 0; }
       curves.forEach(function (pts) {
         for (var i = 1; i < pts.length; i++) {
           var a = toViewer(apply(M, pts[i - 1])), b = toViewer(apply(M, pts[i]));
           pos.push(a[0], a[1], a[2], b[0], b[1], b[2]);
-          vids.push(el.id, el.id);
+          vids.push(ownerId, ownerId);
         }
       });
-      count++;
+      return 1;
+    }
+    function drawNested(parentId, ownerId, depth) {
+      var n = 0;
+      (nests.get(parentId) || []).forEach(function (k) {
+        if (model.elements.has(k) && k !== ownerId) return;          // a model object of its own: drawn for itself
+        n += drawProduct(k, ownerId);
+        if (depth < 3) n += drawNested(k, ownerId, depth + 1);
+      });
+      return n;
+    }
+    model.elements.forEach(function (el) {
+      if (hasMesh.has(el.id)) return;
+      var drawn = drawProduct(el.id, el.id);
+      if (!drawn && nests.size) drawn = drawNested(el.id, el.id, 0);
+      if (drawn) count++;
     });
     if (!pos.length) return;
     if (!off) {
@@ -240,7 +269,11 @@
         var attr = L.obj.geometry.attributes.color, a = attr.array, last = -1, c = null;
         for (var i = 0; i < L.ids.length; i++) {
           var id = L.ids[i];
-          if (id !== last) { last = id; c = this.selected.has(id) ? SELECT_RGB : fn ? fn(id) : null; }
+          if (id !== last) {
+            last = id; c = this.selected.has(id) ? SELECT_RGB : fn ? fn(id) : null;
+            // Very light colours (not checked, not in Mapping) make thin lines disappear: keep the dark string colour.
+            if (c && c !== SELECT_RGB && c[0] > 0.7 && c[1] > 0.7 && c[2] > 0.7) c = null;
+          }
           var k = i * 3;
           if (c) { a[k] = c[0]; a[k + 1] = c[1]; a[k + 2] = c[2]; } else { a[k] = L.original[k]; a[k + 1] = L.original[k + 1]; a[k + 2] = L.original[k + 2]; }
         }
