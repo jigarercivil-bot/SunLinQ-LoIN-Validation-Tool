@@ -230,12 +230,13 @@
         lastKey = k;
       }
       rebuildFromKeys(loose);
+      if (sel.size && V() && V().zoomTo) V().zoomTo(Array.from(sel));      // tree selection brings the objects into view
     }, true);
     tree.addEventListener('contextmenu', function (e) {
       var n = e.target.closest('.tn'); if (!n || !n.dataset.k || n.dataset.k.indexOf('x:') === 0) return;
       e.preventDefault();
       var k = n.dataset.k, ids = idsOfKey(k);
-      if (!ids.every(function (i) { return sel.has(i); })) { treeKeys.clear(); treeKeys.add(k); lastKey = k; rebuildFromKeys([]); }
+      if (!ids.every(function (i) { return sel.has(i); })) { treeKeys.clear(); treeKeys.add(k); lastKey = k; rebuildFromKeys([]); if (V() && V().zoomTo) V().zoomTo(ids); }
       openMenu(e.clientX, e.clientY, Array.from(sel), treeKeys.size === 1 && treeKeys.has(k) ? (n.querySelector('.tl') || n).textContent + ' · ' + ids.length.toLocaleString() + ' object' + (ids.length === 1 ? '' : 's') : null);
     });
   }

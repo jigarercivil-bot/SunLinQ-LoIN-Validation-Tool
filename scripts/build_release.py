@@ -370,6 +370,13 @@ for o_, n_ in sel_edits:
         raise SystemExit("Selection allocation anchor found %dx (expected 1): %s" % (html.count(o_), o_[:70]))
     html = html.replace(o_, n_)
 
+# 6m. Selecting in the structure tree (object or branch) zooms the 3D view to the selection, so the Zoom
+#     button is not needed. Picking in 3D does not move the camera.
+tz_old = 'i.startsWith("x:")||Sme(i,!1)})'
+if html.count(tz_old) != 1:
+    raise SystemExit("Tree click anchor not found exactly once")
+html = html.replace(tz_old, 'i.startsWith("x:")||Sme(i,!0)})')
+
 # 6j. An unmapped row whose asset the tool cannot recognise (class-only or unknown guess, 72% or less) is titled
 #     with its kind (family, pit type, CodeName...) instead of "Unknown asset" or the bare IFC class name.
 dn_old = "r.mapped?(r.subCategory||r.category||d.name):d.name;"
