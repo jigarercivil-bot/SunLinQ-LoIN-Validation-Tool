@@ -33,6 +33,8 @@ The published tool is built in three steps, each layered on the one before:
 
    - **Reset mapping** (Mapping tab): removes the mappings used by the loaded model (or every mapping in the rule set), optionally turns off auto-apply, with Undo until reload. *Export unmapped CSV* is no longer shown.
 
+   - **Uniclass codes** (rule set revision 21 Nov 2026): Complex Code must start with `Co_`, Entity Code with `En_`, System Code and Spaces & Locations with `Ss_` or `SL_`, in any capitals; any code after the prefix is accepted.
+
 `.github/workflows/pages.yml` runs steps 2 and 3 on every push to `main`.
 
 **Updating the IFC class map:** edit `rules/ifc-class-map.xlsx` (sheets *IFC to TMR* and *IFC to QR*; mark rows *Reviewed = No* to drop them, add rows for missing links), then run `python3 scripts/class_map_from_excel.py` (needs `openpyxl`) and push `rules/ifc-class-map.json` and the workbook. The script stops if a sub-category does not exist in the rule set.

@@ -3225,10 +3225,10 @@
    "source": "DSCRLP - PROJECT ASSET!row 6",
    "format": {
     "type": "regex",
-    "pattern": "^CO(_\\d{2}){1,4}$",
-    "ignoreCase": false,
-    "_hint": "Uniclass 2015 code, e.g. CO_80_50_35",
-    "inferred": true
+    "pattern": "^Co_.+$",
+    "ignoreCase": true,
+    "_hint": "Uniclass Complex code starting with Co_ (any capitals), e.g. Co_80_50_35",
+    "inferred": false
    }
   },
   {
@@ -3282,10 +3282,10 @@
    "source": "DSCRLP - PROJECT ASSET!row 8",
    "format": {
     "type": "regex",
-    "pattern": "^EN(_\\d{2}){1,4}$",
-    "ignoreCase": false,
-    "_hint": "Uniclass 2015 code, e.g. EN_80_50_71",
-    "inferred": true
+    "pattern": "^En_.+$",
+    "ignoreCase": true,
+    "_hint": "Uniclass Entity code starting with En_ (any capitals), e.g. En_80_50_71",
+    "inferred": false
    }
   },
   {
@@ -3339,10 +3339,10 @@
    "source": "DSCRLP - PROJECT ASSET!row 10",
    "format": {
     "type": "regex",
-    "pattern": "^SL(_\\d{2}){1,4}$",
-    "ignoreCase": false,
-    "_hint": "Uniclass 2015 code, e.g. SL_80_50_72",
-    "inferred": true
+    "pattern": "^(Ss|SL)_.+$",
+    "ignoreCase": true,
+    "_hint": "Uniclass Systems or Spaces/Locations code starting with Ss_ or SL_ (any capitals), e.g. SL_80_50_72",
+    "inferred": false
    }
   },
   {
@@ -3396,10 +3396,10 @@
    "source": "DSCRLP - PROJECT ASSET!row 12",
    "format": {
     "type": "regex",
-    "pattern": "^SS(_\\d{2}){1,4}$",
-    "ignoreCase": false,
-    "_hint": "Uniclass 2015 code, e.g. SS_80_70_70",
-    "inferred": true
+    "pattern": "^(Ss|SL)_.+$",
+    "ignoreCase": true,
+    "_hint": "Uniclass Systems or Spaces/Locations code starting with Ss_ or SL_ (any capitals), e.g. Ss_80_70_70",
+    "inferred": false
    }
   },
   {

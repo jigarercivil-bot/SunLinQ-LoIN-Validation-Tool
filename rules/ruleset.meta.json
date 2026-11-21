@@ -1,5 +1,5 @@
 {
   "name": "DSCRLP LoIN rules",
-  "revision": "LOI_table.xlsx · 12 Nov 2026",
+  "revision": "LOI_table.xlsx · 12 Nov 2026 · Uniclass prefixes 21 Nov 2026",
   "note": "Built-in rule set. To update: replace dscrlp-ruleset.json with a Save JSON export from Maintainer tools, update the revision above, and publish a new release."
 }

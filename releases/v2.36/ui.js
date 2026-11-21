@@ -456,6 +456,7 @@
       '<dt>3D strings</dt><dd>Objects whose geometry is a line (12d / Civil 3D strings, setout and survey strings) are drawn as lines, coloured by result and selectable like any other object.</dd>' +
       '<dt>Data-only mode</dt><dd>Skips the 3D view so very large models still open. Checks and exports work as normal; grouping by identical shape and the 3D colours need the 3D view.</dd>' +
       '<dt>Nested property groups</dt><dd>Attributes inside property groups inside property groups (as 12d exports them, e.g. 12d Model \u203a TMR \u203a Asset Management \u203a BIM Component Code) are read at every level, named \u201cPset.Group/Sub group/Property\u201d.</dd>' +
+      '<dt>Uniclass codes</dt><dd>Any Uniclass code is accepted as long as it starts with the right table, in any capitals: Complex Code Co_, Entity Code En_, System Code and Spaces &amp; Locations Ss_ or SL_ (e.g. Co_80_50_35, EN_80_50_71, ss_80_70_70). Descriptions only need a value.</dd>' +
       '<dt>Not Set</dt><dd>A value that only says \u201cNot Set\u201d (12d\u2019s default for an unfilled attribute) counts as missing, like a blank value.</dd>' +
       '</dl>' +
       '<h3>About</h3><div class="slq-about">' +
