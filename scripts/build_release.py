@@ -400,6 +400,24 @@ if html.count(rev_old) != 1:
     raise SystemExit("MVC Version column anchor not found exactly once")
 html = html.replace(rev_old, '<th style=\\"width:32%\\">Formal Submission Gate</th><th style=\\"width:20%\\">Revision</th>')
 
+# 6p. MVC Parameter Compliance Summary: failures that are only a T.B.C / TBC placeholder (at a stage that needs a
+#     final value) show as "TBC" instead of 0%; when some objects pass and the rest are TBC the % is kept with
+#     "· n TBC". Counts and totals are unchanged (a TBC at a required stage is still a fail).
+tbc_edits = [
+    ("var _res=tt.results;\n  var _paramMap=new Map();",
+     "var _res=tt.results;\n  var _paramMap=new Map();\n  var _tbcByRule=new Map();\n  ((_res&&_res.issues)||[]).forEach(function(i){var m=String(i.msg||i.message||'');if(i.rule&&/^Placeholder \"/.test(m))_tbcByRule.set(i.rule.id,(_tbcByRule.get(i.rule.id)||0)+1)});"),
+    ("checked:0,passed:0,failed:0,rules:0,statuses:new Set(),gateMarks:new Set()};",
+     "checked:0,passed:0,failed:0,tbc:0,rules:0,statuses:new Set(),gateMarks:new Set()};"),
+    ("      _uqT.failed+=Number(_rr.failed||0);",
+     "      _uqT.failed+=Number(_rr.failed||0);\n      _uqT.tbc=(_uqT.tbc||0)+(_tbcByRule.get(_rule.id)||0);"),
+    ("    if(rt==='P')return '<span class=\"pc-placeholder\">◐ Placeholder</span>';\n    var st=_state(p),pc=_pctText(p);",
+     "    if(rt==='P')return '<span class=\"pc-placeholder\">◐ Placeholder</span>';\n    var _tb=Math.min(p.tbc||0,p.failed||0);\n    if(_tb&&!p.passed&&_tb>=p.failed)return '<span style=\"color:#854F0B;background:#FAEEDA\" title=\"All '+_tb.toLocaleString()+' values are a T.B.C placeholder; a final value is required at this gate\">TBC</span>';\n    var st=_state(p),pc=_pctText(p);\n    if(_tb)pc+=' \\u00b7 '+_tb.toLocaleString()+' TBC';"),
+]
+for o_, n_ in tbc_edits:
+    if html.count(o_) != 1:
+        raise SystemExit("MVC TBC anchor found %dx: %s" % (html.count(o_), o_[:60]))
+    html = html.replace(o_, n_)
+
 # 6j. An unmapped row whose asset the tool cannot recognise (class-only or unknown guess, 72% or less) is titled
 #     with its kind (family, pit type, CodeName...) instead of "Unknown asset" or the bare IFC class name.
 dn_old = "r.mapped?(r.subCategory||r.category||d.name):d.name;"
