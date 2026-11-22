@@ -360,3 +360,7 @@ body.slq3:not(.slq-admin) .slq-maint-only { display: none !important; }
 .slq-about-actions { display:flex; gap:8px; margin:10px 0 4px; flex-wrap:wrap; }
 .slq-newver { margin-left:8px; padding:6px 12px; border-radius:8px; border:0; background:#EF9F27; color:#412402; font-weight:600; font-size:12.5px; cursor:pointer; }
 .slq-newver:hover { background:#FAC775; }
+/* Results: n/a groups and rules hidden unless "Show n/a" is on */
+.slq-hide-na > .bar.slq-na { display:none; }
+.slq-natoggle { margin-left:8px; border:0; background:none; padding:0; font-size:11.5px; font-weight:500; color:var(--accent, #0F6E56); cursor:pointer; text-decoration:underline; text-transform:none; letter-spacing:0; }
+.slq-natoggle[hidden] { display:none; }

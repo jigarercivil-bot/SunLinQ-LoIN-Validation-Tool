@@ -310,7 +310,31 @@
     });
   }
 
-  function boot() { bar(); hookTree(); hookLists(); hookReset(); if (!hook3D()) setTimeout(boot, 300); }
+  /* ---- Results: hide n/a groups and rules (no applicable objects in this model) ---- */
+  var showNA = false;
+  function hookNA() {
+    [['#groupBars', 'groups'], ['#ruleBars', 'rules']].forEach(function (x) {
+      var box = $(x[0]);
+      if (!box) return;
+      box.classList.toggle('slq-hide-na', !showNA);
+      var h4 = box.previousElementSibling;
+      if (!h4 || h4.tagName !== 'H4') return;
+      var t = h4.querySelector('.slq-natoggle');
+      if (!t) {
+        t = document.createElement('button');
+        t.type = 'button'; t.className = 'slq-natoggle';
+        t.onclick = function (e) { e.stopPropagation(); showNA = !showNA; hookNA(); };
+        h4.appendChild(t);
+      }
+      var n = box.querySelectorAll('.bar.slq-na').length;
+      t.hidden = !n;
+      t.textContent = showNA ? 'Hide n/a' : 'Show n/a (' + n + ')';
+      t.title = 'n/a = active at this stage, but no object in this model needs it (e.g. owner rules with no mapped objects)';
+      if (!box.__slqNA) { box.__slqNA = true; new MutationObserver(function () { hookNA(); }).observe(box, { childList: true }); }
+    });
+  }
+
+  function boot() { bar(); hookTree(); hookLists(); hookReset(); hookNA(); if (!hook3D()) setTimeout(boot, 300); }
   boot();
-  setInterval(function () { hookTree(); hookLists(); hook3D(); hookReset(); }, 2000);   // panels are re-rendered on model load
+  setInterval(function () { hookTree(); hookLists(); hook3D(); hookReset(); hookNA(); }, 2000);   // panels are re-rendered on model load
 })();

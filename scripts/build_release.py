@@ -418,6 +418,26 @@ for o_, n_ in tbc_edits:
         raise SystemExit("MVC TBC anchor found %dx: %s" % (html.count(o_), o_[:60]))
     html = html.replace(o_, n_)
 
+# 6q. Results: groups and rules with no applicable objects in this model (n/a) are tagged "slq-na" and hidden by
+#     default (allocate.js adds a "Show n/a (n)" toggle), so the lists show only what is actually being checked.
+na_edits = [
+    ('`<div class="bar ${tt.groupFilter===ye.group&&tt.groupFilter!=null?"sel":""}" data-g=',
+     '`<div class="bar ${tt.groupFilter===ye.group&&tt.groupFilter!=null?"sel":""}${ye.checked?"":" slq-na"}" data-g='),
+    ('`<div class="bar ${tt.ruleFilter===ye.rule.id?"sel":""}" data-rid=',
+     '`<div class="bar ${tt.ruleFilter===ye.rule.id?"sel":""}${ye.checked?"":" slq-na"}" data-rid='),
+]
+for o_, n_ in na_edits:
+    if html.count(o_) != 1:
+        raise SystemExit("Results n/a anchor found %dx: %s" % (html.count(o_), o_[:60]))
+    html = html.replace(o_, n_)
+
+# 6r. MVC print / PDF: the editable "Comments (if needed)" cells lost their borders, because the print style removed
+#     borders from every [contenteditable] element. Keep that for typing fields, not for table cells.
+ce_old = "'[contenteditable]{outline:none!important;border:none!important}',"
+if html.count(ce_old) != 1:
+    raise SystemExit("MVC print contenteditable rule not found exactly once")
+html = html.replace(ce_old, "'[contenteditable]{outline:none!important}','[contenteditable]:not(td):not(th){border:none!important}',")
+
 # 6j. An unmapped row whose asset the tool cannot recognise (class-only or unknown guess, 72% or less) is titled
 #     with its kind (family, pit type, CodeName...) instead of "Unknown asset" or the bare IFC class name.
 dn_old = "r.mapped?(r.subCategory||r.category||d.name):d.name;"

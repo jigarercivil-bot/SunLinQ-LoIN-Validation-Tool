@@ -41,6 +41,8 @@ The published tool is built in three steps, each layered on the one before:
 
    - **MVC**: Parameter Compliance Summary shows Unique Element ID as one row (filled in) with a sub-row *↳ Is unique* (its own checks / pass / fail / %), instead of adding both rules into one row; Package Review Details column next to Formal Submission Gate is *Revision*. A required parameter whose failures are only T.B.C / TBC placeholders shows *TBC* instead of 0% (or *x% · n TBC* when some objects pass).
 
+   - **Results** lists only the groups and rules that apply to objects in the loaded model; n/a ones are behind *Show n/a (n)*. **MVC PDF**: the editable Comments column keeps its cell borders when printed.
+
 `.github/workflows/pages.yml` runs steps 2 and 3 on every push to `main`.
 
 **Updating the IFC class map:** edit `rules/ifc-class-map.xlsx` (sheets *IFC to TMR* and *IFC to QR*; mark rows *Reviewed = No* to drop them, add rows for missing links), then run `python3 scripts/class_map_from_excel.py` (needs `openpyxl`) and push `rules/ifc-class-map.json` and the workbook. The script stops if a sub-category does not exist in the rule set.
