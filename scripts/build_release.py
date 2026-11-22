@@ -377,6 +377,29 @@ if html.count(tz_old) != 1:
     raise SystemExit("Tree click anchor not found exactly once")
 html = html.replace(tz_old, 'i.startsWith("x:")||Sme(i,!0)})')
 
+# 6n. MVC Parameter Compliance Summary: a parameter with a uniqueness rule (Project - Unique Element ID) keeps one
+#     main row for "filled in" and shows the uniqueness result as a sub-row "↳ Is unique" with its own checks,
+#     pass, fail and %. Before, both rules were added into one row (482 objects -> 964 checks). Totals and the
+#     fully / partially compliant counts still include both rules.
+uq_edits = [
+    ("      _entry.checked+=Number(_rr.checked||0);\n      _entry.passed+=Number(_rr.passed||0);\n      _entry.failed+=Number(_rr.failed||0);",
+     "      var _uqT=(_rule.check&&_rule.check.type==='unique')?(_entry.uniq||(_entry.uniq={checked:0,passed:0,failed:0})):_entry;\n      _uqT.checked+=Number(_rr.checked||0);\n      _uqT.passed+=Number(_rr.passed||0);\n      _uqT.failed+=Number(_rr.failed||0);"),
+    ("    _totalChecks+=_ap.checked;_totalPassed+=_ap.passed;_totalFailed+=_ap.failed;\n    if(!_ap.checked){_na++;_unmapped++;}\n    else{\n      _mapped++;\n      if(_ap.passed===_ap.checked)_full++;\n      else if(_ap.passed===0)_zero++;\n      else _partial++;\n    }",
+     "    var _uq=_ap.uniq||{checked:0,passed:0,failed:0},_aC=_ap.checked+_uq.checked,_aP=_ap.passed+_uq.passed,_aF=_ap.failed+_uq.failed;\n    _totalChecks+=_aC;_totalPassed+=_aP;_totalFailed+=_aF;\n    if(!_aC){_na++;_unmapped++;}\n    else{\n      _mapped++;\n      if(_aP===_aC)_full++;\n      else if(_aP===0)_zero++;\n      else _partial++;\n    }"),
+    ("      '<td class=\"pc-pct\">'+_resultHtml(p)+'</td></tr>';\n  };",
+     "      '<td class=\"pc-pct\">'+_resultHtml(p)+'</td></tr>'+\n      (p.uniq?'<tr class=\"pc-subrow\"><td class=\"pc-param\" style=\"padding-left:22px;color:#475569\">\\u21b3 Is unique</td><td class=\"pc-requirement\"></td>'+\n        '<td class=\"pc-map\" style=\"color:#475569;font-size:7pt\">No two objects share a value</td>'+\n        '<td class=\"pc-n\">'+p.uniq.checked.toLocaleString()+'</td><td class=\"pc-n pc-pass\">'+p.uniq.passed.toLocaleString()+'</td>'+\n        '<td class=\"pc-n pc-fail\">'+p.uniq.failed.toLocaleString()+'</td>'+\n        '<td class=\"pc-pct\">'+_resultHtml({checked:p.uniq.checked,passed:p.uniq.passed,gateMarks:p.gateMarks})+'</td></tr>':'');\n  };"),
+]
+for o_, n_ in uq_edits:
+    if html.count(o_) != 1:
+        raise SystemExit("MVC uniqueness sub-row anchor found %dx: %s" % (html.count(o_), o_[:60]))
+    html = html.replace(o_, n_)
+
+# 6o. MVC Package Review Details: the column next to "Formal Submission Gate" is "Revision" (was "Version").
+rev_old = '<th style=\\"width:32%\\">Formal Submission Gate</th><th style=\\"width:20%\\">Version</th>'
+if html.count(rev_old) != 1:
+    raise SystemExit("MVC Version column anchor not found exactly once")
+html = html.replace(rev_old, '<th style=\\"width:32%\\">Formal Submission Gate</th><th style=\\"width:20%\\">Revision</th>')
+
 # 6j. An unmapped row whose asset the tool cannot recognise (class-only or unknown guess, 72% or less) is titled
 #     with its kind (family, pit type, CodeName...) instead of "Unknown asset" or the bare IFC class name.
 dn_old = "r.mapped?(r.subCategory||r.category||d.name):d.name;"
