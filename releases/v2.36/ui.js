@@ -465,9 +465,48 @@
       '<span>Revision</span><b>' + (b ? esc(b.rev) : '—') + '</b>' +
       '<span>Rules</span><b>' + (sc ? (sc.rules || []).length : 0) + '</b>' +
       '</div>' +
+      (/^https?:/.test(location.protocol) ?
+        '<div class="slq-about-actions"><a class="btn sm" href="' + esc(location.origin + location.pathname) + '" target="_blank" rel="noopener">Latest version link</a>' +
+        '<button class="btn sm" id="slqSaveOffline" type="button">Save offline copy</button></div>' +
+        '<div class="muted sm">The link always opens the latest version. The offline copy is a single HTML file of this version that works without internet.</div>'
+        : '<div class="muted sm">This is an offline copy (V' + VERSION + '). The latest version is always at <a href="https://jigarercivil-bot.github.io/SunLinQ-LoIN-Validation-Tool/" target="_blank" rel="noopener">jigarercivil-bot.github.io/SunLinQ-LoIN-Validation-Tool</a>.</div>') +
       '<label class="check"><input type="checkbox" id="slqAdmin"' + (body.classList.contains('slq-admin') ? ' checked' : '') + '> Maintainer mode (show tools to change the rule set)</label>';
     $('#slqAdmin').onchange = function (e) { setAdmin(e.target.checked); renderRuleCard(); };
+    var so = $('#slqSaveOffline');
+    if (so) so.onclick = function () {
+      so.disabled = true; so.textContent = 'Saving…';
+      fetch(location.origin + location.pathname, { cache: 'no-store' }).then(function (r) { if (!r.ok) throw new Error(r.status); return r.blob(); }).then(function (b) {
+        var a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'SunLinQ-LoIN-Validation-Tool-V' + VERSION + '.html';
+        document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 2000);
+        so.textContent = 'Saved';
+      }).catch(function () { so.textContent = 'Could not save — try again'; }).finally(function () { setTimeout(function () { so.disabled = false; so.textContent = 'Save offline copy'; }, 2500); });
+    };
   }
+
+  /* New version notice: on the live site, check version.json every 10 minutes (and when the tab gets focus);
+     when a newer build is published, show "New version available · reload" in the header. */
+  (function () {
+    if (!/^https?:/.test(location.protocol) || typeof BUILD === 'undefined') return;
+    var shown = false, last = 0;
+    function check() {
+      if (shown || Date.now() - last < 60000) return;
+      last = Date.now();
+      fetch(location.origin + location.pathname.replace(/[^/]*$/, '') + 'version.json', { cache: 'no-store' })
+        .then(function (r) { return r.ok ? r.json() : null; }).then(function (v) {
+          if (!v || !v.build || v.build === BUILD || shown) return;
+          shown = true;
+          var b = document.createElement('button');
+          b.type = 'button'; b.className = 'slq-newver'; b.textContent = 'New version available · reload';
+          b.title = 'Version ' + v.version + ' · build ' + v.build + '. Reload to use it (your mapping work is kept).';
+          b.onclick = function () { location.reload(); };
+          var sub = document.querySelector('.slq-top, header, .top') || document.body;
+          sub.appendChild(b);
+        }).catch(function () {});
+    }
+    setInterval(check, 600000);
+    window.addEventListener('focus', check);
+    setTimeout(check, 30000);
+  })();
 
   /* ---------- Keep the new pieces in sync with the engine ---------- */
   function tick() {

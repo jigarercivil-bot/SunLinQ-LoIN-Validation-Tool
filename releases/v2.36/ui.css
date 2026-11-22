@@ -357,3 +357,6 @@ body.slq3:not(.slq-admin) .slq-maint-only { display: none !important; }
 .slq-danger { background:#A32D2D !important; border-color:#A32D2D !important; color:#fff !important; }
 .slq-dlg label.check { font-size:13px; color:inherit; display:flex; gap:6px; align-items:flex-start; }
 #mapvExportUnmapped { display:none !important; }
+.slq-about-actions { display:flex; gap:8px; margin:10px 0 4px; flex-wrap:wrap; }
+.slq-newver { margin-left:8px; padding:6px 12px; border-radius:8px; border:0; background:#EF9F27; color:#412402; font-weight:600; font-size:12.5px; cursor:pointer; }
+.slq-newver:hover { background:#FAC775; }

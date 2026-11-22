@@ -1,5 +1,9 @@
 # SunLinQ LoIN Validation Tool
 
+## ▶ [Open the latest tool](https://jigarercivil-bot.github.io/SunLinQ-LoIN-Validation-Tool/)
+
+**https://jigarercivil-bot.github.io/SunLinQ-LoIN-Validation-Tool/** — always the latest version: it is rebuilt from `main` on every update. Bookmark it; no download needed. IFC files are read in your browser and never uploaded. The header shows the version and build time; a notice appears when a newer version is published. For offline use: Help › About › **Save offline copy**.
+
 Private source repository for the SunLinQ Level of Information Need (LoIN) validation tool.
 
 **Current baseline:** V2.34 — cleaned package titles, updated package list, signature/date controls, owner-specific mapping/MVC and N.A. owner support.

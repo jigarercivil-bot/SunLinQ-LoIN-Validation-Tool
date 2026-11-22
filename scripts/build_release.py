@@ -419,4 +419,6 @@ for marker in ("slq-builtin-rules", "slq-v236-boot", "slq-v236-ui", "slq-v236-cs
         raise SystemExit(f"Build check failed: {marker} missing")
 
 dst.write_text(html, encoding="utf-8")
+# version.json next to the page: the live tool polls it and shows "New version available" after a publish.
+(dst.parent / "version.json").write_text(json.dumps({"version": "2.37", "build": build_stamp}, ensure_ascii=False), encoding="utf-8")
 print(f"Built SunLinQ LoIN v2.37 ({len(rules['rules'])} built-in rules, id {rules_id}) -> {dst}")
