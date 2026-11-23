@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build SunLinQ LoIN v2.38 (v2.36 layer + 16-23 Nov changes) on top of the v2.35 HTML.
+"""Build SunLinQ LoIN v2.39 (v2.36 layer + 16-23 Nov changes) on top of the v2.35 HTML.
 
 Run after scripts/apply_release.py (which produces v2.35 in index.html):
 
@@ -59,18 +59,19 @@ try:
     build_stamp = f"{_t.day} {_t:%b %H:%M} · {_sha}"
 except Exception:
     build_stamp = "local build"
-_vold = "var VERSION = '2.38';"
+_vold = "var VERSION = '2.39';"
 if ui.count(_vold) != 1:
     raise SystemExit("ui.js VERSION line not found")
 ui = ui.replace(_vold, _vold + " var BUILD = " + json.dumps(build_stamp) + ";")
 strings_js = (rel / "strings.js").read_text(encoding="utf-8")
 allocate_js = (rel / "allocate.js").read_text(encoding="utf-8")
-for name, text in (("ui.css", css), ("boot.js", boot), ("ui.js", ui), ("strings.js", strings_js), ("allocate.js", allocate_js)):
+search_js = (rel / "search.js").read_text(encoding="utf-8")
+for name, text in (("ui.css", css), ("boot.js", boot), ("ui.js", ui), ("strings.js", strings_js), ("allocate.js", allocate_js), ("search.js", search_js)):
     if "</script" in text.lower() or "</style" in text.lower():
         raise SystemExit(f"{name} must not contain closing script/style tags")
 
 # 1. Title
-html, n = re.subn(r"<title>[^<]*</title>", "<title>SunLinQ LoIN Validation Tool V2.38</title>", html, count=1)
+html, n = re.subn(r"<title>[^<]*</title>", "<title>SunLinQ LoIN Validation Tool V2.39</title>", html, count=1)
 if n != 1:
     raise SystemExit("Could not find the page title")
 
@@ -469,11 +470,18 @@ if html.count(old_hook) != 1:
     raise SystemExit("Load hook anchor not found exactly once")
 html = html.replace(old_hook, ',T="";try{t||!window.slqLoadCurves||window.slqLoadCurves(o,d,v,h)}catch(__e){console.warn("SunLinQ strings:",__e)}try{T=o.GetModelSchema(d)}catch{}')
 
+# 6s. Search tab (releases/v2.36/search.js): results opened from the property search use the engine's own
+#     pick-and-zoom, exported as window.slqPick.
+pick_old = 'Ln.onPick=e=>nL(e,!1);'
+if html.count(pick_old) != 1:
+    raise SystemExit("Pick handler anchor not found exactly once")
+html = html.replace(pick_old, pick_old + 'window.slqPick=nL;')
+
 # 8. Layout layer at the very end of the page, after the engine has bound its handlers
 body_end = html.rfind("</body>")
 if body_end < 0:
     raise SystemExit("No </body> found")
-html = html[:body_end] + f'<script id="slq-v236-strings">\n{strings_js}\n</script>\n<script id="slq-v236-ui">\n{ui}\n</script>\n' + f'<script id="slq-v236-allocate">\n{allocate_js}\n</script>\n' + html[body_end:]
+html = html[:body_end] + f'<script id="slq-v236-strings">\n{strings_js}\n</script>\n<script id="slq-v236-ui">\n{ui}\n</script>\n' + f'<script id="slq-v236-allocate">\n{allocate_js}\n</script>\n' + f'<script id="slq-v239-search">\n{search_js}\n</script>\n' + html[body_end:]
 
 for marker in ("slq-builtin-rules", "slq-v236-boot", "slq-v236-ui", "slq-v236-css", "if(active&&active.builtin)return active;"):
     if marker not in html:
@@ -481,5 +489,5 @@ for marker in ("slq-builtin-rules", "slq-v236-boot", "slq-v236-ui", "slq-v236-cs
 
 dst.write_text(html, encoding="utf-8")
 # version.json next to the page: the live tool polls it and shows "New version available" after a publish.
-(dst.parent / "version.json").write_text(json.dumps({"version": "2.38", "build": build_stamp}, ensure_ascii=False), encoding="utf-8")
-print(f"Built SunLinQ LoIN v2.38 ({len(rules['rules'])} built-in rules, id {rules_id}) -> {dst}")
+(dst.parent / "version.json").write_text(json.dumps({"version": "2.39", "build": build_stamp}, ensure_ascii=False), encoding="utf-8")
+print(f"Built SunLinQ LoIN v2.39 ({len(rules['rules'])} built-in rules, id {rules_id}) -> {dst}")

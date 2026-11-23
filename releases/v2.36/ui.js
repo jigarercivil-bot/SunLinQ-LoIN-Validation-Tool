@@ -4,7 +4,7 @@
  */
 (function () {
   'use strict';
-  var VERSION = '2.38';
+  var VERSION = '2.39';
   var $ = function (s, r) { return (r || document).querySelector(s); };
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
   var state = function () { return window.__irc && window.__irc.state; };
@@ -319,7 +319,7 @@
     modelBody.appendChild(gS); modelBody.appendChild(gC); modelBody.appendChild(gY);
   }
   tabHead($('#tab-model'), 'Model', '');
-  tabHead($('#tab-search'), 'Search', 'Find objects by name, class or property value.');
+  tabHead($('#tab-search'), 'Search', 'Find objects by any text, or by a property and its value, then select them in the model.');
   tabHead($('#tab-mapping'), 'Asset mapping', 'Tell the tool what each object is, so the right owner rules apply.');
   var oldMapHead = $('#tab-mapping .mapv-head > div');
   if (oldMapHead) oldMapHead.style.display = 'none';
@@ -438,6 +438,13 @@
       '<dt>Priority</dt><dd>An allocation applies to those objects only and comes before their group mapping. They show in Mapping as \u201cAllocated by selection\u201d (Mapped \u00b7 by selection); the rest of the group keeps its mapping. Clear allocation (right-click, or reset on the Mapping row) returns them to the group.</dd>' +
       '<dt>GlobalId</dt><dd>Allocations are saved by GlobalId in the rule set. If a model is re-exported with new GlobalIds, allocate those objects again.</dd>' +
       '<dt>Reset mapping</dt><dd>Mapping tab \u2192 Reset mapping\u2026 removes mappings so objects can be mapped again: either the mappings used by this model\u2019s objects (group mappings and allocations; other models\u2019 mappings are kept) or everything in the rule set. It can also turn off auto-apply so rules and IFC-class matches do not map them again straight away. Saved rules are kept, N.A. owners are not affected, and Undo reset puts everything back until the page is reloaded.</dd></dl>' +
+      '<h3>Search tab</h3><dl>' +
+      '<dt>Quick search</dt><dd>Type any text: objects with a property value containing it are listed.</dd>' +
+      '<dt>Find by property</dt><dd>Start typing a property name and pick it from the list (12d nested attributes included, e.g. 12d Model.Pit/pit type; IFC class is also offered). Then choose contains, equals, starts with, is empty, is missing or has a value, and type a value.</dd>' +
+      '<dt>Values in this model</dt><dd>Every value of the chosen property with how many objects have it, most common first. Click a value to list those objects; click it again to undo. (blank) = the property is there but blank, Not Set or TBC. (missing) = objects of the same IFC class that do not have the property.</dd>' +
+      '<dt>Both together</dt><dd>When quick search and a property are both filled in, objects must match both.</dd>' +
+      '<dt>Select in model</dt><dd>Selects every object found (not only the first 500 listed), shows the rest of the model see-through and zooms to them. Then right-click \u2192 Allocate category\u2026 or use Allocate category\u2026 in the bar, as for any selection. Search never changes mapping itself.</dd>' +
+      '<dt>Isolate results / Clear</dt><dd>Isolate shows only the objects found; Clear empties the search and shows the whole model again.</dd></dl>' +
       '<h3>3D colours</h3><dl>' +
       '<dt>Validation</dt><dd>Pass, error, warning, not checked.</dd>' +
       '<dt>By class</dt><dd>One colour per IFC class.</dd>' +
