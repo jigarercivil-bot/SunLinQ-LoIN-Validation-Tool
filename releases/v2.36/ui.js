@@ -4,7 +4,7 @@
  */
 (function () {
   'use strict';
-  var VERSION = '2.37';
+  var VERSION = '2.38';
   var $ = function (s, r) { return (r || document).querySelector(s); };
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
   var state = function () { return window.__irc && window.__irc.state; };
