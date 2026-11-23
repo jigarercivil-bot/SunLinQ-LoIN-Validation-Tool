@@ -4,7 +4,7 @@ on:
     branches: [main]
   workflow_dispatch:
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 concurrency:
@@ -23,6 +23,18 @@ jobs:
         run: python3 scripts/apply_release.py
       - name: Add v2.36 layout and built-in DSCRLP rules
         run: python3 scripts/build_release.py
+      # Permanent download link: the "latest" release always holds the newest standalone file, at
+      # https://github.com/<repo>/releases/latest/download/SunLinQ-LoIN-Validation-Tool.html
+      - name: Update the latest download
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cp index.html SunLinQ-LoIN-Validation-Tool.html
+          VER=$(python3 -c "import json;d=json.load(open('version.json'));print('V'+d['version']+' · build '+d['build'])")
+          gh release view latest >/dev/null 2>&1 || gh release create latest --title "Latest LoIN tool" --notes "Newest standalone tool." --latest
+          gh release upload latest SunLinQ-LoIN-Validation-Tool.html --clobber
+          gh release edit latest --title "Latest LoIN tool ($VER)" --notes "Standalone, works offline. Download SunLinQ-LoIN-Validation-Tool.html below. $VER" --latest
+          rm SunLinQ-LoIN-Validation-Tool.html
       - uses: actions/upload-pages-artifact@v4
         with:
           path: .

@@ -2,6 +2,10 @@
 
 ## ▶ [Open the latest tool](https://jigarercivil-bot.github.io/SunLinQ-LoIN-Validation-Tool/)
 
+## ⤓ [Download the latest tool (standalone .html)](https://github.com/jigarercivil-bot/SunLinQ-LoIN-Validation-Tool/releases/latest/download/SunLinQ-LoIN-Validation-Tool.html)
+
+Permanent download link, always the newest version (updated automatically on every change). Works offline: open the downloaded file in Chrome or Edge.
+
 **https://jigarercivil-bot.github.io/SunLinQ-LoIN-Validation-Tool/** — always the latest version: it is rebuilt from `main` on every update. Bookmark it; no download needed. IFC files are read in your browser and never uploaded. The header shows the version and build time; a notice appears when a newer version is published. For offline use: Help › About › **Save offline copy**.
 
 Private source repository for the SunLinQ Level of Information Need (LoIN) validation tool.
