@@ -1,6 +1,6 @@
 /* SunLinQ LoIN v2.39 — Search tab: find objects by property value.
- * Quick text (any value) as before, plus Property + test + Value with the list of values found in the model
- * and their counts. "Select in model" puts the results in the normal selection, so Allocate category… works
+ * Property + condition + value, with the values found in the model and their counts (the old free-text
+ * search box is hidden). "Select in model" puts the results in the normal selection, so Allocate category… works
  * exactly as it does from the tree or 3D. Nothing here changes mapping. */
 (function () {
   'use strict';
@@ -73,51 +73,90 @@
     return t.indexOf(want) >= 0;
   }
   var timer = null;
-  function later() { clearTimeout(timer); timer = setTimeout(run, 200); }
+  function later() { clearTimeout(timer); timer = setTimeout(run, 180); }
   function hits() { var s = st(); return (s && s.searchHits) || []; }
+  var ICON = {
+    search: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>',
+    x: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>',
+    target: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/></svg>',
+    eye: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>'
+  };
+  /* "12d Model.Pit/pit type" -> group "12d Model › Pit", name "pit type" */
+  function split(k) {
+    if (k === CLASS_KEY) return { g: 'Object', n: 'IFC class' };
+    var d = k.indexOf('.'), g = d > 0 ? k.slice(0, d) : '', r = d > 0 ? k.slice(d + 1) : k, parts = r.split('/');
+    var n = parts.pop(); if (parts.length) g = (g ? g + ' › ' : '') + parts.join(' › ');
+    if (g === 'Attr') g = 'IFC attribute';
+    return { g: g, n: n };
+  }
+  function setCount(n, text) {
+    var c = $('#slqPsCount'), head = $('#slqPsRes');
+    if (!c) return;
+    if (text != null) { head.classList.add('idle'); c.innerHTML = '<span class="slq-ps-hint">' + esc(text) + '</span>'; }
+    else { head.classList.remove('idle'); c.innerHTML = '<b>' + n.toLocaleString() + '</b> object' + (n === 1 ? '' : 's'); }
+    $('#slqPsSelect').disabled = !n; $('#slqPsIso').disabled = !n;
+    $('#slqPsSelect').lastChild.textContent = n ? 'Select ' + n.toLocaleString() : 'Select';
+  }
 
   function run() {
-    var s = st(), list = $('#searchList'), count = $('#searchCount');
-    if (!list || !count) return;
-    var q = $('#searchInput').value.trim().toLowerCase();
+    var s = st(), list = $('#searchList');
+    if (!list || !$('#slqPs')) return;
     var key = $('#slqPsProp').value.trim(), op = $('#slqPsOp').value, want = $('#slqPsVal').value.trim().toLowerCase();
     var needVal = op === 'contains' || op === 'equals' || op === 'starts';
     $('#slqPsVal').disabled = !needVal;
-    renderValues(key, op, want);
-    if (q.length < 2) q = '';
-    var usingProp = !!key && (!needVal || want !== '');
-    if (!s || !s.model) { s && (s.searchHits = []); list.innerHTML = ''; count.textContent = (q || key) ? 'Load a model first.' : ''; return; }
+    $('#slqPsVal').placeholder = needVal ? 'Type a value or pick one below' : 'No value needed';
+    $('#slqPsPropClear').hidden = !key;
+    if (!s || !s.model) { s && (s.searchHits = []); list.innerHTML = ''; renderMeta(null); renderValues(null); setCount(0, 'Load a model to search it.'); return; }
     var I = index();
-    if (key && !I.keys.has(key)) { s.searchHits = []; list.innerHTML = ''; count.textContent = 'No property called “' + key + '” in this model.'; return; }
-    if (!q && !usingProp) { s.searchHits = []; list.innerHTML = ''; count.textContent = key ? 'Enter a value or pick one above.' : ''; return; }
+    var known = !!key && I.keys.has(key);
+    renderMeta(known ? key : null);
+    renderValues(known ? key : null, op, want);
+    renderSuggest(!key);
+    if (key && !known) { s.searchHits = []; list.innerHTML = ''; setCount(0, 'No property called “' + key + '”. Pick one from the list.'); return; }
+    if (!key) { s.searchHits = []; list.innerHTML = ''; setCount(0, 'Choose a property to start.'); return; }
+    if (needVal && !want) { s.searchHits = []; list.innerHTML = ''; setCount(0, 'Pick a value, or type one.'); return; }
     var out = [];
     s.model.elements.forEach(function (el) {
-      var k = null, v = null;
-      if (usingProp) {
-        if (!inScope(el, key, I)) return;
-        v = valueOf(el, key);
-        if (!test(op, v, want, key === CLASS_KEY || el.props.has(key))) return;
-        k = key;
-      }
-      if (q) {
-        var found = false;
-        el.props.forEach(function (pv, pk) { if (!found && str(pv).toLowerCase().indexOf(q) >= 0) { found = true; if (!k) { k = pk; v = pv; } } });
-        if (!found && !usingProp) return;
-        if (!found) return;
-      }
-      out.push({ el: el, k: k, v: v == null ? '' : str(v), miss: usingProp && k === key && key !== CLASS_KEY && !el.props.has(key) });
+      if (!inScope(el, key, I)) return;
+      var has = key === CLASS_KEY || el.props.has(key), v = valueOf(el, key);
+      if (!test(op, v, want, has)) return;
+      out.push({ el: el, v: v == null ? '' : str(v), miss: !has });
     });
-    s.searchHits = out;
-    count.textContent = out.length.toLocaleString() + ' object' + (out.length === 1 ? '' : 's') + ' found';
-    var mark = function (u) {
-      var t = String(u), d = q ? t.toLowerCase().indexOf(q) : -1;
-      return d < 0 ? esc(t) : esc(t.slice(0, d)) + '<mark>' + esc(t.slice(d, d + q.length)) + '</mark>' + esc(t.slice(d + q.length));
+    s.searchHits = out.map(function (u) { return { el: u.el, k: key, v: u.v }; });
+    setCount(out.length);
+    var mark = function (t) {
+      var d = needVal && op !== 'equals' ? t.toLowerCase().indexOf(want) : -1;
+      return d < 0 ? esc(t) : esc(t.slice(0, d)) + '<mark>' + esc(t.slice(d, d + want.length)) + '</mark>' + esc(t.slice(d + want.length));
     };
     list.innerHTML = out.slice(0, 500).map(function (u) {
-      return '<div class="item ' + (s.selected === u.el.id ? 'sel' : '') + '" data-id="' + u.el.id + '"><div class="t">' + esc(u.el.props.get('Attr.Name') || '#' + u.el.id) +
-        '</div><div class="s">' + esc(u.el.cls) + '</div><div class="s">' + mark(u.k) + ' = ' + (u.miss ? '<i class="muted">(missing)</i>' : u.v === '' ? '<i class="muted">(blank)</i>' : mark(u.v)) + '</div></div>';
-    }).join('') + (out.length > 500 ? '<div class="muted sm">Showing the first 500. Select in model and Isolate use all ' + out.length.toLocaleString() + '.</div>' : '');
-    $('#slqPsSelect').textContent = out.length ? 'Select ' + out.length.toLocaleString() + ' in model' : 'Select in model';
+      var val = u.miss ? '<em>missing</em>' : isEmpty(u.v) ? '<em>' + (u.v.trim() ? esc(u.v) : 'blank') + '</em>' : mark(u.v);
+      return '<div class="item slq-ps-item' + (s.selected === u.el.id ? ' sel' : '') + '" data-id="' + u.el.id + '">' +
+        '<div class="t">' + esc(u.el.props.get('Attr.Name') || '#' + u.el.id) + '</div>' +
+        '<div class="slq-ps-row2"><span class="slq-ps-cls">' + esc(String(u.el.cls).replace(/^Ifc/, '')) + '</span>' +
+        (key === CLASS_KEY ? '' : '<span class="slq-ps-chip' + (u.miss || isEmpty(u.v) ? ' empty' : '') + '">' + val + '</span>') + '</div></div>';
+    }).join('') + (out.length > 500 ? '<div class="slq-ps-more">Showing the first 500 · Select and Isolate use all ' + out.length.toLocaleString() + '</div>' : '');
+  }
+
+  function renderMeta(key) {
+    var m = $('#slqPsMeta'); if (!m) return;
+    if (!key) { m.hidden = true; return; }
+    var I = index(), p = split(key), arr = valueCounts(key) || [];
+    var nv = arr.filter(function (x) { return x.v !== BLANK && x.v !== MISSING; }).length;
+    m.hidden = false;
+    m.innerHTML = '<span class="slq-ps-grp">' + esc(p.g) + '</span><span class="slq-ps-dot"></span>' + I.keys.get(key).toLocaleString() + ' objects · ' + nv.toLocaleString() + ' value' + (nv === 1 ? '' : 's');
+  }
+
+  function renderSuggest(show) {
+    var box = $('#slqPsSuggest'), I = idx; if (!box) return;
+    if (!show || !I) { box.hidden = true; return; }
+    var pri = [/return.*owner|owner/i, /uniclass/i, /pit type|pipe type|family|type name/i, /material/i, /status|stage/i];
+    var pick = [CLASS_KEY];
+    pri.forEach(function (re) { for (var i = 0; i < I.sorted.length; i++) { var k = I.sorted[i]; if (re.test(k) && pick.indexOf(k) < 0) { pick.push(k); break; } } });
+    if (pick.indexOf('Attr.Name') < 0 && I.keys.has('Attr.Name')) pick.push('Attr.Name');
+    box.hidden = false;
+    box.innerHTML = '<div class="slq-ps-cap">Common properties</div><div class="slq-ps-sugs">' + pick.slice(0, 6).map(function (k) {
+      return '<button type="button" class="slq-ps-sug" data-k="' + esc(k) + '" title="' + esc(k) + '">' + esc(split(k).n) + '</button>';
+    }).join('') + '</div>';
   }
 
   function renderValues(key, op, want) {
@@ -125,72 +164,94 @@
     var arr = key ? valueCounts(key) : null;
     if (!arr) { box.innerHTML = ''; box.hidden = true; return; }
     box.hidden = false;
-    var N = 40;
-    box.innerHTML = '<div class="muted sm">Values in this model</div>' + arr.slice(0, N).map(function (x) {
+    var N = 60, real = arr.filter(function (x) { return x.v !== BLANK && x.v !== MISSING; }), spec = arr.filter(function (x) { return x.v === BLANK || x.v === MISSING; });
+    var max = arr.reduce(function (a, x) { return Math.max(a, x.n); }, 1);
+    var row = function (x) {
       var sp = x.v === BLANK || x.v === MISSING, on = x.v === BLANK ? op === 'empty' : x.v === MISSING ? op === 'missing' : op === 'equals' && x.v.toLowerCase() === want;
-      return '<button type="button" class="slq-ps-v' + (on ? ' on' : '') + (sp ? ' blank' : '') + '" data-v="' + esc(x.v) + '"><span>' + esc(x.v) + '</span><b>' + x.n.toLocaleString() + '</b></button>';
-    }).join('') + (arr.length > N ? '<div class="muted sm">+' + (arr.length - N).toLocaleString() + ' more values · type to narrow</div>' : '');
+      var lab = x.v === BLANK ? 'Blank, Not Set or TBC' : x.v === MISSING ? 'Property missing' : x.v;
+      return '<button type="button" class="slq-ps-v' + (on ? ' on' : '') + (sp ? ' special' : '') + '" data-v="' + esc(x.v) + '" title="' + esc(lab) + '">' +
+        '<i style="width:' + Math.max(2, Math.round(x.n / max * 100)) + '%"></i><span>' + esc(lab) + '</span><b>' + x.n.toLocaleString() + '</b></button>';
+    };
+    box.innerHTML = '<div class="slq-ps-cap">Values <span>click to filter</span></div>' + real.slice(0, N).map(row).join('') +
+      (real.length > N ? '<div class="slq-ps-more">+' + (real.length - N).toLocaleString() + ' more · type above to narrow</div>' : '') +
+      (spec.length ? '<div class="slq-ps-sep"></div>' + spec.map(row).join('') : '');
   }
 
   /* ---- UI ---- */
   function build() {
-    var tab = $('#tab-search'), inp = $('#searchInput');
-    if (!tab || !inp || $('#slqPs')) return !!$('#slqPs');
-    var keysLab = $('#searchKeys') && $('#searchKeys').closest('label');
-    if (keysLab) keysLab.style.display = 'none';
-    inp.placeholder = 'Quick search: any text or value…';
+    var tab = $('#tab-search'), inp = $('#searchInput'), list = $('#searchList');
+    if (!tab || !inp || !list) return false;
+    if ($('#slqPs')) return true;
+    tab.classList.add('slq-ps-tab');
+    var row = inp.closest('.row'); if (row) row.style.display = 'none';
+    var keysLab = $('#searchKeys') && $('#searchKeys').closest('label'); if (keysLab) keysLab.style.display = 'none';
+    var btnRow = $('#btnIsolateSearch') && $('#btnIsolateSearch').closest('.row'); if (btnRow) btnRow.style.display = 'none';
+    if ($('#searchCount')) $('#searchCount').style.display = 'none';
+
     var box = document.createElement('div');
     box.id = 'slqPs'; box.className = 'slq-ps';
-    box.innerHTML = '<div class="slq-ps-h">Find by property</div>' +
-      '<label class="slq-ps-l" for="slqPsProp">Property</label>' +
-      '<input class="inp" id="slqPsProp" list="slqPsKeys" placeholder="Start typing a property name…" autocomplete="off"><datalist id="slqPsKeys"></datalist>' +
-      '<div class="row"><select class="inp sm" id="slqPsOp" aria-label="Test">' +
-      '<option value="contains">contains</option><option value="equals">equals</option><option value="starts">starts with</option>' +
-      '<option value="empty">is empty</option><option value="missing">is missing</option><option value="notempty">has a value</option></select>' +
-      '<input class="inp grow" id="slqPsVal" placeholder="Value" autocomplete="off"></div>' +
-      '<div class="slq-ps-vals" id="slqPsVals" hidden></div>';
-    var row = inp.closest('.row') || inp;
-    row.parentNode.insertBefore(box, row.nextSibling);
+    box.innerHTML =
+      '<div class="slq-ps-card">' +
+        '<label class="slq-ps-lab" for="slqPsProp">Property</label>' +
+        '<div class="slq-ps-in">' + ICON.search + '<input id="slqPsProp" list="slqPsKeys" placeholder="Search property names…" autocomplete="off" spellcheck="false">' +
+          '<button type="button" class="slq-ps-x" id="slqPsPropClear" aria-label="Clear property" hidden>' + ICON.x + '</button></div>' +
+        '<datalist id="slqPsKeys"></datalist>' +
+        '<div class="slq-ps-meta" id="slqPsMeta" hidden></div>' +
+        '<div id="slqPsSuggest" hidden></div>' +
+        '<label class="slq-ps-lab" for="slqPsVal">Condition</label>' +
+        '<div class="slq-ps-cond"><select id="slqPsOp" aria-label="Condition">' +
+          '<option value="equals">equals</option><option value="contains">contains</option><option value="starts">starts with</option>' +
+          '<option value="empty">is blank</option><option value="missing">is missing</option><option value="notempty">has a value</option></select>' +
+          '<input id="slqPsVal" autocomplete="off" spellcheck="false"></div>' +
+        '<div class="slq-ps-vals" id="slqPsVals" hidden></div>' +
+      '</div>' +
+      '<div class="slq-ps-res idle" id="slqPsRes"><div class="slq-ps-count" id="slqPsCount"></div>' +
+        '<div class="slq-ps-acts">' +
+          '<button type="button" class="slq-ps-btn ghost" id="slqPsIso" title="Show only the objects found">' + ICON.eye + '<span>Isolate</span></button>' +
+          '<button type="button" class="slq-ps-btn primary" id="slqPsSelect" title="Select every object found, then right-click or use Allocate category… in the bar">' + ICON.target + '<span>Select</span></button>' +
+        '</div></div>';
+    list.parentNode.insertBefore(box, list);
+    list.classList.add('slq-ps-list');
 
-    var iso = $('#btnIsolateSearch');
-    if (iso) {
-      var b = document.createElement('button');
-      b.className = 'btn sm primary'; b.id = 'slqPsSelect'; b.textContent = 'Select in model';
-      b.title = 'Select every object found, then right-click or use Allocate category… in the bar';
-      iso.parentNode.insertBefore(b, iso);
-      b.onclick = function () {
-        var ids = hits().map(function (h) { return h.el.id; });
-        if (!ids.length) return toast('No search results');
-        if (window.slqSelection) window.slqSelection.set(ids);
-        if (V()) V().zoomTo(ids);
-        toast(ids.length.toLocaleString() + ' object' + (ids.length === 1 ? '' : 's') + ' selected · right-click or use Allocate category…');
-      };
-    }
-    inp.oninput = later;
-    $('#slqPsProp').addEventListener('focus', index);
-    $('#slqPsProp').addEventListener('input', function () { if (index()) fillKeys(); later(); });
-    $('#slqPsProp').addEventListener('change', run);
-    $('#slqPsOp').addEventListener('change', run);
-    $('#slqPsVal').addEventListener('input', later);
-    $('#slqPsVals').addEventListener('click', function (e) {
+    var P = $('#slqPsProp'), O = $('#slqPsOp'), Vl = $('#slqPsVal');
+    P.addEventListener('focus', function () { if (index()) fillKeys(); });
+    P.addEventListener('input', function () { if (index()) fillKeys(); later(); });
+    P.addEventListener('change', function () { O.value = 'equals'; Vl.value = ''; run(); });
+    O.addEventListener('change', run);
+    Vl.addEventListener('input', later);
+    $('#slqPsPropClear').onclick = function () { P.value = ''; O.value = 'equals'; Vl.value = ''; run(); if (V()) V().setVisible(null); P.focus(); };
+    box.addEventListener('click', function (e) {
+      var sg = e.target.closest('.slq-ps-sug');
+      if (sg) { P.value = sg.dataset.k; O.value = 'equals'; Vl.value = ''; run(); return; }
       var b = e.target.closest('.slq-ps-v'); if (!b) return;
       var v = b.dataset.v;
-      if (b.classList.contains('on')) { $('#slqPsOp').value = 'contains'; $('#slqPsVal').value = ''; }
-      else if (v === BLANK) { $('#slqPsOp').value = 'empty'; $('#slqPsVal').value = ''; }
-      else if (v === MISSING) { $('#slqPsOp').value = 'missing'; $('#slqPsVal').value = ''; }
-      else { $('#slqPsOp').value = 'equals'; $('#slqPsVal').value = v; }
+      if (b.classList.contains('on')) { O.value = 'equals'; Vl.value = ''; }
+      else if (v === BLANK) { O.value = 'empty'; Vl.value = ''; }
+      else if (v === MISSING) { O.value = 'missing'; Vl.value = ''; }
+      else { O.value = 'equals'; Vl.value = v; }
       run();
     });
-    $('#searchList').addEventListener('click', function (e) {
+    $('#slqPsSelect').onclick = function () {
+      var ids = hits().map(function (h) { return h.el.id; });
+      if (!ids.length) return;
+      if (window.slqSelection) window.slqSelection.set(ids);
+      if (V()) V().zoomTo(ids);
+      toast(ids.length.toLocaleString() + ' object' + (ids.length === 1 ? '' : 's') + ' selected · right-click or use Allocate category…');
+    };
+    $('#slqPsIso').onclick = function () {
+      var ids = hits().map(function (h) { return h.el.id; });
+      if (!ids.length || !V()) return;
+      V().setVisible(ids); V().zoomTo(ids);
+    };
+    list.addEventListener('click', function (e) {
       var it = e.target.closest('.item'); if (!it || !window.slqPick) return;
       e.stopPropagation(); window.slqPick(+it.dataset.id, true);
     }, true);
-    var clr = $('#btnClearSearch');
-    if (clr) clr.onclick = function () {
-      inp.value = ''; $('#slqPsProp').value = ''; $('#slqPsOp').value = 'contains'; $('#slqPsVal').value = '';
-      run(); if (V()) V().setVisible(null);
-    };
     window.slqSearchRun = run;
+    /* refresh when a model is loaded or the tab is opened */
+    var seen = null;
+    setInterval(function () { var m = st() && st().model; if (m !== seen) { seen = m; idx = null; run(); } }, 1000);
+    run();
     return true;
   }
   function boot() { if (!build()) setTimeout(boot, 300); }
