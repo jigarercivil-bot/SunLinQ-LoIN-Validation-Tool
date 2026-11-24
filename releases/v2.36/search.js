@@ -276,6 +276,13 @@
     b.className = 'btn sm'; b.id = 'slqHideSel'; b.textContent = 'Hide selection';
     b.title = 'Hide the selected objects (Show all brings them back)';
     iso.parentNode.insertBefore(b, iso.nextSibling);
+    /* Which button shows as on: Hide selection after hiding, Isolate selection after any other partial view. */
+    var v0 = V();
+    if (v0 && !v0.__slqVisWrap) {
+      v0.__slqVisWrap = true;
+      var setVis = v0.setVisible;
+      v0.setVisible = function (ids) { this.__slqVisMode = ids ? (this.__slqHiding ? 'hide' : 'iso') : null; return setVis.apply(this, arguments); };
+    }
     b.onclick = function () {
       var v = V(), s = st(); if (!v || !s || !s.model) return toast('Load a model first');
       var ids = window.slqSelection ? window.slqSelection.ids() : [];
@@ -283,7 +290,8 @@
       if (!ids.length && s.selected != null) ids = [s.selected];
       if (!ids.length) return toast('Select an element first');
       var drop = new Set(ids), base = v.visible ? Array.from(v.visible) : Array.from(v.ranges.keys());
-      v.setVisible(base.filter(function (i) { return !drop.has(i); }));
+      v.__slqHiding = true;
+      try { v.setVisible(base.filter(function (i) { return !drop.has(i); })); } finally { v.__slqHiding = false; }
       if (window.slqSelection) window.slqSelection.clear();
       if (window.slqHighlight) window.slqHighlight([]); else v.select([]);
       if (window.slqPick) window.slqPick(null, false);

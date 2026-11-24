@@ -530,9 +530,14 @@
     var V = window.__irc && window.__irc.viewer; if (!V) return;
     var sec = $('#btnSection'); if (sec) sec.classList.toggle('on', !!(V.section && V.section.on));
     var iso = $('#btnIsolateSel'); if (iso) {
-      var on = !!V.visible;
+      var on = !!V.visible && V.__slqVisMode !== 'hide';
       iso.classList.toggle('slq-active', on);
       iso.title = on ? 'Part of the model is hidden · use Show all to bring it back' : 'Show only the selected objects';
+    }
+    var hid = $('#slqHideSel'); if (hid) {
+      var hon = !!V.visible && V.__slqVisMode === 'hide';
+      hid.classList.toggle('slq-active', hon);
+      hid.title = hon ? 'Objects are hidden · use Show all to bring them back' : 'Hide the selected objects (Show all brings them back)';
     }
   }
   // Picking an object in 3D while Mapping is open shows that object's mapping group.
