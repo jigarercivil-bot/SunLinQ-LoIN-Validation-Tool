@@ -104,13 +104,14 @@
     var key = $('#slqPsProp').value.trim(), op = $('#slqPsOp').value, want = $('#slqPsVal').value.trim().toLowerCase();
     var needVal = op === 'contains' || op === 'equals' || op === 'starts';
     $('#slqPsVal').disabled = !needVal;
-    $('#slqPsVal').placeholder = needVal ? 'Type a value or pick one below' : 'No value needed';
+    $('#slqPsVal').placeholder = needVal ? 'Choose or type a value' : 'No value needed';
     $('#slqPsPropClear').hidden = !key;
     if (!s || !s.model) { s && (s.searchHits = []); list.innerHTML = ''; renderMeta(null); renderValues(null); setCount(0, 'Load a model to search it.'); return; }
     var I = index();
     var known = !!key && I.keys.has(key);
     renderMeta(known ? key : null);
     renderValues(known ? key : null, op, want);
+    fillVals(known && needVal ? key : null);
     renderSuggest(!key);
     if (key && !known) { s.searchHits = []; list.innerHTML = ''; setCount(0, 'No property called “' + key + '”. Pick one from the list.'); return; }
     if (!key) { s.searchHits = []; list.innerHTML = ''; setCount(0, 'Choose a property to start.'); return; }
@@ -135,6 +136,19 @@
         '<div class="slq-ps-row2"><span class="slq-ps-cls">' + esc(String(u.el.cls).replace(/^Ifc/, '')) + '</span>' +
         (key === CLASS_KEY ? '' : '<span class="slq-ps-chip' + (u.miss || isEmpty(u.v) ? ' empty' : '') + '">' + val + '</span>') + '</div></div>';
     }).join('') + (out.length > 500 ? '<div class="slq-ps-more">Showing the first 500 · Select and Isolate use all ' + out.length.toLocaleString() + '</div>' : '');
+  }
+
+  /* Drop-down of the property's values in this model (most common first, narrowed by what is typed). */
+  function fillVals(key) {
+    var dl = $('#slqPsValList'); if (!dl) return;
+    if (!key) { dl.innerHTML = ''; return; }
+    var t = $('#slqPsVal').value.trim().toLowerCase(), arr = valueCounts(key) || [], out = [];
+    for (var i = 0; i < arr.length && out.length < 150; i++) {
+      var x = arr[i]; if (x.v === BLANK || x.v === MISSING) continue;
+      if (t && x.v.toLowerCase() === t) { out = []; break; }
+      if (!t || x.v.toLowerCase().indexOf(t) >= 0) out.push(x);
+    }
+    dl.innerHTML = out.map(function (x) { return '<option value="' + esc(x.v) + '" label="' + x.n.toLocaleString() + ' object' + (x.n === 1 ? '' : 's') + '"></option>'; }).join('');
   }
 
   function renderMeta(key) {
@@ -202,7 +216,7 @@
         '<div class="slq-ps-cond"><select id="slqPsOp" aria-label="Condition">' +
           '<option value="equals">equals</option><option value="contains">contains</option><option value="starts">starts with</option>' +
           '<option value="empty">is blank</option><option value="missing">is missing</option><option value="notempty">has a value</option></select>' +
-          '<input id="slqPsVal" autocomplete="off" spellcheck="false"></div>' +
+          '<input id="slqPsVal" list="slqPsValList" autocomplete="off" spellcheck="false"></div><datalist id="slqPsValList"></datalist>' +
         '<div class="slq-ps-vals" id="slqPsVals" hidden></div>' +
       '</div>' +
       '<div class="slq-ps-res idle" id="slqPsRes"><div class="slq-ps-count" id="slqPsCount"></div>' +
@@ -248,11 +262,33 @@
       e.stopPropagation(); window.slqPick(+it.dataset.id, true);
     }, true);
     window.slqSearchRun = run;
+    addHide();
     /* refresh when a model is loaded or the tab is opened */
     var seen = null;
     setInterval(function () { var m = st() && st().model; if (m !== seen) { seen = m; idx = null; run(); } }, 1000);
     run();
     return true;
+  }
+  /* Viewer toolbar: Hide selection, next to Isolate selection. Show all brings hidden objects back. */
+  function addHide() {
+    var iso = $('#btnIsolateSel'); if (!iso || $('#slqHideSel')) return;
+    var b = document.createElement('button');
+    b.className = 'btn sm'; b.id = 'slqHideSel'; b.textContent = 'Hide selection';
+    b.title = 'Hide the selected objects (Show all brings them back)';
+    iso.parentNode.insertBefore(b, iso.nextSibling);
+    b.onclick = function () {
+      var v = V(), s = st(); if (!v || !s || !s.model) return toast('Load a model first');
+      var ids = window.slqSelection ? window.slqSelection.ids() : [];
+      if (!ids.length && v.selected && v.selected.size) ids = Array.from(v.selected);
+      if (!ids.length && s.selected != null) ids = [s.selected];
+      if (!ids.length) return toast('Select an element first');
+      var drop = new Set(ids), base = v.visible ? Array.from(v.visible) : Array.from(v.ranges.keys());
+      v.setVisible(base.filter(function (i) { return !drop.has(i); }));
+      if (window.slqSelection) window.slqSelection.clear();
+      if (window.slqHighlight) window.slqHighlight([]); else v.select([]);
+      if (window.slqPick) window.slqPick(null, false);
+      toast(ids.length.toLocaleString() + ' object' + (ids.length === 1 ? '' : 's') + ' hidden · Show all to bring back');
+    };
   }
   function boot() { if (!build()) setTimeout(boot, 300); }
   boot();

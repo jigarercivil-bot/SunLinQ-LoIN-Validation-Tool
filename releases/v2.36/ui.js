@@ -441,9 +441,10 @@
       '<h3>Search tab (Find by property)</h3><dl>' +
       '<dt>Property</dt><dd>Start typing a property name and pick it from the list (12d nested attributes included, e.g. 12d Model.Pit/pit type), or click one of the common properties. IFC class is also offered.</dd>' +
       '<dt>Values</dt><dd>Every value of that property with how many objects have it, most common first; the bar shows the share. Click a value to list those objects, click it again to undo. Blank, Not Set or TBC = the property is there but has no real value. Property missing = objects of the same IFC class without the property.</dd>' +
-      '<dt>Condition</dt><dd>equals, contains, starts with, is blank, is missing or has a value. Type a value for the first three (not case-sensitive).</dd>' +
+      '<dt>Condition</dt><dd>equals, contains, starts with, is blank, is missing or has a value. For the first three, pick a value from the drop-down of values in this model or type one (not case-sensitive).</dd>' +
       '<dt>Select</dt><dd>Selects every object found (not only the first 500 listed), shows the rest of the model see-through and zooms to them. Then right-click \u2192 Allocate category\u2026 or use Allocate category\u2026 in the bar, as for any selection. Search never changes mapping itself.</dd>' +
       '<dt>Isolate</dt><dd>Shows only the objects found. Clearing the property (\u2715) shows the whole model again.</dd></dl>' +
+      '<h3>Viewer buttons</h3><dl><dt>Isolate selection</dt><dd>Shows only the selected objects.</dd><dt>Hide selection</dt><dd>Hides the selected objects (one or many); keep selecting and hiding to peel the model back. Show all brings everything back.</dd></dl>' +
       '<h3>3D colours</h3><dl>' +
       '<dt>Validation</dt><dd>Pass, error, warning, not checked.</dd>' +
       '<dt>By class</dt><dd>One colour per IFC class.</dd>' +
